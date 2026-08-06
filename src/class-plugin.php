@@ -5,8 +5,13 @@ defined( 'ABSPATH' ) || exit;
 
 final class Plugin {
 	public static function boot() {
+		Database::maybe_upgrade();
 		load_plugin_textdomain( 'openlingua', false, dirname( plugin_basename( OPENLINGUA_FILE ) ) . '/languages' );
 		Content::hooks();
+		Taxonomies::hooks();
+		Routing::hooks();
+		SEO::hooks();
+		REST::hooks();
 		Admin::hooks();
 		add_shortcode( 'openlingua_switcher', array( __CLASS__, 'switcher' ) );
 		add_filter( 'locale', array( __CLASS__, 'locale' ) );
@@ -42,3 +47,6 @@ function translated_post_id( $post_id, $language ) {
 	return Translations::translated_id( 'post', $post_id, $language );
 }
 
+function translated_term_id( $term_id, $language ) {
+	return Translations::translated_id( 'term', $term_id, $language );
+}

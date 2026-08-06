@@ -9,6 +9,7 @@ final class Admin {
 		add_action( 'admin_init', array( __CLASS__, 'settings' ) );
 		add_action( 'restrict_manage_posts', array( __CLASS__, 'post_filter' ) );
 		add_action( 'admin_post_openlingua_save_strings', array( __CLASS__, 'save_strings' ) );
+		add_action( 'update_option_openlingua_languages', array( __CLASS__, 'schedule_rewrite_flush' ) );
 	}
 
 	public static function menu() {
@@ -95,5 +96,9 @@ final class Admin {
 			$wpdb->update( Database::table( 'strings' ), array( 'translations' => wp_json_encode( $clean ), 'updated_at' => current_time( 'mysql' ) ), array( 'id' => absint( $id ) ) );
 		}
 		wp_safe_redirect( add_query_arg( array( 'page' => 'openlingua-strings', 'updated' => '1' ), admin_url( 'admin.php' ) ) ); exit;
+	}
+
+	public static function schedule_rewrite_flush() {
+		update_option( 'openlingua_flush_rewrite_rules', 1 );
 	}
 }

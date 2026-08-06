@@ -10,6 +10,7 @@ final class Content {
 		add_action( 'before_delete_post', array( __CLASS__, 'delete_link' ) );
 		add_action( 'admin_post_openlingua_duplicate', array( __CLASS__, 'duplicate' ) );
 		add_action( 'pre_get_posts', array( __CLASS__, 'filter_admin_posts' ) );
+		add_filter( 'posts_clauses', array( __CLASS__, 'filter_frontend_posts' ), 10, 2 );
 		add_filter( 'query_vars', array( __CLASS__, 'query_vars' ) );
 	}
 
@@ -75,7 +76,8 @@ final class Content {
 		$new_id = wp_insert_post( array(
 			'post_type' => $source->post_type, 'post_status' => 'draft', 'post_title' => $source->post_title,
 			'post_content' => $source->post_content, 'post_excerpt' => $source->post_excerpt,
-			'post_parent' => $source->post_parent, 'menu_order' => $source->menu_order,
+			'post_parent' => $source->post_parent ? ( Translations::translated_id( 'post', $source->post_parent, $language ) ?: $source->post_parent ) : 0,
+			'menu_order' => $source->menu_order,
 		) );
 		if ( is_wp_error( $new_id ) ) { wp_die( esc_html( $new_id->get_error_message() ) ); }
 		foreach ( get_post_meta( $post_id ) as $key => $values ) {
@@ -85,7 +87,13 @@ final class Content {
 		foreach ( get_object_taxonomies( $source->post_type ) as $taxonomy ) {
 			$term_ids = wp_get_object_terms( $post_id, $taxonomy, array( 'fields' => 'ids' ) );
 			if ( ! is_wp_error( $term_ids ) ) {
-				wp_set_object_terms( $new_id, $term_ids, $taxonomy );
+				$translated_terms = array_map(
+					function ( $term_id ) use ( $language ) {
+						return Translations::translated_id( 'term', $term_id, $language ) ?: $term_id;
+					},
+					$term_ids
+				);
+				wp_set_object_terms( $new_id, $translated_terms, $taxonomy );
 			}
 		}
 		Translations::assign( 'post', $new_id, $language, $group, $row ? $row->language : Languages::default_code() );
@@ -102,4 +110,18 @@ final class Content {
 
 	public static function delete_link( $post_id ) { Translations::delete( 'post', $post_id ); }
 	public static function query_vars( $vars ) { $vars[] = 'lang'; return $vars; }
+
+	public static function filter_frontend_posts( $clauses, $query ) {
+		if ( is_admin() || ! $query->is_main_query() || $query->is_singular() || $query->get( 'suppress_filters' ) ) { return $clauses; }
+		global $wpdb;
+		$table    = Database::table( 'translations' );
+		$language = Languages::current();
+		$default  = Languages::default_code();
+		if ( $language === $default ) {
+			$clauses['where'] .= $wpdb->prepare( " AND (NOT EXISTS (SELECT 1 FROM {$table} ol_any WHERE ol_any.element_type = 'post' AND ol_any.element_id = {$wpdb->posts}.ID) OR EXISTS (SELECT 1 FROM {$table} ol_lang WHERE ol_lang.element_type = 'post' AND ol_lang.element_id = {$wpdb->posts}.ID AND ol_lang.language = %s))", $language );
+		} else {
+			$clauses['where'] .= $wpdb->prepare( " AND EXISTS (SELECT 1 FROM {$table} ol_lang WHERE ol_lang.element_type = 'post' AND ol_lang.element_id = {$wpdb->posts}.ID AND ol_lang.language = %s)", $language );
+		}
+		return $clauses;
+	}
 }

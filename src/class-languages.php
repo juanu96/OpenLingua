@@ -25,12 +25,44 @@ final class Languages {
 		return self::$current;
 	}
 
+	public static function set_current( $code ) {
+		$code = sanitize_key( $code );
+		if ( self::is_valid( $code ) ) {
+			self::$current = $code;
+		}
+		return self::$current;
+	}
+
 	public static function is_valid( $code ) {
 		return isset( self::all()[ sanitize_key( $code ) ] );
 	}
 
 	public static function url( $url, $code ) {
-		return self::is_valid( $code ) ? add_query_arg( 'lang', sanitize_key( $code ), $url ) : $url;
+		$code = sanitize_key( $code );
+		if ( ! self::is_valid( $code ) || ! $url ) {
+			return $url;
+		}
+
+		$url        = remove_query_arg( 'lang', $url );
+		$parts      = wp_parse_url( $url );
+		$home_parts = wp_parse_url( home_url( '/' ) );
+		if ( ! empty( $parts['host'] ) && ! empty( $home_parts['host'] ) && strtolower( $parts['host'] ) !== strtolower( $home_parts['host'] ) ) {
+			return $url;
+		}
+
+		$home_path = isset( $home_parts['path'] ) ? '/' . trim( $home_parts['path'], '/' ) : '';
+		$home_path = '/' === $home_path ? '' : rtrim( $home_path, '/' );
+		$path      = isset( $parts['path'] ) ? $parts['path'] : '/';
+		$relative  = 0 === strpos( $path, $home_path ) ? substr( $path, strlen( $home_path ) ) : $path;
+		$codes     = array_map( 'preg_quote', array_keys( self::all() ) );
+		$relative  = preg_replace( '#^/(?:' . implode( '|', $codes ) . ')(?=/|$)#', '', $relative );
+		$target    = home_url( '/' . $code . '/' . ltrim( $relative, '/' ) );
+		if ( ! empty( $parts['query'] ) ) {
+			$target .= '?' . $parts['query'];
+		}
+		if ( ! empty( $parts['fragment'] ) ) {
+			$target .= '#' . $parts['fragment'];
+		}
+		return $target;
 	}
 }
-

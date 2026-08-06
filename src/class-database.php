@@ -4,6 +4,13 @@ namespace OpenLingua;
 defined( 'ABSPATH' ) || exit;
 
 final class Database {
+	public static function maybe_upgrade() {
+		if ( OPENLINGUA_VERSION !== get_option( 'openlingua_db_version' ) ) {
+			self::activate();
+			update_option( 'openlingua_flush_rewrite_rules', 1 );
+		}
+	}
+
 	public static function table( $name ) {
 		global $wpdb;
 		return $wpdb->prefix . 'openlingua_' . $name;
@@ -52,4 +59,3 @@ final class Database {
 		update_option( 'openlingua_db_version', OPENLINGUA_VERSION );
 	}
 }
-
