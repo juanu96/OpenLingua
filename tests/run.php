@@ -16,6 +16,13 @@ function wp_unslash( $value ) { return stripslashes( $value ); }
 function wp_parse_url( $url, $component = -1 ) { return parse_url( $url, $component ); }
 function home_url( $path = '' ) { return 'https://example.test/site/' . ltrim( $path, '/' ); }
 function is_admin() { return false; }
+function sanitize_text_field( $value ) { return trim( strip_tags( $value ) ); }
+function trailingslashit( $value ) { return rtrim( $value, '/\\' ) . '/'; }
+function add_query_arg( $key, $value, $url ) {
+	$parts = parse_url( $url ); parse_str( $parts['query'] ?? '', $query ); $query[ $key ] = $value;
+	$base = ( $parts['scheme'] ?? 'https' ) . '://' . ( $parts['host'] ?? 'example.test' ) . ( $parts['path'] ?? '/' );
+	return $base . '?' . http_build_query( $query );
+}
 function remove_query_arg( $key, $url ) {
 	$parts = parse_url( $url );
 	parse_str( $parts['query'] ?? '', $query );
@@ -56,9 +63,30 @@ openlingua_assert_same(
 	'does not generate URLs for unconfigured languages'
 );
 
+$openlingua_test_options['openlingua_language_settings'] = array( 'url_mode' => 'query', 'domains' => array() );
+openlingua_assert_same(
+	'https://example.test/site/about/?preview=1&lang=es',
+	\OpenLingua\Languages::url( 'https://example.test/site/about/?preview=1', 'es' ),
+	'generates query-parameter language URLs'
+);
+
+$openlingua_test_options['openlingua_language_settings'] = array( 'url_mode' => 'domain', 'domains' => array( 'en' => 'https://en.example.test', 'es' => 'https://es.example.test' ) );
+openlingua_assert_same(
+	'https://es.example.test/about/?preview=1',
+	\OpenLingua\Languages::url( 'https://example.test/site/about/?preview=1', 'es' ),
+	'generates language-domain URLs and preserves the content path'
+);
+
+$openlingua_test_options['openlingua_language_settings'] = array( 'url_mode' => 'directory', 'domains' => array() );
 $_SERVER['REQUEST_URI'] = '/site/es/news/?page=2';
 \OpenLingua\Routing::detect_prefix( true, null, array() );
 openlingua_assert_same( '/site/news/?page=2', $_SERVER['REQUEST_URI'], 'strips the language prefix before WordPress routing' );
 openlingua_assert_same( 'es', \OpenLingua\Languages::current(), 'sets the current language from the URL prefix' );
+
+$openlingua_test_options['openlingua_language_settings'] = array( 'url_mode' => 'domain', 'domains' => array( 'en' => 'https://en.example.test', 'es' => 'https://es.example.test' ) );
+$_SERVER['HTTP_HOST'] = 'en.example.test';
+$_SERVER['REQUEST_URI'] = '/news/';
+\OpenLingua\Routing::detect_prefix( true, null, array() );
+openlingua_assert_same( 'en', \OpenLingua\Languages::current(), 'detects the language from a configured domain' );
 
 echo "All OpenLingua routing tests passed.\n";

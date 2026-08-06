@@ -18,6 +18,16 @@ final class Routing {
 		if ( is_admin() || empty( $_SERVER['REQUEST_URI'] ) ) {
 			return $do_parse;
 		}
+		$settings = array_replace( array( 'url_mode' => 'directory', 'domains' => array() ), (array) get_option( 'openlingua_language_settings', array() ) );
+		if ( 'query' === $settings['url_mode'] ) { return $do_parse; }
+		if ( 'domain' === $settings['url_mode'] ) {
+			$host = strtolower( sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ?? '' ) ) );
+			foreach ( (array) $settings['domains'] as $code => $domain ) {
+				$domain_host = strtolower( (string) wp_parse_url( $domain, PHP_URL_HOST ) );
+				if ( $domain_host && $host === $domain_host ) { Languages::set_current( $code ); break; }
+			}
+			return $do_parse;
+		}
 		$request_uri = wp_unslash( $_SERVER['REQUEST_URI'] );
 		$path        = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
 		$home_path   = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );

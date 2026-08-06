@@ -36,14 +36,16 @@ final class SEO {
 
 	public static function current_links() {
 		$links = array();
+		$public_languages = \OpenLingua\Languages::public_all();
 		if ( is_singular() ) {
 			foreach ( Translations::group( 'post', get_queried_object_id() ) as $language => $post_id ) {
-				if ( 'publish' === get_post_status( $post_id ) ) { $links[ $language ] = get_permalink( $post_id ); }
+				if ( isset( $public_languages[ $language ] ) && 'publish' === get_post_status( $post_id ) ) { $links[ $language ] = get_permalink( $post_id ); }
 			}
 		} elseif ( is_category() || is_tag() || is_tax() ) {
 			$term = get_queried_object();
 			if ( $term instanceof \WP_Term ) {
 				foreach ( Translations::group( 'term', $term->term_id ) as $language => $term_id ) {
+					if ( ! isset( $public_languages[ $language ] ) ) { continue; }
 					$translated_term = get_term( absint( $term_id ) );
 					if ( ! $translated_term || is_wp_error( $translated_term ) ) { continue; }
 					$link = get_term_link( $translated_term, $translated_term->taxonomy );

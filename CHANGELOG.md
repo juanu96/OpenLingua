@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0
+
+- Replaces the original language table with an independently designed, sectioned settings screen.
+- Adds a catalog of more than 60 languages and support for custom language codes, native names, locales, symbols, and RTL direction.
+- Adds working directory, query-string, and per-language domain URL strategies.
+- Adds switcher display controls, dropdown and footer modes, missing-translation behavior, and public language hiding.
+- Adds a configurable administration locale, opt-in browser-language redirect, and explicit gettext discovery control.
+- Applies hidden-language policy to REST discovery and SEO alternate links.
+- Adds safe cross-domain redirect allowlisting and routing coverage for query and domain modes.
+
 ## 1.0.0
 
 - Introduces a reusable module registry and explicit module/provider contracts.

@@ -4,18 +4,21 @@ Tags: multilingual, translation, languages, acf, custom post types, woocommerce
 Requires at least: 6.4
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 
 A free, community-first multilingual foundation for WordPress.
 
 == Description ==
 
-OpenLingua 1.0 is an original GPL implementation. It does not include WPML code and is not a drop-in WPML replacement.
+OpenLingua 1.1 is an original GPL implementation. It does not include WPML code and is not a drop-in WPML replacement.
 
 Stable supported features:
 
 * Languages, locales, pretty `/en/` URLs, query fallback, language switcher, and translated redirects.
+* A catalog of more than 60 languages plus custom languages, native names, locales, flags or symbols, and RTL direction.
+* Directory, query-parameter, or per-language domain URL modes.
+* Configurable public visibility, administration locale, browser redirect, footer switcher, and missing-translation behavior.
 * Pages, posts, public custom post types, attachments, categories, tags, and custom taxonomies.
 * One-click translation drafts with translated hierarchy and taxonomy mapping.
 * Gutenberg/classic content and configurable metadata policies for ACF and page-builder data.
@@ -76,6 +79,15 @@ ACF and builders are supported through metadata policies. Complex components tha
 WooCommerce 1.0 support covers translated product content and synchronized operational product metadata. Full multilingual checkout text, variation duplication, order localization, subscriptions, and third-party WooCommerce extensions require dedicated adapters and are not claimed as supported by this release.
 
 == Changelog ==
+
+= 1.1.0 =
+
+* Replaced the basic language table with a complete, sectioned language-settings experience.
+* Added a built-in language catalog, custom languages, native names, flags, locales, and text direction.
+* Added functional directory, query-parameter, and per-language domain routing modes.
+* Added configurable switcher content, dropdown/footer output, missing-translation handling, and hidden languages.
+* Added administration-language selection, opt-in browser-language redirect, and theme string discovery controls.
+* Added domain redirect allowlisting and expanded routing tests.
 
 = 1.0.0 =
 

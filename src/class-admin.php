@@ -38,21 +38,7 @@ final class Admin {
 	}
 
 	public static function page() {
-		if ( ! current_user_can( 'manage_options' ) ) { return; }
-		$languages = Languages::all();
-		echo '<div class="wrap"><h1>OpenLingua</h1><p>' . esc_html__( 'Configure the languages available on this site.', 'openlingua' ) . '</p><form method="post" action="options.php">';
-		settings_fields( 'openlingua' );
-		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Code', 'openlingua' ) . '</th><th>' . esc_html__( 'Name', 'openlingua' ) . '</th><th>' . esc_html__( 'Locale', 'openlingua' ) . '</th><th>' . esc_html__( 'Default', 'openlingua' ) . '</th></tr></thead><tbody>';
-		$rows = array_unique( array_merge( array_keys( $languages ), array( '__new' ) ) );
-		foreach ( $rows as $code ) {
-			$item = $languages[ $code ] ?? array( 'name' => '', 'locale' => '' );
-			$name = 'openlingua_languages[' . $code . ']';
-			echo '<tr><td>' . ( '__new' === $code ? '<input name="openlingua_languages[__new][code]" placeholder="fr">' : '<code>' . esc_html( $code ) . '</code>' ) . '</td>';
-			echo '<td><input name="' . esc_attr( $name . '[name]' ) . '" value="' . esc_attr( $item['name'] ) . '"></td><td><input name="' . esc_attr( $name . '[locale]' ) . '" value="' . esc_attr( $item['locale'] ) . '"></td>';
-			echo '<td>' . ( '__new' !== $code ? '<input type="radio" name="openlingua_default_language" value="' . esc_attr( $code ) . '" ' . checked( Languages::default_code(), $code, false ) . '>' : '' ) . '</td></tr>';
-		}
-		echo '</tbody></table><h2>' . esc_html__( 'String discovery', 'openlingua' ) . '</h2><label><input type="checkbox" name="openlingua_string_discovery" value="1" ' . checked( get_option( 'openlingua_string_discovery', false ), true, false ) . '> ' . esc_html__( 'Discover gettext strings while pages are visited (use temporarily; may add many database records).', 'openlingua' ) . '</label>';
-		submit_button(); echo '</form><p><code>[openlingua_switcher]</code></p></div>';
+		if ( current_user_can( 'manage_options' ) ) { \OpenLingua\Modules\Language_Settings::page(); }
 	}
 
 	public static function post_filter() {

@@ -1,6 +1,6 @@
 # OpenLingua
 
-OpenLingua is a free GPL multilingual foundation for WordPress. Version 1.0 supports translated content and taxonomies, custom-field policies, menus, strings, language-aware routing and SEO, extensible translation providers, portability, and operational tooling.
+OpenLingua is a free GPL multilingual foundation for WordPress. Version 1.1 supports translated content and taxonomies, comprehensive language settings, custom-field policies, menus, strings, language-aware routing and SEO, extensible translation providers, portability, and operational tooling.
 
 This project is an original implementation. It neither contains proprietary WPML code nor promises drop-in WPML compatibility.
 

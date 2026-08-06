@@ -13,6 +13,8 @@ delete_option( 'openlingua_db_version' );
 delete_option( 'openlingua_menu_map' );
 delete_option( 'openlingua_meta_policies' );
 delete_option( 'openlingua_string_discovery' );
+delete_option( 'openlingua_language_settings' );
+delete_option( 'openlingua_custom_languages' );
 delete_option( 'openlingua_flush_rewrite_rules' );
 wp_clear_scheduled_hook( 'openlingua_run_translation_job' );
 foreach ( array( 'administrator', 'editor' ) as $role_name ) {

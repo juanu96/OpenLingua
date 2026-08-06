@@ -3,7 +3,7 @@
  * Plugin Name: OpenLingua
  * Plugin URI:  https://github.com/openlingua/openlingua
  * Description: Multilingual content, custom post types, custom fields and strings for WordPress.
- * Version:     1.0.0
+ * Version:     1.1.0
  * Requires at least: 6.4
  * Requires PHP: 7.4
  * Author:      OpenLingua Contributors
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'OPENLINGUA_VERSION', '1.0.0' );
+define( 'OPENLINGUA_VERSION', '1.1.0' );
 define( 'OPENLINGUA_FILE', __FILE__ );
 define( 'OPENLINGUA_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -32,6 +32,8 @@ require_once OPENLINGUA_DIR . 'src/class-rest.php';
 require_once OPENLINGUA_DIR . 'src/class-admin.php';
 require_once OPENLINGUA_DIR . 'src/class-plugin.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-workflow.php';
+require_once OPENLINGUA_DIR . 'src/modules/class-language-catalog.php';
+require_once OPENLINGUA_DIR . 'src/modules/class-language-settings.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-menus.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-metadata.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-commerce.php';

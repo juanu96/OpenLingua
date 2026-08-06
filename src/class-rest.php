@@ -40,7 +40,7 @@ final class REST {
 
 	public static function languages() {
 		$result = array();
-		foreach ( Languages::all() as $code => $language ) {
+		foreach ( Languages::public_all() as $code => $language ) {
 			$result[] = array( 'code' => $code, 'name' => $language['name'], 'locale' => $language['locale'], 'default' => Languages::default_code() === $code );
 		}
 		return rest_ensure_response( $result );

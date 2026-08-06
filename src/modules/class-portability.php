@@ -23,6 +23,9 @@ final class Portability implements Module {
 				'default_language' => get_option( 'openlingua_default_language', '' ),
 				'menu_map' => get_option( 'openlingua_menu_map', array() ),
 				'meta_policies' => get_option( 'openlingua_meta_policies', array() ),
+				'language_settings' => get_option( 'openlingua_language_settings', array() ),
+				'custom_languages' => get_option( 'openlingua_custom_languages', array() ),
+				'string_discovery' => (bool) get_option( 'openlingua_string_discovery', false ),
 			),
 			'translations' => $wpdb->get_results( 'SELECT group_uuid,element_type,element_id,language,source_language FROM ' . Database::table( 'translations' ), ARRAY_A ),
 			'strings' => $wpdb->get_results( 'SELECT domain,string_key,source_language,source_text,translations,updated_at FROM ' . Database::table( 'strings' ), ARRAY_A ),
@@ -38,6 +41,9 @@ final class Portability implements Module {
 		if ( ! empty( $settings['default_language'] ) ) { update_option( 'openlingua_default_language', sanitize_key( $settings['default_language'] ) ); }
 		update_option( 'openlingua_menu_map', (array) ( $settings['menu_map'] ?? array() ) );
 		update_option( 'openlingua_meta_policies', (array) ( $settings['meta_policies'] ?? array() ) );
+		if ( isset( $settings['language_settings'] ) ) { update_option( 'openlingua_language_settings', (array) $settings['language_settings'] ); }
+		if ( isset( $settings['custom_languages'] ) ) { update_option( 'openlingua_custom_languages', (array) $settings['custom_languages'] ); }
+		if ( isset( $settings['string_discovery'] ) ) { update_option( 'openlingua_string_discovery', (bool) $settings['string_discovery'] ); }
 		foreach ( (array) ( $data['translations'] ?? array() ) as $row ) {
 			$type = sanitize_key( $row['element_type'] ?? '' );
 			$id   = absint( $row['element_id'] ?? 0 );

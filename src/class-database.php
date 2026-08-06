@@ -87,10 +87,13 @@ final class Database {
 
 		if ( ! get_option( 'openlingua_languages' ) ) {
 			add_option( 'openlingua_languages', array(
-				'en' => array( 'name' => 'English', 'locale' => 'en_US' ),
-				'es' => array( 'name' => 'Español', 'locale' => 'es_ES' ),
+				'en' => array( 'name' => 'English', 'native_name' => 'English', 'locale' => 'en_US', 'flag' => '🇺🇸', 'direction' => 'ltr' ),
+				'es' => array( 'name' => 'Spanish', 'native_name' => 'Español', 'locale' => 'es_ES', 'flag' => '🇪🇸', 'direction' => 'ltr' ),
 			) );
 			add_option( 'openlingua_default_language', 'en' );
+		}
+		if ( ! get_option( 'openlingua_language_settings' ) ) {
+			add_option( 'openlingua_language_settings', array( 'url_mode' => 'directory', 'domains' => array(), 'admin_language' => 'site-default', 'hidden_languages' => array(), 'browser_redirect' => 'off', 'switcher' => array( 'show_flag' => true, 'show_name' => true, 'show_native_name' => false, 'dropdown' => false, 'missing' => 'home', 'footer' => false ) ) );
 		}
 		update_option( 'openlingua_db_version', OPENLINGUA_VERSION );
 		foreach ( array( 'administrator', 'editor' ) as $role_name ) {

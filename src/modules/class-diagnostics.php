@@ -23,6 +23,7 @@ final class Diagnostics implements Module {
 		return array(
 			'version' => OPENLINGUA_VERSION, 'database_version' => get_option( 'openlingua_db_version' ),
 			'languages' => count( \OpenLingua\Languages::all() ), 'modules' => Module_Registry::all(),
+			'url_mode' => \OpenLingua\Modules\Language_Settings::get()['url_mode'],
 			'tables' => $tables, 'providers' => array_keys( Providers::all() ), 'cron_disabled' => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON,
 		);
 	}
