@@ -20,6 +20,7 @@ final class Admin {
 	public static function settings() {
 		register_setting( 'openlingua', 'openlingua_languages', array( 'type' => 'array', 'sanitize_callback' => array( __CLASS__, 'sanitize_languages' ) ) );
 		register_setting( 'openlingua', 'openlingua_default_language', array( 'type' => 'string', 'sanitize_callback' => 'sanitize_key' ) );
+		register_setting( 'openlingua', 'openlingua_string_discovery', array( 'type' => 'boolean', 'sanitize_callback' => 'rest_sanitize_boolean', 'default' => false ) );
 	}
 
 	public static function sanitize_languages( $input ) {
@@ -50,7 +51,8 @@ final class Admin {
 			echo '<td><input name="' . esc_attr( $name . '[name]' ) . '" value="' . esc_attr( $item['name'] ) . '"></td><td><input name="' . esc_attr( $name . '[locale]' ) . '" value="' . esc_attr( $item['locale'] ) . '"></td>';
 			echo '<td>' . ( '__new' !== $code ? '<input type="radio" name="openlingua_default_language" value="' . esc_attr( $code ) . '" ' . checked( Languages::default_code(), $code, false ) . '>' : '' ) . '</td></tr>';
 		}
-		echo '</tbody></table>'; submit_button(); echo '</form><p><code>[openlingua_switcher]</code></p></div>';
+		echo '</tbody></table><h2>' . esc_html__( 'String discovery', 'openlingua' ) . '</h2><label><input type="checkbox" name="openlingua_string_discovery" value="1" ' . checked( get_option( 'openlingua_string_discovery', false ), true, false ) . '> ' . esc_html__( 'Discover gettext strings while pages are visited (use temporarily; may add many database records).', 'openlingua' ) . '</label>';
+		submit_button(); echo '</form><p><code>[openlingua_switcher]</code></p></div>';
 	}
 
 	public static function post_filter() {

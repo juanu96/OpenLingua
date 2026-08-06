@@ -1,5 +1,44 @@
 # Changelog
 
+## 1.0.0
+
+- Introduces a reusable module registry and explicit module/provider contracts.
+- Adds per-language menu assignments, attachment translations, translation statuses, and source-change detection.
+- Adds configurable `translate`, `copy`, `copy-once`, and `ignore` policies for ACF and arbitrary post metadata.
+- Adds safe WooCommerce product metadata synchronization while excluding unique SKUs and derived sales data.
+- Adds pluggable translation providers, background jobs, authenticated REST job creation, failure tracking, and editorial review state.
+- Adds optional gettext discovery, plural string helpers, portable JSON backup/merge import, and WP-CLI operations.
+- Adds object caching, Site Health diagnostics, privacy disclosure, translation capabilities, and a data-preserving uninstall policy.
+- Adds architecture, provider, scope, and operational documentation plus module-level tests.
+
+## 0.9.0
+
+- Added runtime caching, diagnostics, privacy guidance, multisite-safe lifecycle handling, and translator capabilities.
+
+## 0.8.0
+
+- Added portable JSON export and merge import, administrative REST operations, and WP-CLI commands.
+
+## 0.7.0
+
+- Added opt-in gettext discovery, plural string helpers, and string portability.
+
+## 0.6.0
+
+- Added the translation-provider contract and background translation job queue.
+
+## 0.5.0
+
+- Added a defensive WooCommerce product metadata policy and synchronization layer.
+
+## 0.4.0
+
+- Added configurable and filterable metadata policies for ACF, builders, and custom integrations.
+
+## 0.3.0
+
+- Added language-specific menu locations, attachment translation support, editorial statuses, and stale-source detection.
+
 ## 0.2.0
 
 ### Taxonomy translations

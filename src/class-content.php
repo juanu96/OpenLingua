@@ -16,9 +16,7 @@ final class Content {
 
 	public static function meta_box() {
 		foreach ( get_post_types( array( 'show_ui' => true ), 'names' ) as $post_type ) {
-			if ( 'attachment' !== $post_type ) {
-				add_meta_box( 'openlingua-language', __( 'Languages', 'openlingua' ), array( __CLASS__, 'render_meta_box' ), $post_type, 'side', 'high' );
-			}
+			add_meta_box( 'openlingua-language', __( 'Languages', 'openlingua' ), array( __CLASS__, 'render_meta_box' ), $post_type, 'side', 'high' );
 		}
 	}
 
@@ -44,6 +42,10 @@ final class Content {
 			}
 			echo '</p>';
 		}
+		$status = get_post_meta( $post->ID, \OpenLingua\Modules\Workflow::STATUS_META, true ) ?: ( $row && $row->source_language ? 'draft' : 'complete' );
+		echo '<hr><p><label for="openlingua-status"><strong>' . esc_html__( 'Translation status', 'openlingua' ) . '</strong></label></p><select id="openlingua-status" name="openlingua_status" class="widefat">';
+		foreach ( \OpenLingua\Modules\Workflow::statuses() as $value => $label ) { echo '<option value="' . esc_attr( $value ) . '" ' . selected( $status, $value, false ) . '>' . esc_html( $label ) . '</option>'; }
+		echo '</select>';
 	}
 
 	public static function save_language( $post_id, $post ) {
@@ -53,6 +55,10 @@ final class Content {
 		$language = isset( $_POST['openlingua_language'] ) ? sanitize_key( wp_unslash( $_POST['openlingua_language'] ) ) : Languages::default_code();
 		$row      = Translations::row( 'post', $post_id );
 		Translations::assign( 'post', $post_id, $language, $row ? $row->group_uuid : '', $row ? $row->source_language : '' );
+		if ( isset( $_POST['openlingua_status'] ) ) {
+			$status = sanitize_key( wp_unslash( $_POST['openlingua_status'] ) );
+			if ( isset( \OpenLingua\Modules\Workflow::statuses()[ $status ] ) ) { update_post_meta( $post_id, \OpenLingua\Modules\Workflow::STATUS_META, $status ); }
+		}
 	}
 
 	public static function duplicate() {
@@ -76,14 +82,13 @@ final class Content {
 		$new_id = wp_insert_post( array(
 			'post_type' => $source->post_type, 'post_status' => 'draft', 'post_title' => $source->post_title,
 			'post_content' => $source->post_content, 'post_excerpt' => $source->post_excerpt,
+			'post_mime_type' => $source->post_mime_type,
 			'post_parent' => $source->post_parent ? ( Translations::translated_id( 'post', $source->post_parent, $language ) ?: $source->post_parent ) : 0,
 			'menu_order' => $source->menu_order,
 		) );
 		if ( is_wp_error( $new_id ) ) { wp_die( esc_html( $new_id->get_error_message() ) ); }
-		foreach ( get_post_meta( $post_id ) as $key => $values ) {
-			if ( '_edit_lock' === $key || '_edit_last' === $key ) { continue; }
-			foreach ( $values as $value ) { add_post_meta( $new_id, $key, maybe_unserialize( $value ) ); }
-		}
+		\OpenLingua\Modules\Metadata::copy( $post_id, $new_id, $source->post_type );
+		if ( 'product' === $source->post_type ) { \OpenLingua\Modules\Commerce::initialize_translation( $post_id, $new_id ); }
 		foreach ( get_object_taxonomies( $source->post_type ) as $taxonomy ) {
 			$term_ids = wp_get_object_terms( $post_id, $taxonomy, array( 'fields' => 'ids' ) );
 			if ( ! is_wp_error( $term_ids ) ) {
@@ -97,6 +102,7 @@ final class Content {
 			}
 		}
 		Translations::assign( 'post', $new_id, $language, $group, $row ? $row->language : Languages::default_code() );
+		\OpenLingua\Modules\Workflow::mark_created( $new_id, $post_id );
 		wp_safe_redirect( get_edit_post_link( $new_id, 'url' ) ); exit;
 	}
 

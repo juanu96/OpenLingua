@@ -24,5 +24,10 @@ final class Strings {
 		$language = $language ?: Languages::current();
 		return ! empty( $translations[ $language ] ) ? $translations[ $language ] : $row->source_text;
 	}
-}
 
+	public static function translate_plural( $singular_key, $plural_key, $number, $singular, $plural, $domain = 'default', $language = '' ) {
+		$key      = 1 === absint( $number ) ? $singular_key : $plural_key;
+		$fallback = 1 === absint( $number ) ? $singular : $plural;
+		return self::translate( $key, $fallback, $domain, $language );
+	}
+}

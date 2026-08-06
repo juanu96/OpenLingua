@@ -16,13 +16,33 @@ final class Database {
 		return $wpdb->prefix . 'openlingua_' . $name;
 	}
 
-	public static function activate() {
+	public static function install_new_site( $site ) {
+		if ( ! is_multisite() || ! $site || empty( $site->blog_id ) ) { return; }
+		switch_to_blog( $site->blog_id );
+		self::install();
+		restore_current_blog();
+	}
+
+	public static function activate( $network_wide = false ) {
+		if ( $network_wide && is_multisite() ) {
+			foreach ( get_sites( array( 'fields' => 'ids', 'number' => 0 ) ) as $site_id ) {
+				switch_to_blog( $site_id );
+				self::install();
+				restore_current_blog();
+			}
+			return;
+		}
+		self::install();
+	}
+
+	private static function install() {
 		global $wpdb;
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset = $wpdb->get_charset_collate();
 		$links   = self::table( 'translations' );
 		$strings = self::table( 'strings' );
+		$jobs    = self::table( 'jobs' );
 
 		dbDelta( "CREATE TABLE {$links} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -49,6 +69,22 @@ final class Database {
 			UNIQUE KEY string_identity (domain,string_key)
 		) {$charset};" );
 
+		dbDelta( "CREATE TABLE {$jobs} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			source_id bigint(20) unsigned NOT NULL,
+			target_id bigint(20) unsigned NOT NULL,
+			target_language varchar(20) NOT NULL,
+			provider varchar(100) NOT NULL,
+			status varchar(20) NOT NULL DEFAULT 'pending',
+			payload longtext NULL,
+			error longtext NULL,
+			created_at datetime NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			KEY status (status),
+			KEY target (target_id,target_language)
+		) {$charset};" );
+
 		if ( ! get_option( 'openlingua_languages' ) ) {
 			add_option( 'openlingua_languages', array(
 				'en' => array( 'name' => 'English', 'locale' => 'en_US' ),
@@ -57,5 +93,9 @@ final class Database {
 			add_option( 'openlingua_default_language', 'en' );
 		}
 		update_option( 'openlingua_db_version', OPENLINGUA_VERSION );
+		foreach ( array( 'administrator', 'editor' ) as $role_name ) {
+			$role = get_role( $role_name );
+			if ( $role ) { $role->add_cap( 'openlingua_translate' ); }
+		}
 	}
 }
