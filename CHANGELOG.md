@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.4
+
+- WordPress now initializes locale-dependent output using the language detected from the request path, query mode, or configured domain.
+- Calendar captions, weekday labels, navigation text, search controls, and other core strings use the current language locale.
+- Day, month, and year archive links retain the current language URL.
+
 ## 1.3.3
 
 - Gutenberg tables now expose each header, cell, and caption independently in manual and automatic translation.

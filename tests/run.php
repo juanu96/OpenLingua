@@ -78,6 +78,11 @@ openlingua_assert_same(
 );
 
 $openlingua_test_options['openlingua_language_settings'] = array( 'url_mode' => 'directory', 'domains' => array() );
+$_SERVER['REQUEST_URI'] = '/site/es/calendar/';
+\OpenLingua\Routing::detect_language();
+openlingua_assert_same( 'es', \OpenLingua\Languages::current(), 'detects the URL language before locale-dependent rendering' );
+openlingua_assert_same( 'https://example.test/site/es/2026/08/', \OpenLingua\Routing::archive_url( 'https://example.test/site/2026/08/' ), 'keeps calendar archive links in the current language' );
+
 $_SERVER['REQUEST_URI'] = '/site/es/news/?page=2';
 \OpenLingua\Routing::detect_prefix( true, null, array() );
 openlingua_assert_same( '/site/news/?page=2', $_SERVER['REQUEST_URI'], 'strips the language prefix before WordPress routing' );

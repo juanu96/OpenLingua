@@ -8,15 +8,46 @@ final class Routing {
 	private static $requested_language = '';
 
 	public static function hooks() {
+		self::detect_language();
 		add_filter( 'do_parse_request', array( __CLASS__, 'detect_prefix' ), 1, 3 );
 		add_action( 'pre_get_posts', array( __CLASS__, 'resolve_language_object' ), 1 );
 		add_filter( 'post_link', array( __CLASS__, 'post_url' ), 10, 2 );
 		add_filter( 'post_type_link', array( __CLASS__, 'post_url' ), 10, 2 );
 		add_filter( 'page_link', array( __CLASS__, 'page_url' ), 10, 2 );
 		add_filter( 'term_link', array( __CLASS__, 'term_url' ), 10, 3 );
+		add_filter( 'day_link', array( __CLASS__, 'archive_url' ) );
+		add_filter( 'month_link', array( __CLASS__, 'archive_url' ) );
+		add_filter( 'year_link', array( __CLASS__, 'archive_url' ) );
 		add_filter( 'redirect_canonical', array( __CLASS__, 'redirect_canonical' ), 10, 2 );
 		add_action( 'template_redirect', array( __CLASS__, 'redirect_to_translation' ), 2 );
 		add_action( 'init', array( __CLASS__, 'maybe_flush_rewrite_rules' ), 100 );
+	}
+
+	public static function archive_url( $url ) {
+		return Languages::url( $url, Languages::current() );
+	}
+
+	/** Detects the requested language before WordPress initializes locale-dependent output. */
+	public static function detect_language() {
+		if ( is_admin() ) { return; }
+		$settings = array_replace( array( 'url_mode' => 'directory', 'domains' => array() ), (array) get_option( 'openlingua_language_settings', array() ) );
+		if ( 'query' === $settings['url_mode'] ) { Languages::current(); return; }
+		if ( 'domain' === $settings['url_mode'] ) {
+			$host = strtolower( sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ?? '' ) ) );
+			foreach ( (array) $settings['domains'] as $code => $domain ) {
+				$domain_host = strtolower( (string) wp_parse_url( $domain, PHP_URL_HOST ) );
+				if ( $domain_host && $host === $domain_host ) { Languages::set_current( $code ); break; }
+			}
+			return;
+		}
+		$request_uri = sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) );
+		$path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
+		$home_path = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+		$base = '/' . trim( $home_path, '/' );
+		$base = '/' === $base ? '' : $base;
+		$relative = 0 === strpos( $path, $base ) ? substr( $path, strlen( $base ) ) : $path;
+		$codes = array_map( 'preg_quote', array_keys( Languages::all() ) );
+		if ( $codes && preg_match( '#^/(' . implode( '|', $codes ) . ')(?=/|$)#', $relative, $matches ) ) { Languages::set_current( $matches[1] ); }
 	}
 
 	public static function detect_prefix( $do_parse, $wp, $extra_query_vars ) {
