@@ -88,7 +88,7 @@ final class Language_Settings implements Module {
 	public static function save() {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
 		check_admin_referer( 'openlingua_save_language_settings' );
-		$custom = isset( $_POST['custom'] ) ? (array) wp_unslash( $_POST['custom'] ) : array();
+		$custom = isset( $_POST['custom'] ) ? map_deep( (array) wp_unslash( $_POST['custom'] ), 'sanitize_text_field' ) : array();
 		$custom_code = sanitize_key( wp_unslash( $custom['code'] ?? '' ) );
 		$custom_languages = (array) get_option( 'openlingua_custom_languages', array() );
 		if ( $custom_code && ! empty( $custom['name'] ) ) {
@@ -106,11 +106,11 @@ final class Language_Settings implements Module {
 		update_option( 'openlingua_languages', $enabled ); update_option( 'openlingua_default_language', $default );
 		$url_mode = sanitize_key( wp_unslash( $_POST['url_mode'] ?? 'directory' ) );
 		if ( ! in_array( $url_mode, array( 'directory', 'query', 'domain' ), true ) ) { $url_mode = 'directory'; }
-		$submitted_domains = isset( $_POST['domains'] ) ? (array) wp_unslash( $_POST['domains'] ) : array();
+		$submitted_domains = isset( $_POST['domains'] ) ? map_deep( (array) wp_unslash( $_POST['domains'] ), 'sanitize_text_field' ) : array();
 		$domains = array(); foreach ( $submitted_domains as $code => $url ) { if ( isset( $enabled[ $code ] ) && $url ) { $domains[ sanitize_key( $code ) ] = untrailingslashit( esc_url_raw( $url ) ); } }
 		$admin_language = sanitize_key( wp_unslash( $_POST['admin_language'] ?? 'site-default' ) ); if ( ! in_array( $admin_language, array_merge( array( 'site-default', 'user' ), array_keys( $enabled ) ), true ) ) { $admin_language = 'site-default'; }
 		$browser = sanitize_key( wp_unslash( $_POST['browser_redirect'] ?? 'off' ) ); if ( ! in_array( $browser, array( 'off', 'once', 'always' ), true ) ) { $browser = 'off'; }
-		$switcher = isset( $_POST['switcher'] ) ? (array) wp_unslash( $_POST['switcher'] ) : array();
+		$switcher = isset( $_POST['switcher'] ) ? map_deep( (array) wp_unslash( $_POST['switcher'] ), 'sanitize_text_field' ) : array();
 		$registered_locations = array_keys( get_registered_nav_menus() );
 		$menu_locations = array_values( array_intersect( $registered_locations, array_map( 'sanitize_key', (array) ( $switcher['menu_locations'] ?? array() ) ) ) );
 		$clean_switcher = array( 'show_flag' => ! empty( $switcher['show_flag'] ), 'show_name' => ! empty( $switcher['show_name'] ), 'show_native_name' => ! empty( $switcher['show_native_name'] ), 'show_current' => ! empty( $switcher['show_current'] ), 'dropdown' => ! empty( $switcher['dropdown'] ), 'footer' => ! empty( $switcher['footer'] ), 'missing' => 'hide' === ( $switcher['missing'] ?? '' ) ? 'hide' : 'home', 'menu_locations' => $menu_locations, 'menu_position' => 'first' === ( $switcher['menu_position'] ?? '' ) ? 'first' : 'last' );

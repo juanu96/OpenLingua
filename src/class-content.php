@@ -83,7 +83,7 @@ final class Content {
 	public static function duplicate() {
 		$post_id  = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
 		$language = isset( $_GET['language'] ) ? sanitize_key( wp_unslash( $_GET['language'] ) ) : '';
-		$return_to = isset( $_GET['redirect_to'] ) ? wp_validate_redirect( wp_unslash( $_GET['redirect_to'] ), '' ) : '';
+		$return_to = isset( $_GET['redirect_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ), '' ) : '';
 		check_admin_referer( 'openlingua_duplicate_' . $post_id );
 		if ( ! $post_id || ! Languages::is_valid( $language ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( esc_html__( 'You cannot create this translation.', 'openlingua' ) );
@@ -139,12 +139,12 @@ final class Content {
 		if ( ! is_admin() || ! $query->is_main_query() || ! Languages::is_valid( $language ) ) { return $clauses; }
 		global $wpdb;
 		$table = Database::table( 'translations' );
-		$translated = $wpdb->prepare( "EXISTS (SELECT 1 FROM {$table} ol_admin_lang WHERE ol_admin_lang.element_type = 'post' AND ol_admin_lang.element_id = {$wpdb->posts}.ID AND ol_admin_lang.language = %s)", $language );
+		$translated = $wpdb->prepare( "EXISTS (SELECT 1 FROM %i ol_admin_lang WHERE ol_admin_lang.element_type = 'post' AND ol_admin_lang.element_id = %i.ID AND ol_admin_lang.language = %s)", $table, $wpdb->posts, $language );
 		if ( Languages::default_code() === $language ) {
-			$unassigned = "NOT EXISTS (SELECT 1 FROM {$table} ol_admin_any WHERE ol_admin_any.element_type = 'post' AND ol_admin_any.element_id = {$wpdb->posts}.ID)";
-			$clauses['where'] .= " AND ({$unassigned} OR {$translated})";
+			$unassigned = $wpdb->prepare( "NOT EXISTS (SELECT 1 FROM %i ol_admin_any WHERE ol_admin_any.element_type = 'post' AND ol_admin_any.element_id = %i.ID)", $table, $wpdb->posts );
+			$clauses['where'] .= ' AND (' . $unassigned . ' OR ' . $translated . ')';
 		} else {
-			$clauses['where'] .= " AND {$translated}";
+			$clauses['where'] .= ' AND ' . $translated;
 		}
 		return $clauses;
 	}
@@ -297,7 +297,7 @@ final class Content {
 		}
 
 		$fallback = add_query_arg( 'post_type', $source->post_type, admin_url( 'edit.php' ) );
-		$redirect = isset( $_GET['redirect_to'] ) ? wp_validate_redirect( wp_unslash( $_GET['redirect_to'] ), $fallback ) : $fallback;
+		$redirect = isset( $_GET['redirect_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ), $fallback ) : $fallback;
 		wp_safe_redirect( add_query_arg( 'openlingua_translation_trashed', '1', $redirect ) );
 		exit;
 	}
@@ -325,9 +325,9 @@ final class Content {
 		$language = Languages::current();
 		$default  = Languages::default_code();
 		if ( $language === $default ) {
-			$clauses['where'] .= $wpdb->prepare( " AND (NOT EXISTS (SELECT 1 FROM {$table} ol_any WHERE ol_any.element_type = 'post' AND ol_any.element_id = {$wpdb->posts}.ID) OR EXISTS (SELECT 1 FROM {$table} ol_lang WHERE ol_lang.element_type = 'post' AND ol_lang.element_id = {$wpdb->posts}.ID AND ol_lang.language = %s))", $language );
+			$clauses['where'] .= $wpdb->prepare( " AND (NOT EXISTS (SELECT 1 FROM %i ol_any WHERE ol_any.element_type = 'post' AND ol_any.element_id = %i.ID) OR EXISTS (SELECT 1 FROM %i ol_lang WHERE ol_lang.element_type = 'post' AND ol_lang.element_id = %i.ID AND ol_lang.language = %s))", $table, $wpdb->posts, $table, $wpdb->posts, $language );
 		} else {
-			$clauses['where'] .= $wpdb->prepare( " AND EXISTS (SELECT 1 FROM {$table} ol_lang WHERE ol_lang.element_type = 'post' AND ol_lang.element_id = {$wpdb->posts}.ID AND ol_lang.language = %s)", $language );
+			$clauses['where'] .= $wpdb->prepare( " AND EXISTS (SELECT 1 FROM %i ol_lang WHERE ol_lang.element_type = 'post' AND ol_lang.element_id = %i.ID AND ol_lang.language = %s)", $table, $wpdb->posts, $language );
 		}
 		return $clauses;
 	}

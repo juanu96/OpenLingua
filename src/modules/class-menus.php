@@ -104,7 +104,7 @@ final class Menus implements Module {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
 		check_admin_referer( 'openlingua_save_menus' );
 		$clean = array();
-		$submitted_menus = isset( $_POST['menus'] ) ? (array) wp_unslash( $_POST['menus'] ) : array();
+		$submitted_menus = isset( $_POST['menus'] ) ? map_deep( (array) wp_unslash( $_POST['menus'] ), 'absint' ) : array();
 		foreach ( $submitted_menus as $location => $languages ) {
 			foreach ( (array) $languages as $code => $menu_id ) {
 				if ( Languages::is_valid( $code ) ) { $clean[ sanitize_key( $location ) ][ sanitize_key( $code ) ] = absint( $menu_id ); }
@@ -212,12 +212,12 @@ final class Menus implements Module {
 		if ( ! Languages::is_valid( $language ) ) { return $clauses; }
 		global $wpdb;
 		$table = \OpenLingua\Database::table( 'translations' );
-		$translated = $wpdb->prepare( "EXISTS (SELECT 1 FROM {$table} ol_menu_lang WHERE ol_menu_lang.element_type = 'post' AND ol_menu_lang.element_id = {$wpdb->posts}.ID AND ol_menu_lang.language = %s)", $language );
+		$translated = $wpdb->prepare( "EXISTS (SELECT 1 FROM %i ol_menu_lang WHERE ol_menu_lang.element_type = 'post' AND ol_menu_lang.element_id = %i.ID AND ol_menu_lang.language = %s)", $table, $wpdb->posts, $language );
 		if ( Languages::default_code() === $language ) {
-			$unassigned = "NOT EXISTS (SELECT 1 FROM {$table} ol_menu_any WHERE ol_menu_any.element_type = 'post' AND ol_menu_any.element_id = {$wpdb->posts}.ID)";
-			$clauses['where'] .= " AND ({$unassigned} OR {$translated})";
+			$unassigned = $wpdb->prepare( "NOT EXISTS (SELECT 1 FROM %i ol_menu_any WHERE ol_menu_any.element_type = 'post' AND ol_menu_any.element_id = %i.ID)", $table, $wpdb->posts );
+			$clauses['where'] .= ' AND (' . $unassigned . ' OR ' . $translated . ')';
 		} else {
-			$clauses['where'] .= " AND {$translated}";
+			$clauses['where'] .= ' AND ' . $translated;
 		}
 		return $clauses;
 	}

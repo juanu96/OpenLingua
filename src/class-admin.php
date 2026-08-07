@@ -156,18 +156,19 @@ final class Admin {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
 		check_admin_referer( 'openlingua_save_strings' );
 		global $wpdb;
-		foreach ( (array) ( $_POST['translations'] ?? array() ) as $id => $translations ) {
+		$submitted_translations = isset( $_POST['translations'] ) ? map_deep( (array) wp_unslash( $_POST['translations'] ), 'sanitize_textarea_field' ) : array();
+		foreach ( $submitted_translations as $id => $translations ) {
 			$row = $wpdb->get_row( $wpdb->prepare( 'SELECT translations FROM %i WHERE id = %d', Database::table( 'strings' ), absint( $id ) ) );
 			$clean = $row ? ( json_decode( $row->translations, true ) ?: array() ) : array();
 			foreach ( (array) $translations as $code => $text ) {
 				if ( Languages::is_valid( $code ) ) {
-					$value = sanitize_textarea_field( wp_unslash( $text ) );
+					$value = sanitize_textarea_field( $text );
 					if ( '' === $value ) { unset( $clean[ sanitize_key( $code ) ] ); } else { $clean[ sanitize_key( $code ) ] = $value; }
 				}
 			}
 			$wpdb->update( Database::table( 'strings' ), array( 'translations' => wp_json_encode( $clean ), 'updated_at' => current_time( 'mysql' ) ), array( 'id' => absint( $id ) ) );
 		}
-		$return_to = isset( $_POST['return_to'] ) ? wp_validate_redirect( wp_unslash( $_POST['return_to'] ), '' ) : '';
+		$return_to = isset( $_POST['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['return_to'] ) ), '' ) : '';
 		wp_safe_redirect( add_query_arg( 'updated', '1', $return_to ?: admin_url( 'admin.php?page=openlingua-strings' ) ) ); exit;
 	}
 

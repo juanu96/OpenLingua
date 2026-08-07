@@ -75,7 +75,7 @@ final class Shortcode_Content {
 			if ( '' === $text || strlen( $text ) > 1000 || ! preg_match( '/\p{L}/u', $text ) ) { $result[] = $text; continue; }
 			$key = sanitize_key( $kind . '-' . substr( hash( 'sha256', $text ), 0, 24 ) );
 			if ( $can_discover ) { Strings::register( $key, $text, $domain, Languages::default_code() ); }
-			$row = $wpdb->get_row( $wpdb->prepare( "SELECT source_text, translations FROM {$table} WHERE domain = %s AND string_key = %s", $domain, $key ) );
+			$row = $wpdb->get_row( $wpdb->prepare( 'SELECT source_text, translations FROM %i WHERE domain = %s AND string_key = %s', $table, $domain, $key ) );
 			if ( ! $row ) { $result[] = $text; continue; }
 			$translations = json_decode( $row->translations, true ) ?: array();
 			$result[] = ! empty( $translations[ $language ] ) ? $translations[ $language ] : $row->source_text;

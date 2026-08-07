@@ -50,12 +50,13 @@ final class Translation_Editor {
 		$acf_segments = ACF_Content::extract( $source->ID );
 		$target_acf = ACF_Content::values( $target->ID );
 		$seo_groups = SEO::translation_fields( $source->ID, $target->ID );
-		$return_to = isset( $_GET['return_to'] ) ? wp_validate_redirect( wp_unslash( $_GET['return_to'] ), '' ) : '';
+		$return_to = isset( $_GET['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['return_to'] ) ), '' ) : '';
 		$back = $return_to ?: ( get_edit_post_link( $source->ID, 'url' ) ?: admin_url( 'edit.php' ) );
 		echo '<div class="wrap openlingua-editor"><header class="openlingua-editor__top"><a class="openlingua-editor__back" href="' . esc_url( $back ) . '"><span class="dashicons dashicons-arrow-left-alt"></span>' . esc_html__( 'Back', 'openlingua' ) . '</a><div><span>' . esc_html__( 'Translating', 'openlingua' ) . '</span><strong>' . esc_html( get_the_title( $source ) ) . '</strong></div><label class="openlingua-editor__search"><span class="dashicons dashicons-search"></span><input type="search" placeholder="' . esc_attr__( 'Search content', 'openlingua' ) . '"></label></header>';
 		echo '<div class="openlingua-editor__languages"><div><small>' . esc_html__( 'Original', 'openlingua' ) . '</small><strong><span aria-hidden="true">' . esc_html( $source_language['flag'] ?? '🌐' ) . '</span> ' . esc_html( $source_language['name'] ) . '</strong></div><div><small>' . esc_html__( 'Translation', 'openlingua' ) . '</small><strong><span aria-hidden="true">' . esc_html( $target_language['flag'] ?? '🌐' ) . '</span> ' . esc_html( $target_language['name'] ) . '</strong></div></div>';
-		if ( 'queued' === ( $_GET['automatic_translation'] ?? '' ) ) { echo '<div class="notice notice-info inline"><p>' . esc_html__( 'Automatic translation queued. You may leave this page; OpenLingua will notify you when it is ready to review.', 'openlingua' ) . '</p></div>'; }
-		if ( 'error' === ( $_GET['automatic_translation'] ?? '' ) ) { echo '<div class="notice notice-error inline"><p>' . esc_html__( 'The automatic translation could not be queued. Check the provider settings and the Jobs screen.', 'openlingua' ) . '</p></div>'; }
+		$automatic_status = isset( $_GET['automatic_translation'] ) ? sanitize_key( wp_unslash( $_GET['automatic_translation'] ) ) : '';
+		if ( 'queued' === $automatic_status ) { echo '<div class="notice notice-info inline"><p>' . esc_html__( 'Automatic translation queued. You may leave this page; OpenLingua will notify you when it is ready to review.', 'openlingua' ) . '</p></div>'; }
+		if ( 'error' === $automatic_status ) { echo '<div class="notice notice-error inline"><p>' . esc_html__( 'The automatic translation could not be queued. Check the provider settings and the Jobs screen.', 'openlingua' ) . '</p></div>'; }
 		echo '<div class="openlingua-editor__automatic">';
 		$provider = \OpenLingua\Modules\Providers::active();
 		if ( $provider && $provider->is_configured() ) {
@@ -113,7 +114,7 @@ final class Translation_Editor {
 	public static function save() {
 		$source_id = isset( $_POST['source_id'] ) ? absint( $_POST['source_id'] ) : 0;
 		$target_id = isset( $_POST['target_id'] ) ? absint( $_POST['target_id'] ) : 0;
-		$return_to = isset( $_POST['return_to'] ) ? wp_validate_redirect( wp_unslash( $_POST['return_to'] ), '' ) : '';
+		$return_to = isset( $_POST['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['return_to'] ) ), '' ) : '';
 		check_admin_referer( 'openlingua_save_translation_' . $target_id );
 		if ( ! $source_id || ! $target_id || ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { wp_die( esc_html__( 'You cannot save this translation.', 'openlingua' ) ); }
 		$translation = isset( $_POST['translation'] ) ? (array) wp_unslash( $_POST['translation'] ) : array();

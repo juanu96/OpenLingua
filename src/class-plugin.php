@@ -7,7 +7,6 @@ final class Plugin {
 	public static function boot() {
 		Database::maybe_upgrade();
 		if ( is_multisite() ) { add_action( 'wp_initialize_site', array( 'OpenLingua\\Database', 'install_new_site' ), 20, 1 ); }
-		load_plugin_textdomain( 'openlingua', false, dirname( plugin_basename( OPENLINGUA_FILE ) ) . '/languages' );
 		Content::hooks();
 		Divi_Theme_Builder::hooks();
 		Translation_Editor::hooks();

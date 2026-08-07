@@ -15,7 +15,7 @@ final class Translations {
 		}
 		$group_uuid = $group_uuid ?: wp_generate_uuid4();
 		$table      = Database::table( 'translations' );
-		$existing   = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE element_type = %s AND element_id = %d", $element_type, $element_id ) );
+		$existing   = $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE element_type = %s AND element_id = %d', $table, $element_type, $element_id ) );
 		$previous   = $existing ? self::row( $element_type, $element_id ) : null;
 		$data       = array(
 			'group_uuid'     => sanitize_text_field( $group_uuid ),
@@ -41,7 +41,7 @@ final class Translations {
 		$cached = wp_cache_get( $key, 'openlingua_rows', false, $found );
 		if ( $found ) { self::$rows[ $key ] = $cached ?: null; return self::$rows[ $key ]; }
 		$table = Database::table( 'translations' );
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE element_type = %s AND element_id = %d", $element_type, $element_id ) );
+		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE element_type = %s AND element_id = %d', $table, $element_type, $element_id ) );
 		self::$rows[ $key ] = $row;
 		wp_cache_set( $key, $row ?: false, 'openlingua_rows' );
 		return $row;
@@ -56,7 +56,7 @@ final class Translations {
 		$cache_key = sanitize_key( $element_type ) . ':' . $row->group_uuid;
 		if ( isset( self::$groups[ $cache_key ] ) ) { return self::$groups[ $cache_key ]; }
 		$table = Database::table( 'translations' );
-		$rows  = $wpdb->get_results( $wpdb->prepare( "SELECT language, element_id FROM {$table} WHERE element_type = %s AND group_uuid = %s", $element_type, $row->group_uuid ) );
+		$rows  = $wpdb->get_results( $wpdb->prepare( 'SELECT language, element_id FROM %i WHERE element_type = %s AND group_uuid = %s', $table, $element_type, $row->group_uuid ) );
 		self::$groups[ $cache_key ] = wp_list_pluck( $rows, 'element_id', 'language' );
 		return self::$groups[ $cache_key ];
 	}

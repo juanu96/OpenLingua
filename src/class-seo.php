@@ -60,8 +60,8 @@ final class SEO {
 		global $wpdb;
 		$table = $wpdb->prefix . 'aioseo_posts';
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) { return array(); }
-		$source = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE post_id = %d", $source_id ), ARRAY_A );
-		$target = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE post_id = %d", $target_id ), ARRAY_A );
+		$source = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE post_id = %d', $table, $source_id ), ARRAY_A );
+		$target = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE post_id = %d', $table, $target_id ), ARRAY_A );
 		$labels = array( 'title' => __( 'SEO title', 'openlingua' ), 'description' => __( 'Meta description', 'openlingua' ), 'og_title' => __( 'Facebook title', 'openlingua' ), 'og_description' => __( 'Facebook description', 'openlingua' ), 'twitter_title' => __( 'X title', 'openlingua' ), 'twitter_description' => __( 'X description', 'openlingua' ) );
 		$fields = array();
 		foreach ( $labels as $key => $label ) {
@@ -94,7 +94,7 @@ final class SEO {
 	private static function save_aioseo_field( $post_id, $key, $value ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'aioseo_posts';
-		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM {$table} WHERE post_id = %d", $post_id ) );
+		$exists = $wpdb->get_var( $wpdb->prepare( 'SELECT post_id FROM %i WHERE post_id = %d', $table, $post_id ) );
 		if ( $exists ) { $wpdb->update( $table, array( $key => $value ), array( 'post_id' => $post_id ) ); }
 		else { $wpdb->insert( $table, array( 'post_id' => $post_id, $key => $value ) ); }
 	}

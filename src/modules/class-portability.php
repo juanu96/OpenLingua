@@ -86,7 +86,16 @@ final class Portability implements Module {
 	public static function import_upload() {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
 		check_admin_referer( 'openlingua_import' );
-		$file = $_FILES['openlingua_file'] ?? null;
+		$file = null;
+		if ( isset( $_FILES['openlingua_file'] ) && is_array( $_FILES['openlingua_file'] ) ) {
+			$uploaded = wp_unslash( $_FILES['openlingua_file'] );
+			$file = array(
+				'name'     => sanitize_file_name( $uploaded['name'] ?? '' ),
+				'tmp_name' => sanitize_text_field( $uploaded['tmp_name'] ?? '' ),
+				'error'    => absint( $uploaded['error'] ?? UPLOAD_ERR_NO_FILE ),
+				'size'     => absint( $uploaded['size'] ?? 0 ),
+			);
+		}
 		if ( ! $file || UPLOAD_ERR_OK !== $file['error'] || $file['size'] > 10 * MB_IN_BYTES ) { wp_die( esc_html__( 'Invalid or oversized import file.', 'openlingua' ) ); }
 		$data = json_decode( file_get_contents( $file['tmp_name'] ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$result = is_array( $data ) ? self::merge( $data ) : new \WP_Error( 'openlingua_json', __( 'Invalid JSON document.', 'openlingua' ) );

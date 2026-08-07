@@ -33,7 +33,7 @@ final class Routing {
 			}
 			return $do_parse;
 		}
-		$request_uri = wp_unslash( $_SERVER['REQUEST_URI'] );
+		$request_uri = sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) );
 		$path        = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
 		$home_path   = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
 		$base        = '/' . trim( $home_path, '/' );
@@ -77,9 +77,9 @@ final class Routing {
 		global $wpdb;
 		$table = Database::table( 'translations' );
 		$placeholders = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-		$params = array_merge( array( Languages::current(), $slug ), $post_types );
+		$params = array_merge( array( $wpdb->posts, $table, Languages::current(), $slug ), $post_types );
 		$candidates = $wpdb->get_results( $wpdb->prepare(
-			"SELECT p.ID, p.post_type FROM {$wpdb->posts} p INNER JOIN {$table} ol_route ON ol_route.element_type = 'post' AND ol_route.element_id = p.ID WHERE ol_route.language = %s AND p.post_name = %s AND p.post_type IN ({$placeholders}) AND p.post_status NOT IN ('trash','auto-draft') ORDER BY p.ID",
+			"SELECT p.ID, p.post_type FROM %i p INNER JOIN %i ol_route ON ol_route.element_type = 'post' AND ol_route.element_id = p.ID WHERE ol_route.language = %s AND p.post_name = %s AND p.post_type IN ({$placeholders}) AND p.post_status NOT IN ('trash','auto-draft') ORDER BY p.ID",
 			$params
 		) );
 		foreach ( $candidates as $candidate ) {
@@ -165,7 +165,7 @@ final class Routing {
 			$target = get_term_link( $translated_id ?: $element_id );
 		}
 		if ( ! is_wp_error( $target ) ) {
-			$current_path = (string) wp_parse_url( self::$original_request_uri ?: wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ), PHP_URL_PATH );
+			$current_path = (string) wp_parse_url( self::$original_request_uri ?: sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_PATH );
 			$target_path  = (string) wp_parse_url( $target, PHP_URL_PATH );
 			if ( untrailingslashit( $current_path ) === untrailingslashit( $target_path ) ) { return; }
 			wp_safe_redirect( $target, 302 );

@@ -131,10 +131,10 @@ final class Shortcode_Admin {
 		global $wpdb;
 		$table = Database::table( 'strings' );
 		$domain = 'shortcode-' . $shortcode;
-		$submitted_translations = isset( $_POST['translations'] ) ? (array) wp_unslash( $_POST['translations'] ) : array();
+		$submitted_translations = isset( $_POST['translations'] ) ? map_deep( (array) wp_unslash( $_POST['translations'] ), 'sanitize_textarea_field' ) : array();
 		foreach ( $submitted_translations as $id => $text ) {
 			$id = absint( $id );
-			$row = $wpdb->get_row( $wpdb->prepare( "SELECT translations FROM {$table} WHERE id = %d AND domain = %s", $id, $domain ) );
+			$row = $wpdb->get_row( $wpdb->prepare( 'SELECT translations FROM %i WHERE id = %d AND domain = %s', $table, $id, $domain ) );
 			if ( ! $row ) { continue; }
 			$translations = json_decode( $row->translations, true ) ?: array();
 			$value = sanitize_textarea_field( $text );
@@ -165,7 +165,7 @@ final class Shortcode_Admin {
 		$table = Database::table( 'strings' );
 		$prefix = $wpdb->esc_like( 'shortcode-' ) . '%';
 		$divi = $wpdb->esc_like( 'shortcode-et_pb_' ) . '%';
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT domain, source_language, translations FROM {$table} WHERE domain LIKE %s AND domain NOT LIKE %s ORDER BY domain", $prefix, $divi ) );
+		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT domain, source_language, translations FROM %i WHERE domain LIKE %s AND domain NOT LIKE %s ORDER BY domain', $table, $prefix, $divi ) );
 		$stats = array();
 		foreach ( $rows as $row ) {
 			$name = self::name_from_domain( $row->domain );
@@ -182,7 +182,7 @@ final class Shortcode_Admin {
 		$table = Database::table( 'strings' );
 		$like = '%' . $wpdb->esc_like( $search ) . '%';
 		$prefix = $wpdb->esc_like( 'shortcode-' ) . '%';
-		$domains = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT domain FROM {$table} WHERE domain LIKE %s AND source_text LIKE %s", $prefix, $like ) );
+		$domains = $wpdb->get_col( $wpdb->prepare( 'SELECT DISTINCT domain FROM %i WHERE domain LIKE %s AND source_text LIKE %s', $table, $prefix, $like ) );
 		return array_values( array_filter( array_map( array( __CLASS__, 'name_from_domain' ), $domains ) ) );
 	}
 
@@ -190,7 +190,7 @@ final class Shortcode_Admin {
 		if ( ! $shortcode ) { return array(); }
 		global $wpdb;
 		$table = Database::table( 'strings' );
-		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE domain = %s ORDER BY source_text, string_key", 'shortcode-' . $shortcode ) );
+		return $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE domain = %s ORDER BY source_text, string_key', $table, 'shortcode-' . $shortcode ) );
 	}
 
 	private static function target_languages() {

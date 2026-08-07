@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.10
+
+- Sanitized submitted settings, redirects, uploads, and interface or shortcode translations.
+- Prepared dynamic table identifiers using WordPress identifier placeholders.
+- Removed obsolete manual text-domain loading.
+
 ## 1.2.9
 
 - Escaped the allowed translation-job action markup identified by Plugin Check.
