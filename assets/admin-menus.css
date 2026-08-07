@@ -1,0 +1,152 @@
+.openlingua-menu-name-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.openlingua-menu-name-row #menu-name {
+	flex: 1 1 260px;
+}
+
+.openlingua-menu-language {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-left: auto;
+	font-weight: 400;
+}
+
+.openlingua-menu-language select {
+	min-width: 150px;
+}
+
+.openlingua-menu-switcher-settings {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	margin-top: 24px;
+	padding: 20px;
+}
+
+.openlingua-menu-switcher-settings h2 {
+	margin-top: 0;
+}
+
+.openlingua-menu-location {
+	display: block;
+	margin: 10px 0;
+}
+
+.openlingua-menu-location code {
+	margin-left: 6px;
+}
+
+.openlingua-menu-position {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 18px 0 10px;
+	max-width: 360px;
+}
+
+.openlingua-switcher-config {
+	display: grid;
+	gap: 24px;
+	grid-template-columns: minmax(320px, 1fr) minmax(280px, .8fr);
+	margin-top: 18px;
+}
+
+.openlingua-switcher-style,
+.openlingua-switcher-content {
+	border: 0;
+	margin: 20px 0 0;
+	padding: 0;
+}
+
+.openlingua-switcher-style legend,
+.openlingua-switcher-content legend {
+	font-weight: 600;
+	margin-bottom: 8px;
+}
+
+.openlingua-switcher-style label,
+.openlingua-switcher-content label {
+	display: block;
+	margin: 9px 0;
+}
+
+.openlingua-switcher-style small {
+	color: #646970;
+	display: block;
+	margin: 3px 0 0 24px;
+}
+
+.openlingua-switcher-preview {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	padding: 18px;
+}
+
+.openlingua-switcher-preview h3 {
+	margin-top: 0;
+}
+
+.openlingua-switcher-preview__menu {
+	align-items: flex-start;
+	background: #1d2327;
+	color: #fff;
+	display: flex;
+	gap: 20px;
+	min-height: 42px;
+	padding: 0 14px;
+}
+
+.openlingua-switcher-preview__menu > span,
+.openlingua-preview-list > span,
+.openlingua-preview-dropdown > strong {
+	display: block;
+	padding: 12px 4px;
+}
+
+.openlingua-preview-list {
+	display: flex;
+	gap: 14px;
+}
+
+.openlingua-preview-dropdown {
+	position: relative;
+}
+
+.openlingua-preview-dropdown > div {
+	background: #fff;
+	box-shadow: 0 3px 10px rgba(0, 0, 0, .2);
+	color: #1d2327;
+	left: 0;
+	min-width: 130px;
+	position: absolute;
+	top: 100%;
+	z-index: 2;
+}
+
+.openlingua-preview-dropdown > div > span {
+	align-items: center;
+	display: flex;
+	gap: 8px;
+	padding: 9px 12px;
+	white-space: nowrap;
+}
+
+.openlingua-preview-dropdown > div > span > span {
+	display: inline;
+}
+
+@media screen and (max-width: 782px) {
+	.openlingua-switcher-config {
+		grid-template-columns: 1fr;
+	}
+	.openlingua-menu-language {
+		width: 100%;
+		margin-left: 0;
+	}
+}

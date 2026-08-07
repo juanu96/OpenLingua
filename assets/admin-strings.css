@@ -1,0 +1,71 @@
+.openlingua-strings > .description {
+	margin: 4px 0 16px;
+}
+
+.openlingua-strings__filters {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 12px 0;
+}
+
+.openlingua-strings__filters input[type="search"] {
+	width: min(360px, 35vw);
+}
+
+.openlingua-strings .column-domain {
+	width: 18%;
+}
+
+.openlingua-strings .column-source {
+	width: 36%;
+}
+
+.openlingua-strings .column-domain code {
+	display: block;
+	margin-top: 4px;
+	overflow: hidden;
+	color: #646970;
+	font-size: 11px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.openlingua-strings .column-source span {
+	display: block;
+	max-height: 5.4em;
+	overflow: auto;
+}
+
+.openlingua-strings .column-translation textarea {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 54px;
+	resize: vertical;
+}
+
+.openlingua-strings__footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 12px 0;
+}
+
+@media (max-width: 782px) {
+	.openlingua-strings__filters {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.openlingua-strings__filters input[type="search"],
+	.openlingua-strings__filters select {
+		width: 100%;
+		max-width: none;
+	}
+
+	.openlingua-strings .column-domain,
+	.openlingua-strings .column-source {
+		width: auto;
+	}
+}

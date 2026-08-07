@@ -1,0 +1,8 @@
+.openlingua-divi-tb__table { margin-top: 18px; }
+.openlingua-divi-tb__table th, .openlingua-divi-tb__table td { vertical-align: middle; }
+.openlingua-divi-tb__table th:not(:first-child):not(:nth-child(2)), .openlingua-divi-tb__table td:not(:first-child):not(:nth-child(2)) { width: 120px; text-align: center; }
+.openlingua-divi-tb__global, .openlingua-divi-tb__disabled, .openlingua-divi-tb__original { display: inline-block; padding: 2px 6px; border-radius: 10px; font-size: 11px; line-height: 1.4; }
+.openlingua-divi-tb__global { color: #fff; background: #6c2eb9; }
+.openlingua-divi-tb__disabled { color: #646970; background: #dcdcde; }
+.openlingua-divi-tb__original { color: #135e96; background: #e5f3ff; }
+.openlingua-divi-tb .button .dashicons { margin: 4px 5px 0 0; font-size: 16px; }

@@ -4,12 +4,17 @@ namespace OpenLingua;
 defined( 'ABSPATH' ) || exit;
 
 final class Routing {
+	private static $original_request_uri = '';
+	private static $requested_language = '';
+
 	public static function hooks() {
 		add_filter( 'do_parse_request', array( __CLASS__, 'detect_prefix' ), 1, 3 );
+		add_action( 'pre_get_posts', array( __CLASS__, 'resolve_language_object' ), 1 );
 		add_filter( 'post_link', array( __CLASS__, 'post_url' ), 10, 2 );
 		add_filter( 'post_type_link', array( __CLASS__, 'post_url' ), 10, 2 );
 		add_filter( 'page_link', array( __CLASS__, 'page_url' ), 10, 2 );
 		add_filter( 'term_link', array( __CLASS__, 'term_url' ), 10, 3 );
+		add_filter( 'redirect_canonical', array( __CLASS__, 'redirect_canonical' ), 10, 2 );
 		add_action( 'template_redirect', array( __CLASS__, 'redirect_to_translation' ), 2 );
 		add_action( 'init', array( __CLASS__, 'maybe_flush_rewrite_rules' ), 100 );
 	}
@@ -39,10 +44,89 @@ final class Routing {
 			return $do_parse;
 		}
 		Languages::set_current( $matches[1] );
+		self::$original_request_uri = $request_uri;
+		self::$requested_language = sanitize_key( $matches[1] );
 		$stripped = preg_replace( '#^/' . preg_quote( $matches[1], '#' ) . '(?=/|$)#', '', $relative );
 		$query    = (string) wp_parse_url( $request_uri, PHP_URL_QUERY );
 		$_SERVER['REQUEST_URI'] = $base . ( $stripped ?: '/' ) . ( $query ? '?' . $query : '' );
 		return $do_parse;
+	}
+
+	public static function resolve_language_object( $query ) {
+		if ( is_admin() || ! $query->is_main_query() || $query->get( 'suppress_filters' ) ) { return; }
+		$resolved_id = absint( $query->get( 'page_id' ) ?: $query->get( 'p' ) );
+		if ( $resolved_id ) {
+			$row = Translations::row( 'post', $resolved_id );
+			$translated_id = $row && $row->language !== Languages::current() ? Translations::translated_id( 'post', $resolved_id, Languages::current() ) : 0;
+			if ( $translated_id ) {
+				self::set_resolved_post( $query, $translated_id, get_post_type( $translated_id ) );
+			}
+			return;
+		}
+		$pagename = trim( (string) $query->get( 'pagename' ), '/' );
+		$name = sanitize_title( (string) $query->get( 'name' ) );
+		if ( ! $pagename && ! $name ) { return; }
+
+		$post_types = $pagename ? array( 'page' ) : (array) $query->get( 'post_type' );
+		if ( ! $post_types ) { $post_types = get_post_types( array( 'public' => true ), 'names' ); }
+		if ( in_array( 'any', $post_types, true ) ) { $post_types = get_post_types( array( 'public' => true ), 'names' ); }
+		$post_types = array_values( array_filter( array_map( 'sanitize_key', $post_types ) ) );
+		if ( ! $post_types ) { return; }
+
+		$slug = sanitize_title( $pagename ? basename( $pagename ) : $name );
+		global $wpdb;
+		$table = Database::table( 'translations' );
+		$placeholders = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
+		$params = array_merge( array( Languages::current(), $slug ), $post_types );
+		$candidates = $wpdb->get_results( $wpdb->prepare(
+			"SELECT p.ID, p.post_type FROM {$wpdb->posts} p INNER JOIN {$table} ol_route ON ol_route.element_type = 'post' AND ol_route.element_id = p.ID WHERE ol_route.language = %s AND p.post_name = %s AND p.post_type IN ({$placeholders}) AND p.post_status NOT IN ('trash','auto-draft') ORDER BY p.ID",
+			$params
+		) );
+		foreach ( $candidates as $candidate ) {
+			if ( $pagename && trim( get_page_uri( $candidate->ID ), '/' ) !== $pagename ) { continue; }
+			self::set_resolved_post( $query, $candidate->ID, $candidate->post_type );
+			return;
+		}
+	}
+
+	private static function set_resolved_post( $query, $post_id, $post_type ) {
+		$post_id   = absint( $post_id );
+		$post_type = sanitize_key( $post_type );
+		$post      = get_post( $post_id );
+		if ( ! $post ) { return; }
+
+		if ( 'page' === $post_type ) {
+			$query->set( 'page_id', $post_id );
+			$query->set( 'p', 0 );
+		} else {
+			$query->set( 'p', $post_id );
+			$query->set( 'page_id', 0 );
+			$query->set( 'post_type', $post_type );
+		}
+		$query->set( 'name', '' );
+		$query->set( 'pagename', '' );
+
+		// WP_Query resolves pagename before pre_get_posts. Keep its cached object
+		// synchronized so canonical redirects and templates use this language.
+		$query->queried_object    = $post;
+		$query->queried_object_id = $post_id;
+	}
+
+	public static function redirect_canonical( $redirect_url, $requested_url ) {
+		if ( ! self::$original_request_uri || ! self::$requested_language || self::$requested_language !== Languages::current() ) { return $redirect_url; }
+		if ( is_singular() ) {
+			$row = Translations::row( 'post', get_queried_object_id() );
+			$expected = $row && $row->language === self::$requested_language ? get_permalink( get_queried_object_id() ) : '';
+		} elseif ( is_category() || is_tag() || is_tax() ) {
+			$row = Translations::row( 'term', get_queried_object_id() );
+			$expected = $row && $row->language === self::$requested_language ? get_term_link( get_queried_object_id() ) : '';
+		} else {
+			return $redirect_url;
+		}
+		if ( ! $expected || is_wp_error( $expected ) ) { return $redirect_url; }
+		$requested_path = (string) wp_parse_url( self::$original_request_uri, PHP_URL_PATH );
+		$expected_path = (string) wp_parse_url( $expected, PHP_URL_PATH );
+		return $requested_path === $expected_path ? false : $expected;
 	}
 
 	public static function post_url( $url, $post ) {
@@ -80,7 +164,13 @@ final class Routing {
 		} else {
 			$target = get_term_link( $translated_id ?: $element_id );
 		}
-		if ( ! is_wp_error( $target ) ) { wp_safe_redirect( $target, 302 ); exit; }
+		if ( ! is_wp_error( $target ) ) {
+			$current_path = (string) wp_parse_url( self::$original_request_uri ?: wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ), PHP_URL_PATH );
+			$target_path  = (string) wp_parse_url( $target, PHP_URL_PATH );
+			if ( untrailingslashit( $current_path ) === untrailingslashit( $target_path ) ) { return; }
+			wp_safe_redirect( $target, 302 );
+			exit;
+		}
 	}
 
 	public static function maybe_flush_rewrite_rules() {

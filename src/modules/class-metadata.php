@@ -9,6 +9,7 @@ final class Metadata implements Module {
 	public static function hooks() {
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ) );
 		add_action( 'admin_post_openlingua_save_meta_policies', array( __CLASS__, 'save' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
 
 	public static function policies() {
@@ -40,7 +41,13 @@ final class Metadata implements Module {
 	}
 
 	public static function admin_menu() {
-		add_submenu_page( 'openlingua', __( 'Custom field policies', 'openlingua' ), __( 'Custom fields', 'openlingua' ), 'manage_options', 'openlingua-fields', array( __CLASS__, 'page' ) );
+		add_submenu_page( 'openlingua', __( 'OpenLingua advanced settings', 'openlingua' ), __( 'Advanced settings', 'openlingua' ), 'manage_options', 'openlingua-fields', array( __CLASS__, 'page' ) );
+	}
+
+	public static function enqueue_assets( $hook ) {
+		if ( 'openlingua_page_openlingua-fields' !== $hook ) { return; }
+		wp_enqueue_style( 'openlingua-language-settings', plugins_url( 'assets/admin-language-settings.css', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION );
+		wp_enqueue_script( 'openlingua-provider-tabs', plugins_url( 'assets/admin-provider-tabs.js', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION, true );
 	}
 
 	public static function page() {
@@ -48,9 +55,23 @@ final class Metadata implements Module {
 		foreach ( (array) get_option( 'openlingua_meta_policies', array() ) as $post_type => $keys ) {
 			foreach ( (array) $keys as $key => $policy ) { $rows[] = $post_type . '|' . $key . '|' . $policy; }
 		}
-		echo '<div class="wrap"><h1>' . esc_html__( 'Custom field policies', 'openlingua' ) . '</h1><p>' . esc_html__( 'One rule per line: post-type|meta-key|policy. Use * for every post type. Policies: translate, copy, copy-once, ignore.', 'openlingua' ) . '</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_save_meta_policies">';
+		echo '<div class="wrap openlingua-settings"><h1>' . esc_html__( 'OpenLingua advanced settings', 'openlingua' ) . '</h1>';
+		echo '<p>' . esc_html__( 'Technical controls for exceptional multilingual content behavior. The automatic defaults are suitable for most websites.', 'openlingua' ) . '</p>';
+		if ( 'saved' === ( $_GET['openai_notice'] ?? '' ) ) { echo '<div class="notice notice-success inline"><p>' . esc_html__( 'OpenAI settings saved.', 'openlingua' ) . '</p></div>'; }
+		if ( 'invalid-key' === ( $_GET['openai_notice'] ?? '' ) ) { echo '<div class="notice notice-error inline"><p>' . esc_html__( 'The API key must begin with sk-. The previous key was kept.', 'openlingua' ) . '</p></div>'; }
+		echo '<div class="openlingua-provider-settings" data-openlingua-provider-tabs><div class="nav-tab-wrapper" role="tablist" aria-label="' . esc_attr__( 'Automatic translation provider', 'openlingua' ) . '">';
+		$active_provider = Providers::active_id();
+		echo '<button type="button" class="nav-tab" role="tab" data-openlingua-provider-tab="openai">OpenAI' . ( 'openai' === $active_provider ? ' ✓' : '' ) . '</button>';
+		echo '<button type="button" class="nav-tab" role="tab" data-openlingua-provider-tab="anthropic">Claude' . ( 'anthropic' === $active_provider ? ' ✓' : '' ) . '</button>';
+		echo '<button type="button" class="nav-tab" role="tab" data-openlingua-provider-tab="gemini">Gemini' . ( 'gemini' === $active_provider ? ' ✓' : '' ) . '</button>';
+		echo '<button type="button" class="nav-tab" role="tab" data-openlingua-provider-tab="google-translate">Google Translate' . ( 'google-translate' === $active_provider ? ' ✓' : '' ) . '</button></div>';
+		do_action( 'openlingua_advanced_settings_sections' );
+		echo '</div>';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_save_meta_policies"><section class="openlingua-card"><h2>' . esc_html__( 'Custom field policies', 'openlingua' ) . '</h2>';
+		echo '<p>' . esc_html__( 'Override how specific WordPress or ACF fields behave when a translation is created.', 'openlingua' ) . '</p>';
+		echo '<details><summary>' . esc_html__( 'Edit technical rules', 'openlingua' ) . '</summary><p>' . esc_html__( 'One rule per line: post-type|meta-key|policy. Use * for every post type. Policies: translate, copy, copy-once, ignore.', 'openlingua' ) . '</p>';
 		wp_nonce_field( 'openlingua_save_meta_policies' );
-		echo '<textarea class="large-text code" rows="18" name="rules">' . esc_textarea( implode( "\n", $rows ) ) . '</textarea>'; submit_button(); echo '</form></div>';
+		echo '<textarea class="large-text code" rows="12" name="rules">' . esc_textarea( implode( "\n", $rows ) ) . '</textarea></details></section>'; submit_button(); echo '</form></div>';
 	}
 
 	public static function save() {

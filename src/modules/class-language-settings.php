@@ -19,7 +19,7 @@ final class Language_Settings implements Module {
 		return array(
 			'url_mode' => 'directory', 'domains' => array(), 'admin_language' => 'site-default',
 			'hidden_languages' => array(), 'browser_redirect' => 'off',
-			'switcher' => array( 'show_flag' => true, 'show_name' => true, 'show_native_name' => false, 'dropdown' => false, 'missing' => 'home', 'footer' => false ),
+			'switcher' => array( 'show_flag' => true, 'show_name' => true, 'show_native_name' => false, 'show_current' => true, 'dropdown' => false, 'missing' => 'home', 'footer' => false, 'menu_locations' => array(), 'menu_position' => 'last' ),
 		);
 	}
 
@@ -69,7 +69,7 @@ final class Language_Settings implements Module {
 	private static function section_switcher( $settings ) {
 		$s = $settings['switcher'];
 		echo '<section class="openlingua-card"><h2>' . esc_html__( 'Language switcher', 'openlingua' ) . '</h2>';
-		foreach ( array( 'show_flag' => __( 'Show flag or symbol', 'openlingua' ), 'show_name' => __( 'Show translated language name', 'openlingua' ), 'show_native_name' => __( 'Show native language name', 'openlingua' ), 'dropdown' => __( 'Render as a dropdown', 'openlingua' ), 'footer' => __( 'Automatically show a switcher in the footer', 'openlingua' ) ) as $key => $label ) { echo '<label class="openlingua-check"><input type="checkbox" name="switcher[' . esc_attr( $key ) . ']" value="1" ' . checked( ! empty( $s[ $key ] ), true, false ) . '> ' . esc_html( $label ) . '</label>'; }
+		foreach ( array( 'show_flag' => __( 'Show flag or symbol', 'openlingua' ), 'show_name' => __( 'Show translated language name', 'openlingua' ), 'show_native_name' => __( 'Show native language name', 'openlingua' ), 'show_current' => __( 'Include the current language', 'openlingua' ), 'dropdown' => __( 'Render as a dropdown', 'openlingua' ), 'footer' => __( 'Automatically show a switcher in the footer', 'openlingua' ) ) as $key => $label ) { echo '<label class="openlingua-check"><input type="checkbox" name="switcher[' . esc_attr( $key ) . ']" value="1" ' . checked( ! empty( $s[ $key ] ), true, false ) . '> ' . esc_html( $label ) . '</label>'; }
 		echo '<label class="openlingua-select">' . esc_html__( 'When a translation is missing', 'openlingua' ) . '<select name="switcher[missing]"><option value="home" ' . selected( $s['missing'], 'home', false ) . '>' . esc_html__( 'Link to that language homepage', 'openlingua' ) . '</option><option value="hide" ' . selected( $s['missing'], 'hide', false ) . '>' . esc_html__( 'Hide the language', 'openlingua' ) . '</option></select></label></section>';
 	}
 
@@ -110,7 +110,9 @@ final class Language_Settings implements Module {
 		$admin_language = sanitize_key( wp_unslash( $_POST['admin_language'] ?? 'site-default' ) ); if ( ! in_array( $admin_language, array_merge( array( 'site-default', 'user' ), array_keys( $enabled ) ), true ) ) { $admin_language = 'site-default'; }
 		$browser = sanitize_key( wp_unslash( $_POST['browser_redirect'] ?? 'off' ) ); if ( ! in_array( $browser, array( 'off', 'once', 'always' ), true ) ) { $browser = 'off'; }
 		$switcher = (array) ( $_POST['switcher'] ?? array() );
-		$clean_switcher = array( 'show_flag' => ! empty( $switcher['show_flag'] ), 'show_name' => ! empty( $switcher['show_name'] ), 'show_native_name' => ! empty( $switcher['show_native_name'] ), 'dropdown' => ! empty( $switcher['dropdown'] ), 'footer' => ! empty( $switcher['footer'] ), 'missing' => 'hide' === ( $switcher['missing'] ?? '' ) ? 'hide' : 'home' );
+		$registered_locations = array_keys( get_registered_nav_menus() );
+		$menu_locations = array_values( array_intersect( $registered_locations, array_map( 'sanitize_key', (array) ( $switcher['menu_locations'] ?? array() ) ) ) );
+		$clean_switcher = array( 'show_flag' => ! empty( $switcher['show_flag'] ), 'show_name' => ! empty( $switcher['show_name'] ), 'show_native_name' => ! empty( $switcher['show_native_name'] ), 'show_current' => ! empty( $switcher['show_current'] ), 'dropdown' => ! empty( $switcher['dropdown'] ), 'footer' => ! empty( $switcher['footer'] ), 'missing' => 'hide' === ( $switcher['missing'] ?? '' ) ? 'hide' : 'home', 'menu_locations' => $menu_locations, 'menu_position' => 'first' === ( $switcher['menu_position'] ?? '' ) ? 'first' : 'last' );
 		$hidden = array_values( array_intersect( array_keys( $enabled ), array_map( 'sanitize_key', (array) ( $_POST['hidden_languages'] ?? array() ) ) ) );
 		update_option( 'openlingua_language_settings', array( 'url_mode' => $url_mode, 'domains' => $domains, 'admin_language' => $admin_language, 'hidden_languages' => $hidden, 'browser_redirect' => $browser, 'switcher' => $clean_switcher ) );
 		update_option( 'openlingua_string_discovery', ! empty( $_POST['string_discovery'] ) ); update_option( 'openlingua_flush_rewrite_rules', 1 );

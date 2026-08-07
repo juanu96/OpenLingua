@@ -3,7 +3,7 @@
  * Plugin Name: OpenLingua
  * Plugin URI:  https://github.com/openlingua/openlingua
  * Description: Multilingual content, custom post types, custom fields and strings for WordPress.
- * Version:     1.1.0
+ * Version:     1.2.0
  * Requires at least: 6.4
  * Requires PHP: 7.4
  * Author:      OpenLingua Contributors
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'OPENLINGUA_VERSION', '1.1.0' );
+define( 'OPENLINGUA_VERSION', '1.2.0' );
 define( 'OPENLINGUA_FILE', __FILE__ );
 define( 'OPENLINGUA_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -24,8 +24,14 @@ require_once OPENLINGUA_DIR . 'src/class-module-registry.php';
 require_once OPENLINGUA_DIR . 'src/class-languages.php';
 require_once OPENLINGUA_DIR . 'src/class-translations.php';
 require_once OPENLINGUA_DIR . 'src/class-content.php';
+require_once OPENLINGUA_DIR . 'src/class-divi-content.php';
+require_once OPENLINGUA_DIR . 'src/class-divi-theme-builder.php';
+require_once OPENLINGUA_DIR . 'src/class-acf-content.php';
+require_once OPENLINGUA_DIR . 'src/class-translation-editor.php';
 require_once OPENLINGUA_DIR . 'src/class-taxonomies.php';
 require_once OPENLINGUA_DIR . 'src/class-strings.php';
+require_once OPENLINGUA_DIR . 'src/class-shortcode-content.php';
+require_once OPENLINGUA_DIR . 'src/class-shortcode-admin.php';
 require_once OPENLINGUA_DIR . 'src/class-routing.php';
 require_once OPENLINGUA_DIR . 'src/class-seo.php';
 require_once OPENLINGUA_DIR . 'src/class-rest.php';
@@ -38,6 +44,11 @@ require_once OPENLINGUA_DIR . 'src/modules/class-menus.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-metadata.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-commerce.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-providers.php';
+require_once OPENLINGUA_DIR . 'src/modules/class-openai-provider.php';
+require_once OPENLINGUA_DIR . 'src/modules/trait-provider-secrets.php';
+require_once OPENLINGUA_DIR . 'src/modules/class-anthropic-provider.php';
+require_once OPENLINGUA_DIR . 'src/modules/class-gemini-provider.php';
+require_once OPENLINGUA_DIR . 'src/modules/class-google-translate-provider.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-jobs.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-string-discovery.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-portability.php';

@@ -1,0 +1,20 @@
+.openlingua-shortcodes > .description { max-width: 900px; margin-bottom: 18px; }
+.openlingua-shortcodes .subsubsub { float: none; margin-bottom: 8px; }
+.openlingua-shortcodes__search { display: flex; align-items: center; gap: 8px; margin: 16px 0; }
+.openlingua-shortcodes__search input[type="search"] { width: min(420px, 100%); }
+.openlingua-shortcodes__table .column-primary { width: auto; }
+.openlingua-shortcodes__table th:not(.column-primary),
+.openlingua-shortcodes__table td:not(.column-primary) { width: 100px; text-align: center; }
+.openlingua-shortcodes__table code { font-size: 13px; }
+.openlingua-shortcodes__source-column .openlingua-column-language { font-size: 18px; }
+.openlingua-shortcodes__edit { position: relative; width: auto; min-width: 46px; gap: 2px; }
+.openlingua-shortcodes__edit.is-complete { color: #008a20; }
+.openlingua-shortcodes__edit.is-pending { color: #2271b1; }
+.openlingua-shortcodes__progress-count { font-size: 10px; line-height: 1; }
+.openlingua-shortcodes__unavailable { color: #a7aaad; }
+@media (max-width: 782px) {
+	.openlingua-shortcodes__search { align-items: stretch; flex-direction: column; }
+	.openlingua-shortcodes__search input[type="search"] { width: 100%; max-width: none; }
+	.openlingua-shortcodes__table th:not(.column-primary),
+	.openlingua-shortcodes__table td:not(.column-primary) { width: auto; text-align: left; }
+}

@@ -1,0 +1,65 @@
+.wp-list-table [class*="column-openlingua_translation_"] {
+	width: 90px;
+	text-align: center;
+}
+
+.openlingua-column-language {
+	display: inline-block;
+	font-size: 18px;
+	line-height: 1;
+}
+
+.openlingua-translation-links {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+}
+
+.openlingua-translation-action--delete {
+	color: #b32d2e;
+}
+
+.openlingua-translation-action--delete:hover,
+.openlingua-translation-action--delete:focus {
+	color: #8a2424;
+}
+
+.openlingua-translation-action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	text-decoration: none;
+}
+
+.openlingua-translation-action:hover,
+.openlingua-translation-action:focus {
+	outline: 1px solid #2271b1;
+	outline-offset: 1px;
+}
+
+.openlingua-translation-action .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+
+.openlingua-trashed-language {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	color: #646970;
+	font-size: 12px;
+}
+
+.openlingua-trashed-language .dashicons {
+	width: 14px;
+	height: 14px;
+	font-size: 14px;
+}
+
+.openlingua-trashed-language--unknown {
+	font-style: italic;
+}

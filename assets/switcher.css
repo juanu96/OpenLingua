@@ -1,0 +1,142 @@
+.openlingua-switcher--dropdown {
+	--openlingua-switcher-background: #fff;
+	--openlingua-switcher-border: #dcdcde;
+	--openlingua-switcher-color: #2c3338;
+	--openlingua-switcher-hover: #f0f6fc;
+	color: var(--openlingua-switcher-color) !important;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+	font-size: 14px !important;
+	font-style: normal !important;
+	font-weight: 400 !important;
+	line-height: 1.4 !important;
+	position: relative;
+}
+
+.openlingua-switcher__flag {
+	align-items: center;
+	display: inline-flex;
+	flex: 0 0 auto;
+}
+
+.openlingua-switcher__flag img,
+.openlingua-switcher__flag-image {
+	display: block;
+	height: 14px !important;
+	margin: 0 !important;
+	max-width: none !important;
+	object-fit: cover;
+	width: 20px !important;
+}
+
+.openlingua-switcher--dropdown > summary {
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	gap: .35em;
+	list-style: none;
+	white-space: nowrap;
+}
+
+.openlingua-switcher--dropdown > summary::after {
+	content: "▾";
+	font-size: .75em;
+	line-height: 1;
+	transition: transform .15s ease;
+}
+
+.openlingua-switcher--dropdown[open] > summary::after {
+	transform: rotate(180deg);
+}
+
+.openlingua-switcher--dropdown > summary::-webkit-details-marker {
+	display: none;
+}
+
+.openlingua-switcher--dropdown > ul {
+	background: var(--openlingua-switcher-background) !important;
+	border: 1px solid var(--openlingua-switcher-border) !important;
+	border-radius: 6px !important;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, .14) !important;
+	box-sizing: border-box !important;
+	color: var(--openlingua-switcher-color) !important;
+	font: inherit !important;
+	left: 0;
+	list-style: none;
+	margin: 0;
+	min-width: 132px !important;
+	opacity: 1;
+	padding: 6px !important;
+	pointer-events: auto;
+	position: absolute;
+	top: 100%;
+	transform: none;
+	visibility: visible;
+	width: max-content !important;
+	z-index: 9999;
+}
+
+body .openlingua-switcher--dropdown[open] > ul {
+	display: block;
+	opacity: 1;
+	pointer-events: auto;
+	transform: none;
+	visibility: visible;
+	width: max-content !important;
+}
+
+body .openlingua-switcher--dropdown:not([open]) > ul {
+	display: none;
+	opacity: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+@media (hover: hover) and (pointer: fine) {
+	body .openlingua-switcher--dropdown:hover > ul,
+	body .openlingua-switcher--dropdown:focus-within > ul {
+		display: block;
+		opacity: 1;
+		pointer-events: auto;
+		transform: none;
+		visibility: visible;
+		width: max-content !important;
+	}
+
+	.openlingua-switcher--dropdown:hover > summary::after,
+	.openlingua-switcher--dropdown:focus-within > summary::after {
+		transform: rotate(180deg);
+	}
+}
+
+.openlingua-switcher--dropdown .openlingua-switcher__item {
+	display: block;
+	font: inherit !important;
+	line-height: 1.4 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	width: auto !important;
+}
+
+.openlingua-switcher--dropdown .openlingua-switcher__item > a {
+	align-items: center;
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 4px;
+	box-shadow: none !important;
+	box-sizing: border-box !important;
+	color: var(--openlingua-switcher-color) !important;
+	display: flex !important;
+	font: inherit !important;
+	gap: 8px;
+	line-height: 1.4 !important;
+	padding: 8px 10px !important;
+	text-decoration: none !important;
+	white-space: nowrap;
+	width: auto !important;
+}
+
+.openlingua-switcher--dropdown .openlingua-switcher__item > a:hover,
+.openlingua-switcher--dropdown .openlingua-switcher__item > a:focus-visible {
+	background: var(--openlingua-switcher-hover) !important;
+	color: var(--openlingua-switcher-color) !important;
+}

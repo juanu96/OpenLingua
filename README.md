@@ -1,21 +1,190 @@
 # OpenLingua
 
-OpenLingua is a free GPL multilingual foundation for WordPress. Version 1.1 supports translated content and taxonomies, comprehensive language settings, custom-field policies, menus, strings, language-aware routing and SEO, extensible translation providers, portability, and operational tooling.
+OpenLingua is a free, GPL-licensed multilingual foundation for WordPress. It provides language-aware content, URLs, menus, taxonomies, custom fields, SEO metadata, interface strings, shortcodes, Divi layouts, and optional automatic translation without locking a site into a proprietary translation service.
 
-This project is an original implementation. It neither contains proprietary WPML code nor promises drop-in WPML compatibility.
+Current plugin version: **1.2.0**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
 
-## Architecture
+OpenLingua is an original implementation. It does not contain proprietary WPML code and does not promise drop-in compatibility with WPML, Polylang, or another multilingual plugin.
 
-Core domain services live in `src/`. Optional capabilities live in `src/modules/` and implement `OpenLingua\Contracts\Module`. Provider integrations implement `OpenLingua\Contracts\Translation_Provider`. See [the architecture guide](docs/ARCHITECTURE.md) and [provider guide](docs/PROVIDERS.md).
+## Main features
+
+### Languages and URLs
+
+- Enable languages from a broad built-in catalog or register a custom language.
+- Choose the default language and WordPress locale.
+- Support left-to-right and right-to-left languages.
+- Use language directories (`/es/page/`), query parameters (`?lang=es`), or separate language domains.
+- Generate language-aware canonical URLs and alternate `hreflang` links.
+- Optionally redirect visitors according to their browser language.
+- Keep hidden languages editable by administrators while excluding them from public discovery.
+
+### Pages, posts, and custom post types
+
+- Works automatically with public WordPress post types instead of relying on hardcoded CPT names.
+- Shows add, edit, view, delete, restore, and language-status actions in WordPress list tables.
+- Filters the admin list to the language currently selected in the OpenLingua admin bar.
+- Maintains translation groups with one element per language.
+- Allows translated content to reuse the same slug under different language paths, such as `/en/listing/balsa/` and `/es/listing/balsa/`.
+- Provides a side-by-side translation editor with visual and HTML editing modes.
+
+### Divi support
+
+- Extracts translatable text from Divi modules while preserving shortcode structure and builder settings.
+- Keeps visual-mode fields readable instead of exposing raw HTML by default.
+- Supports translated Divi Theme Builder headers, bodies, and footers.
+- Preserves dynamic post-content modules and layout metadata.
+- Provides a dedicated **OpenLingua → Divi Theme Builder** overview for creating and editing layout translations.
+
+### ACF and metadata
+
+- Discovers supported ACF text fields in the translation editor.
+- Saves translated ACF values independently on the translated post.
+- Preserves ACF field-key references and structured values.
+- Includes advanced per-post-type metadata policies:
+  - `translate`
+  - `copy`
+  - `copy-once`
+  - `ignore`
+
+### Taxonomies
+
+- Dedicated taxonomy translation screen.
+- Translate term name, slug, and description.
+- Filter the screen to one selected taxonomy at a time.
+- Keep translated terms linked across languages.
+
+### Menus and language switcher
+
+- Assign a separate WordPress menu to each language and theme location.
+- Create an empty translated menu and add only content from its language.
+- Switch between menu languages directly in the native WordPress menu editor.
+- Automatically insert the language selector at the beginning or end of selected menu locations.
+- Configure the selector as a dropdown or a flat language list.
+- Show flags, translated names, native names, or flags only.
+- Include or hide the current language in list mode.
+- Preview the selected appearance before saving.
+- Open dropdowns by hover, keyboard focus, click, or touch.
+- Uses isolated plugin styling so Divi and other themes cannot force oversized submenu presentation.
+- Converts emoji flags to WordPress-compatible images when the operating system cannot render country flags.
+- The `[openlingua_switcher]` shortcode remains available for manual placement.
+
+### Strings and shortcodes
+
+- Register and translate gettext/interface strings from themes and plugins.
+- Optional discovery mode records strings while relevant pages are visited.
+- Dedicated shortcode catalog and translation editor.
+- Detects human-readable labels from rendered shortcode output without hardcoding individual shortcode names.
+- Supports dynamically rendered shortcode output, including compatible JavaScript applications.
+
+### SEO integrations
+
+OpenLingua detects and translates common SEO metadata while keeping it attached to the correct language version. Supported integrations include:
+
+- Yoast SEO
+- Rank Math
+- All in One SEO (AIOSEO)
+- SEOPress
+
+Language URLs, canonical links, translated slugs, and `hreflang` output are generated for search-engine discovery. Indexing still depends on each page being public, crawlable, internally linked, and permitted by the site's SEO settings.
+
+### Automatic translation providers
+
+Site owners can configure their own credentials under **OpenLingua → Advanced settings** and select one active provider:
+
+- OpenAI
+- Anthropic Claude
+- Google Gemini
+- Google Cloud Translation
+
+Each provider tab includes setup instructions and official links for obtaining an API key. Credentials are encrypted using the WordPress authentication salt and are never displayed again after saving.
+
+Automatic translation jobs:
+
+1. Are queued from the translation editor.
+2. Start through WordPress scheduling.
+3. Translate standard content, Divi segments, supported ACF fields, and detected SEO metadata.
+4. Preserve HTML, shortcodes, placeholders, URLs, numbers, units, and structured keys.
+5. Remain available for human review before publication.
+6. Show clear queued, translating, ready, and failed states under **OpenLingua → Jobs**.
+
+API usage is billed or limited by the selected provider. A ChatGPT or Claude subscription is separate from API usage.
+
+## Administration screens
+
+- **OpenLingua**: languages, URL format, selector basics, visibility, and browser behavior.
+- **Strings**: interface strings registered by WordPress themes and plugins.
+- **Menus**: language-specific menu assignments and selector appearance.
+- **Advanced settings**: translation providers and exceptional metadata policies.
+- **Jobs**: automatic translation queue and retry/review actions.
+- **Tools**: import and export OpenLingua configuration and translation data.
+- **Diagnostics**: plain-language site health for database tables, languages, providers, and background jobs.
+- **Shortcodes**: discover and translate registered shortcode output.
+- **Taxonomies**: edit translated term names, slugs, and descriptions.
+- **Divi Theme Builder**: translate Divi headers, bodies, and footers.
+
+## Installation
+
+1. Copy the `openlingua` directory to `wp-content/plugins/`.
+2. Activate **OpenLingua** from the WordPress Plugins screen.
+3. Open **OpenLingua** and enable at least two languages.
+4. Select the default language and URL format, then save.
+5. Visit Pages, Posts, or a supported CPT and use the language icons to create translations.
+6. Configure language-specific menus under **OpenLingua → Menus**.
+7. Optionally configure an automatic translation provider under **Advanced settings**.
+
+After changing URL modes, OpenLingua requests a rewrite-rule refresh automatically. If a local environment still returns stale routes, visit **Settings → Permalinks** and save once, then clear page or Divi caches.
+
+## Public API and extension points
+
+Core domain services live in `src/`. Optional capabilities live in `src/modules/` and implement `OpenLingua\Contracts\Module`. Translation providers implement `OpenLingua\Contracts\Translation_Provider`.
+
+Useful PHP helpers include:
+
+```php
+OpenLingua\register_string( $key, $text, $domain, $source_language );
+OpenLingua\translate_string( $key, $fallback, $domain, $language );
+OpenLingua\translated_post_id( $post_id, $language );
+OpenLingua\translated_term_id( $term_id, $language );
+OpenLingua\register_provider( $provider );
+OpenLingua\enqueue_translation_job( $source_id, $target_id, $language, $provider_id );
+OpenLingua\set_menu_translation( $location, $language, $menu_id );
+```
+
+Primary filters and actions:
+
+- `openlingua_modules`
+- `openlingua_translation_providers`
+- `openlingua_meta_policy`
+- `openlingua_workflow_statuses`
+- `openlingua_woocommerce_shared_meta`
+- `openlingua_modules_loaded`
+
+See [Architecture](docs/ARCHITECTURE.md) and [Translation providers](docs/PROVIDERS.md) for implementation details.
+
+## Data, privacy, and removal
+
+OpenLingua stores translation relationships, strings, and automatic-translation jobs in per-site WordPress tables. Provider credentials are stored encrypted in WordPress options.
+
+No content is sent to an external translation service unless an administrator configures that provider and explicitly starts an automatic translation job. The exact provider receives only the segments included in that job.
+
+Uninstall preserves multilingual data by default. Define `OPENLINGUA_REMOVE_DATA` as `true` before uninstalling only when permanent removal is intended.
 
 ## Quality checks
+
+Run the complete test suite:
 
 ```bash
 php tests/run.php
 php tests/modules.php
+php tests/acf.php
+php tests/divi.php
+php tests/divi-theme-builder.php
+php tests/seo.php
+php tests/shortcodes.php
+php tests/slugs.php
 ```
 
-Every PHP file must also pass `php -l` before release.
+Every PHP file must also pass `php -l`. JavaScript files should pass `node --check`, and user-facing changes should be verified in the WordPress administrator and frontend.
 
 ## License
 

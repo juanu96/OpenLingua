@@ -1,0 +1,26 @@
+.openlingua-taxonomies > .description { margin: 4px 0 16px; }
+.openlingua-taxonomies__filters { display:flex; align-items:center; gap:8px; margin:12px 0; }
+.openlingua-taxonomies__filters input[type="search"] { width:280px; }
+.openlingua-taxonomies .column-term { width:28%; }
+.openlingua-taxonomies .column-taxonomy { width:16%; }
+.openlingua-taxonomies .column-description { width:auto; }
+.openlingua-taxonomies .column-term code { display:block; margin-top:3px; color:#646970; }
+.openlingua-taxonomies .column-description span { display:block; max-height:3.8em; overflow:hidden; }
+.openlingua-taxonomies .column-language { width:72px; text-align:center; }
+.openlingua-taxonomy-action { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; padding:0; border:0; background:transparent; color:#2271b1; cursor:pointer; }
+.openlingua-taxonomy-action:hover,.openlingua-taxonomy-action:focus { outline:1px solid #2271b1; outline-offset:1px; }
+.openlingua-taxonomy-modal[hidden] { display:none; }
+.openlingua-taxonomy-modal { position:fixed; z-index:100100; inset:0; display:grid; place-items:center; padding:20px; }
+.openlingua-taxonomy-modal__backdrop { position:absolute; inset:0; background:rgba(29,35,39,.62); }
+.openlingua-taxonomy-modal__dialog { position:relative; width:min(620px,100%); max-height:calc(100vh - 40px); overflow:auto; background:#fff; border-radius:6px; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+.openlingua-taxonomy-modal__dialog header,.openlingua-taxonomy-modal__dialog footer { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 20px; border-bottom:1px solid #dcdcde; }
+.openlingua-taxonomy-modal__dialog footer { justify-content:flex-end; border-top:1px solid #dcdcde; border-bottom:0; }
+.openlingua-taxonomy-modal__dialog h2 { margin:2px 0 0; }
+.openlingua-taxonomy-modal__body { display:grid; gap:16px; padding:20px; }
+.openlingua-taxonomy-modal__body label { display:grid; gap:6px; font-weight:600; }
+.openlingua-taxonomy-modal__body input,.openlingua-taxonomy-modal__body textarea { width:100%; }
+.openlingua-taxonomy-modal__body small { color:#646970; font-weight:400; }
+.openlingua-taxonomy-modal__source { margin:0; padding:10px 12px; background:#f0f6fc; border-left:3px solid #2271b1; }
+.openlingua-taxonomy-modal__source span { display:block; color:#646970; font-size:12px; }
+body.openlingua-modal-open { overflow:hidden; }
+@media(max-width:782px){.openlingua-taxonomies__filters{align-items:stretch;flex-direction:column}.openlingua-taxonomies__filters input[type="search"],.openlingua-taxonomies__filters select{width:100%;max-width:none}.openlingua-taxonomies .column-term,.openlingua-taxonomies .column-taxonomy,.openlingua-taxonomies .column-language{width:auto}}

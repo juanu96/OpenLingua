@@ -9,7 +9,11 @@ final class Plugin {
 		if ( is_multisite() ) { add_action( 'wp_initialize_site', array( 'OpenLingua\\Database', 'install_new_site' ), 20, 1 ); }
 		load_plugin_textdomain( 'openlingua', false, dirname( plugin_basename( OPENLINGUA_FILE ) ) . '/languages' );
 		Content::hooks();
+		Divi_Theme_Builder::hooks();
+		Translation_Editor::hooks();
 		Taxonomies::hooks();
+		Shortcode_Content::hooks();
+		Shortcode_Admin::hooks();
 		Routing::hooks();
 		SEO::hooks();
 		REST::hooks();
@@ -21,6 +25,10 @@ final class Plugin {
 			\OpenLingua\Modules\Metadata::class,
 			\OpenLingua\Modules\Commerce::class,
 			\OpenLingua\Modules\Providers::class,
+			\OpenLingua\Modules\OpenAI_Provider::class,
+			\OpenLingua\Modules\Anthropic_Provider::class,
+			\OpenLingua\Modules\Gemini_Provider::class,
+			\OpenLingua\Modules\Google_Translate_Provider::class,
 			\OpenLingua\Modules\Jobs::class,
 			\OpenLingua\Modules\String_Discovery::class,
 			\OpenLingua\Modules\Portability::class,
@@ -29,30 +37,57 @@ final class Plugin {
 			\OpenLingua\Modules\CLI::class,
 		) ) );
 		add_shortcode( 'openlingua_switcher', array( __CLASS__, 'switcher' ) );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'switcher_assets' ) );
 		add_filter( 'locale', array( __CLASS__, 'locale' ) );
 		add_filter( 'language_attributes', array( __CLASS__, 'language_attributes' ) );
 	}
 
-	public static function switcher() {
+	public static function switcher_assets() {
+		wp_enqueue_style( 'openlingua-switcher', plugins_url( 'assets/switcher.css', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION );
+		wp_enqueue_script( 'openlingua-switcher', plugins_url( 'assets/switcher.js', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION, true );
+	}
+
+	public static function switcher( $atts = array() ) {
+		$atts = shortcode_atts( array( 'context' => 'standalone' ), is_array( $atts ) ? $atts : array(), 'openlingua_switcher' );
+		$menu_context = 'menu' === $atts['context'];
 		$current_id = get_queried_object_id();
 		$group      = $current_id ? Translations::group( 'post', $current_id ) : array();
 		$settings   = \OpenLingua\Modules\Language_Settings::get()['switcher'];
 		$items      = '';
 		foreach ( Languages::public_all() as $code => $language ) {
+			$is_current = Languages::current() === $code;
+			if ( $is_current && ( empty( $settings['show_current'] ) || ! empty( $settings['dropdown'] ) ) ) { continue; }
 			if ( 'hide' === $settings['missing'] && $current_id && ! isset( $group[ $code ] ) ) { continue; }
 			$url = isset( $group[ $code ] ) ? get_permalink( $group[ $code ] ) : home_url( '/' );
-			$parts = array();
-			if ( ! empty( $settings['show_flag'] ) ) { $parts[] = '<span class="openlingua-switcher__flag" aria-hidden="true">' . esc_html( $language['flag'] ?? '🌐' ) . '</span>'; }
-			if ( ! empty( $settings['show_name'] ) ) { $parts[] = '<span class="openlingua-switcher__name">' . esc_html( $language['name'] ) . '</span>'; }
-			if ( ! empty( $settings['show_native_name'] ) && ( $language['native_name'] ?? $language['name'] ) !== $language['name'] ) { $parts[] = '<span class="openlingua-switcher__native">' . esc_html( $language['native_name'] ) . '</span>'; }
-			$label = $parts ? implode( ' ', $parts ) : esc_html( strtoupper( $code ) );
-			$items .= '<li><a hreflang="' . esc_attr( $code ) . '" lang="' . esc_attr( $code ) . '" href="' . esc_url( Languages::url( $url, $code ) ) . '"' . ( Languages::current() === $code ? ' aria-current="page"' : '' ) . '>' . $label . '</a></li>';
+			$label = self::switcher_language_label( $code, $language, $settings );
+			$items .= '<li class="openlingua-switcher__item menu-item"><a hreflang="' . esc_attr( $code ) . '" lang="' . esc_attr( $code ) . '" href="' . esc_url( Languages::url( $url, $code ) ) . '"' . ( Languages::current() === $code ? ' aria-current="page"' : '' ) . '>' . $label . '</a></li>';
 		}
+		if ( '' === $items ) { return ''; }
 		if ( ! empty( $settings['dropdown'] ) ) {
-			$current = Languages::all()[ Languages::current() ] ?? array( 'name' => strtoupper( Languages::current() ) );
-			return '<nav class="openlingua-switcher openlingua-switcher--dropdown" aria-label="' . esc_attr__( 'Languages', 'openlingua' ) . '"><details><summary>' . esc_html( $current['name'] ) . '</summary><ul>' . $items . '</ul></details></nav>';
+			$current_code = Languages::current();
+			$current = Languages::all()[ $current_code ] ?? array( 'name' => strtoupper( $current_code ) );
+			$dropdown = '<details class="openlingua-switcher openlingua-switcher--dropdown"><summary>' . self::switcher_language_label( $current_code, $current, $settings ) . '</summary><ul>' . $items . '</ul></details>';
+			return $menu_context ? '<li class="openlingua-switcher-menu-item menu-item">' . $dropdown . '</li>' : '<nav aria-label="' . esc_attr__( 'Languages', 'openlingua' ) . '">' . $dropdown . '</nav>';
 		}
+		if ( $menu_context ) { return $items; }
 		return '<nav class="openlingua-switcher" aria-label="' . esc_attr__( 'Languages', 'openlingua' ) . '"><ul>' . $items . '</ul></nav>';
+	}
+
+	private static function switcher_language_label( $code, array $language, array $settings ) {
+		$parts = array();
+		if ( ! empty( $settings['show_flag'] ) ) { $parts[] = '<span class="openlingua-switcher__flag" aria-hidden="true">' . self::switcher_flag_markup( $language['flag'] ?? '🌐' ) . '</span>'; }
+		if ( ! empty( $settings['show_name'] ) ) { $parts[] = '<span class="openlingua-switcher__name">' . esc_html( $language['name'] ?? strtoupper( $code ) ) . '</span>'; }
+		if ( ! empty( $settings['show_native_name'] ) && ( $language['native_name'] ?? $language['name'] ?? '' ) !== ( $language['name'] ?? '' ) ) { $parts[] = '<span class="openlingua-switcher__native">' . esc_html( $language['native_name'] ) . '</span>'; }
+		return $parts ? implode( ' ', $parts ) : esc_html( strtoupper( $code ) );
+	}
+
+	private static function switcher_flag_markup( $flag ) {
+		$flag = sanitize_text_field( (string) $flag );
+		if ( preg_match( '#^https?://#i', $flag ) ) {
+			return '<img class="openlingua-switcher__flag-image" src="' . esc_url( $flag ) . '" alt="" loading="lazy" decoding="async">';
+		}
+		$markup = function_exists( 'wp_staticize_emoji' ) ? wp_staticize_emoji( $flag ) : esc_html( $flag );
+		return wp_kses( $markup, array( 'img' => array( 'src' => true, 'alt' => true, 'class' => true, 'style' => true, 'role' => true ) ) );
 	}
 
 	public static function locale( $locale ) {
