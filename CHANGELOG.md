@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.9
+
+- Escaped the allowed translation-job action markup identified by Plugin Check.
+
 ## 1.2.8
 
 - Prepared the remaining dynamic database identifiers used by administration, jobs, and portability.

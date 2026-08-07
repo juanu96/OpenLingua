@@ -197,6 +197,10 @@ final class Jobs implements Module {
 	public static function page() {
 		global $wpdb;
 		$jobs = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC LIMIT 100', Database::table( 'jobs' ) ) );
+		$allowed_action_html = array(
+			'a'    => array( 'class' => true, 'href' => true ),
+			'span' => array( 'class' => true ),
+		);
 		echo '<div class="wrap openlingua-jobs"><h1>' . esc_html__( 'Translation jobs', 'openlingua' ) . '</h1>';
 		echo '<p>' . esc_html__( 'Automatic jobs start on their own. This screen shows whether each translation is waiting, running, ready to review, or needs attention.', 'openlingua' ) . '</p>';
 		echo '<div class="openlingua-jobs__legend"><span class="openlingua-job-status openlingua-job-status--pending">' . esc_html__( 'Queued', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--processing">' . esc_html__( 'Translating', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--complete">' . esc_html__( 'Ready for review', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--failed">' . esc_html__( 'Failed', 'openlingua' ) . '</span></div>';
@@ -212,7 +216,7 @@ final class Jobs implements Module {
 			elseif ( 'complete' === $job->status && $source && $target ) { $action = '<a class="button button-primary" href="' . esc_url( Translation_Editor::url( $source->ID, $target->ID ) ) . '">' . esc_html__( 'Review translation', 'openlingua' ) . '</a>'; }
 			elseif ( 'pending' === $job->status ) { $action = '<span class="description">' . esc_html__( 'Starts automatically', 'openlingua' ) . '</span>'; }
 			elseif ( 'processing' === $job->status ) { $action = '<span class="description">' . esc_html__( 'Please wait', 'openlingua' ) . '</span>'; }
-			echo '<tr><td>' . absint( $job->id ) . '</td><td>' . esc_html( $source_label ) . '</td><td>' . esc_html( $target_label ) . '</td><td>' . esc_html( $job->provider ) . '</td><td><span class="openlingua-job-status openlingua-job-status--' . esc_attr( $job->status ) . '">' . esc_html( self::status_label( $job->status ) ) . '</span>' . ( $job->error ? '<div class="openlingua-job-error">' . esc_html( $job->error ) . '</div>' : '' ) . '</td><td>' . $action . '</td></tr>';
+			echo '<tr><td>' . absint( $job->id ) . '</td><td>' . esc_html( $source_label ) . '</td><td>' . esc_html( $target_label ) . '</td><td>' . esc_html( $job->provider ) . '</td><td><span class="openlingua-job-status openlingua-job-status--' . esc_attr( $job->status ) . '">' . esc_html( self::status_label( $job->status ) ) . '</span>' . ( $job->error ? '<div class="openlingua-job-error">' . esc_html( $job->error ) . '</div>' : '' ) . '</td><td>' . wp_kses( $action, $allowed_action_html ) . '</td></tr>';
 		}
 		echo '</tbody></table></div>';
 	}
