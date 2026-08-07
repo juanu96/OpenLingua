@@ -61,7 +61,12 @@ final class Plugin {
 			$label = self::switcher_language_label( $code, $language, $settings );
 			$items .= '<li class="openlingua-switcher__item menu-item"><a hreflang="' . esc_attr( $code ) . '" lang="' . esc_attr( $code ) . '" href="' . esc_url( Languages::url( $url, $code ) ) . '"' . ( Languages::current() === $code ? ' aria-current="page"' : '' ) . '>' . $label . '</a></li>';
 		}
-		if ( '' === $items ) { return ''; }
+		if ( '' === $items ) {
+			$current_code = Languages::current();
+			$current = Languages::all()[ $current_code ] ?? array( 'name' => strtoupper( $current_code ) );
+			$indicator = '<span class="openlingua-switcher openlingua-switcher--single" aria-label="' . esc_attr__( 'Current language', 'openlingua' ) . '">' . self::switcher_language_label( $current_code, $current, $settings ) . '</span>';
+			return $menu_context ? '<li class="openlingua-switcher-menu-item menu-item">' . $indicator . '</li>' : '<nav aria-label="' . esc_attr__( 'Languages', 'openlingua' ) . '">' . $indicator . '</nav>';
+		}
 		if ( ! empty( $settings['dropdown'] ) ) {
 			$current_code = Languages::current();
 			$current = Languages::all()[ $current_code ] ?? array( 'name' => strtoupper( $current_code ) );

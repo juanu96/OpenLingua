@@ -37,6 +37,13 @@
 	white-space: nowrap;
 }
 
+.openlingua-switcher--single {
+	align-items: center;
+	display: inline-flex;
+	gap: .35em;
+	white-space: nowrap;
+}
+
 .openlingua-switcher--dropdown > summary::after {
 	content: "▾";
 	font-size: .75em;

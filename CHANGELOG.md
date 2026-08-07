@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2
+
+- The switcher keeps the current language visible when a page has no published alternatives.
+- Single-language content uses a non-interactive indicator instead of an empty dropdown.
+
 ## 1.3.1
 
 - Language switchers now hide unavailable or unpublished translations on singular content and taxonomy archives.

@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,11 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.3.2 =
+
+* Keep the current language visible when no translated destination is available.
+* Avoid rendering an empty dropdown for content with only one available language.
 
 = 1.3.1 =
 
