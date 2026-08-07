@@ -4,6 +4,7 @@ namespace OpenLingua\Modules;
 use OpenLingua\Contracts\Module;
 use OpenLingua\Database;
 use OpenLingua\Divi_Content;
+use OpenLingua\Gutenberg_Content;
 use OpenLingua\ACF_Content;
 use OpenLingua\SEO;
 use OpenLingua\Translation_Editor;
@@ -74,12 +75,16 @@ final class Jobs implements Module {
 		if ( ! $provider || ! $provider->is_configured() || ! $source || ! $target ) { return self::fail( $job_id, __( 'Provider or source content is unavailable.', 'openlingua' ) ); }
 		$wpdb->update( $table, array( 'status' => 'processing', 'updated_at' => current_time( 'mysql' ) ), array( 'id' => $job_id ) );
 		$is_divi = Divi_Content::is_divi( $source->post_content );
+		$is_gutenberg = ! $is_divi && Gutenberg_Content::is_gutenberg( $source->post_content );
 		$divi_segments = $is_divi ? Divi_Content::extract( $source->post_content ) : array();
+		$gutenberg_segments = $is_gutenberg ? Gutenberg_Content::extract( $source->post_content ) : array();
 		$acf_segments = ACF_Content::extract( $source->ID );
 		$seo_groups = SEO::translation_fields( $source->ID, $target->ID );
 		$segments = array( 'title' => $source->post_title, 'excerpt' => $source->post_excerpt );
 		if ( $is_divi ) {
 			foreach ( $divi_segments as $segment ) { $segments[ $segment['id'] ] = $segment['value']; }
+		} elseif ( $is_gutenberg ) {
+			foreach ( $gutenberg_segments as $segment ) { $segments[ $segment['id'] ] = $segment['value']; }
 		} else {
 			$segments['content'] = $source->post_content;
 		}
@@ -89,7 +94,7 @@ final class Jobs implements Module {
 		}
 		$result = $provider->translate( $segments, self::source_language( $job->source_id ), $job->target_language, array( 'post_id' => absint( $job->source_id ) ) );
 		if ( is_wp_error( $result ) ) { return self::fail( $job_id, $result->get_error_message() ); }
-		if ( ! is_array( $result ) || ! isset( $result['title'] ) || ( ! $is_divi && ! isset( $result['content'] ) ) ) { return self::fail( $job_id, __( 'Provider returned an invalid response.', 'openlingua' ) ); }
+		if ( ! is_array( $result ) || ! isset( $result['title'] ) || ( ! $is_divi && ! $is_gutenberg && ! isset( $result['content'] ) ) ) { return self::fail( $job_id, __( 'Provider returned an invalid response.', 'openlingua' ) ); }
 		if ( $is_divi ) {
 			$translated_divi = array();
 			foreach ( $divi_segments as $segment ) {
@@ -98,6 +103,14 @@ final class Jobs implements Module {
 			}
 			$base_content = Divi_Content::is_divi( $target->post_content ) ? $target->post_content : $source->post_content;
 			$content = Divi_Content::apply( $base_content, $translated_divi );
+		} elseif ( $is_gutenberg ) {
+			$translated_blocks = array();
+			foreach ( $gutenberg_segments as $segment ) {
+				if ( ! array_key_exists( $segment['id'], $result ) ) { continue; }
+				$translated_blocks[ $segment['id'] ] = 'html' === $segment['format'] ? wp_kses_post( $result[ $segment['id'] ] ) : sanitize_textarea_field( $result[ $segment['id'] ] );
+			}
+			$base_content = Gutenberg_Content::is_gutenberg( $target->post_content ) ? $target->post_content : $source->post_content;
+			$content = Gutenberg_Content::apply( $base_content, $translated_blocks, $job->target_language );
 		} else {
 			$content = wp_kses_post( $result['content'] );
 		}

@@ -8,6 +8,7 @@ final class Plugin {
 		Database::maybe_upgrade();
 		if ( is_multisite() ) { add_action( 'wp_initialize_site', array( 'OpenLingua\\Database', 'install_new_site' ), 20, 1 ); }
 		Content::hooks();
+		Gutenberg_Content::hooks();
 		Divi_Theme_Builder::hooks();
 		Translation_Editor::hooks();
 		Taxonomies::hooks();

@@ -25,9 +25,14 @@ final class Shortcode_Content {
 		}
 
 		$domain = 'shortcode-' . sanitize_key( $tag );
-		$output = self::translate_element_text( $output, $domain );
-		$output = self::translate_attributes( $output, $domain );
+		$output = self::translate_html( $output, $domain );
 		return self::mark_dynamic_root( $output, $tag );
+	}
+
+	/** Translates visible text and accessibility attributes in rendered HTML. */
+	public static function translate_html( $html, $domain ) {
+		$html = self::translate_element_text( (string) $html, sanitize_key( $domain ) );
+		return self::translate_attributes( $html, sanitize_key( $domain ) );
 	}
 
 	public static function assets() {

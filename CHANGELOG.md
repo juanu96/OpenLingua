@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0
+
+- Added a dedicated Gutenberg extractor for native, nested, freeform, and third-party blocks.
+- Added block-level manual and automatic translation while preserving serialized block structure.
+- Added dynamic block output discovery and translation through the Strings workflow.
+- Added translated references for synchronized patterns backed by `wp_block` posts.
+- Added Gutenberg extraction and structural-preservation tests.
+
 ## 1.2.10
 
 - Sanitized submitted settings, redirects, uploads, and interface or shortcode translations.

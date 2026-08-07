@@ -40,13 +40,16 @@ final class Translation_Editor {
 		$source_language = Languages::all()[ $source_code ] ?? array( 'name' => strtoupper( $source_code ), 'flag' => '🌐' );
 		$target_language = Languages::all()[ $target_code ] ?? array( 'name' => strtoupper( $target_code ), 'flag' => '🌐' );
 		$is_divi = Divi_Content::is_divi( $source->post_content );
+		$is_gutenberg = ! $is_divi && Gutenberg_Content::is_gutenberg( $source->post_content );
 		$fields = array(
 			'post_title' => array( 'label' => __( 'Title', 'openlingua' ), 'source' => $source->post_title, 'target' => $target->post_title, 'rows' => 2 ),
 			'post_excerpt' => array( 'label' => __( 'Excerpt', 'openlingua' ), 'source' => $source->post_excerpt, 'target' => $target->post_excerpt, 'rows' => 4 ),
 		);
-		if ( ! $is_divi ) { $fields['post_content'] = array( 'label' => __( 'Main content', 'openlingua' ), 'source' => $source->post_content, 'target' => $target->post_content, 'rows' => 18 ); }
+		if ( ! $is_divi && ! $is_gutenberg ) { $fields['post_content'] = array( 'label' => __( 'Main content', 'openlingua' ), 'source' => $source->post_content, 'target' => $target->post_content, 'rows' => 18 ); }
 		$divi_segments = $is_divi ? Divi_Content::extract( $source->post_content ) : array();
 		$target_divi = $is_divi ? Divi_Content::values( $target->post_content ) : array();
+		$gutenberg_segments = $is_gutenberg ? Gutenberg_Content::extract( $source->post_content ) : array();
+		$target_gutenberg = $is_gutenberg ? Gutenberg_Content::values( $target->post_content ) : array();
 		$acf_segments = ACF_Content::extract( $source->ID );
 		$target_acf = ACF_Content::values( $target->ID );
 		$seo_groups = SEO::translation_fields( $source->ID, $target->ID );
@@ -69,7 +72,7 @@ final class Translation_Editor {
 		}
 		echo '<span>' . esc_html__( 'The result will be saved as in progress for your review.', 'openlingua' ) . '</span>';
 		echo '</div>';
-		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_save_translation"><input type="hidden" name="source_id" value="' . absint( $source->ID ) . '"><input type="hidden" name="target_id" value="' . absint( $target->ID ) . '"><input type="hidden" name="content_mode" value="' . ( $is_divi ? 'divi' : 'standard' ) . '">';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_save_translation"><input type="hidden" name="source_id" value="' . absint( $source->ID ) . '"><input type="hidden" name="target_id" value="' . absint( $target->ID ) . '"><input type="hidden" name="content_mode" value="' . ( $is_divi ? 'divi' : ( $is_gutenberg ? 'gutenberg' : 'standard' ) ) . '">';
 		if ( $return_to ) { echo '<input type="hidden" name="return_to" value="' . esc_attr( $return_to ) . '">'; }
 		wp_nonce_field( 'openlingua_save_translation_' . $target->ID );
 		echo '<main class="openlingua-editor__segments"><h2>' . esc_html__( 'Main content', 'openlingua' ) . '</h2>';
@@ -83,6 +86,16 @@ final class Translation_Editor {
 				echo '<section class="openlingua-editor__segment openlingua-editor__segment--divi openlingua-editor__segment--rich" data-openlingua-segment data-openlingua-rich-segment><div class="openlingua-editor__source"><label><span class="dashicons dashicons-layout"></span> ' . esc_html( $segment['label'] ) . '</label><div class="openlingua-editor__original openlingua-editor__visual" data-openlingua-source-visual>' . wp_kses_post( $segment['value'] ) . '</div><pre class="openlingua-editor__source-code" data-openlingua-source-code hidden>' . esc_html( $segment['value'] ) . '</pre></div><div class="openlingua-editor__target"><div class="openlingua-editor__field-heading"><label for="openlingua-' . esc_attr( $segment['id'] ) . '">' . esc_html( $segment['label'] ) . '</label><button type="button" class="button button-small" data-openlingua-html-toggle data-show-html="' . esc_attr__( 'Show HTML', 'openlingua' ) . '" data-hide-html="' . esc_attr__( 'Visual view', 'openlingua' ) . '" aria-pressed="false"><span class="dashicons dashicons-editor-code"></span><span data-openlingua-toggle-label>' . esc_html__( 'Show HTML', 'openlingua' ) . '</span></button></div><div class="openlingua-editor__visual openlingua-editor__visual--editable" contenteditable="true" role="textbox" aria-multiline="true" aria-label="' . esc_attr( $segment['label'] ) . '" data-openlingua-target-visual>' . wp_kses_post( $target_value ) . '</div><textarea id="openlingua-' . esc_attr( $segment['id'] ) . '" class="openlingua-editor__code" name="divi_translation[' . esc_attr( $segment['id'] ) . ']" rows="' . absint( $rows ) . '" data-openlingua-translation data-openlingua-target-code hidden>' . esc_textarea( $target_value ) . '</textarea></div></section>';
 			} else {
 				echo '<section class="openlingua-editor__segment openlingua-editor__segment--divi" data-openlingua-segment><div class="openlingua-editor__source"><label><span class="dashicons dashicons-layout"></span> ' . esc_html( $segment['label'] ) . '</label><div class="openlingua-editor__original">' . esc_html( $segment['value'] ) . '</div></div><div class="openlingua-editor__target"><label for="openlingua-' . esc_attr( $segment['id'] ) . '">' . esc_html( $segment['label'] ) . '</label><textarea id="openlingua-' . esc_attr( $segment['id'] ) . '" name="divi_translation[' . esc_attr( $segment['id'] ) . ']" rows="' . absint( $rows ) . '" data-openlingua-translation>' . esc_textarea( $target_value ) . '</textarea></div></section>';
+			}
+		}
+		if ( $gutenberg_segments ) { echo '<h2>' . esc_html__( 'Block content', 'openlingua' ) . '</h2>'; }
+		foreach ( $gutenberg_segments as $segment ) {
+			$target_value = $target_gutenberg[ $segment['id'] ] ?? '';
+			$rows = max( 2, min( 8, substr_count( $segment['value'], "\n" ) + 2 ) );
+			if ( 'html' === $segment['format'] ) {
+				echo '<section class="openlingua-editor__segment openlingua-editor__segment--gutenberg openlingua-editor__segment--rich" data-openlingua-segment data-openlingua-rich-segment><div class="openlingua-editor__source"><label><span class="dashicons dashicons-block-default"></span> ' . esc_html( $segment['label'] ) . '</label><div class="openlingua-editor__original openlingua-editor__visual" data-openlingua-source-visual>' . wp_kses_post( $segment['value'] ) . '</div><pre class="openlingua-editor__source-code" data-openlingua-source-code hidden>' . esc_html( $segment['value'] ) . '</pre></div><div class="openlingua-editor__target"><div class="openlingua-editor__field-heading"><label for="openlingua-' . esc_attr( $segment['id'] ) . '">' . esc_html( $segment['label'] ) . '</label><button type="button" class="button button-small" data-openlingua-html-toggle data-show-html="' . esc_attr__( 'Show HTML', 'openlingua' ) . '" data-hide-html="' . esc_attr__( 'Visual view', 'openlingua' ) . '" aria-pressed="false"><span class="dashicons dashicons-editor-code"></span><span data-openlingua-toggle-label>' . esc_html__( 'Show HTML', 'openlingua' ) . '</span></button></div><div class="openlingua-editor__visual openlingua-editor__visual--editable" contenteditable="true" role="textbox" aria-multiline="true" aria-label="' . esc_attr( $segment['label'] ) . '" data-openlingua-target-visual>' . wp_kses_post( $target_value ) . '</div><textarea id="openlingua-' . esc_attr( $segment['id'] ) . '" class="openlingua-editor__code" name="gutenberg_translation[' . esc_attr( $segment['id'] ) . ']" rows="' . absint( $rows ) . '" data-openlingua-translation data-openlingua-target-code hidden>' . esc_textarea( $target_value ) . '</textarea></div></section>';
+			} else {
+				echo '<section class="openlingua-editor__segment openlingua-editor__segment--gutenberg" data-openlingua-segment><div class="openlingua-editor__source"><label><span class="dashicons dashicons-block-default"></span> ' . esc_html( $segment['label'] ) . '</label><div class="openlingua-editor__original">' . nl2br( esc_html( $segment['value'] ) ) . '</div></div><div class="openlingua-editor__target"><label for="openlingua-' . esc_attr( $segment['id'] ) . '">' . esc_html( $segment['label'] ) . '</label><textarea id="openlingua-' . esc_attr( $segment['id'] ) . '" name="gutenberg_translation[' . esc_attr( $segment['id'] ) . ']" rows="' . absint( $rows ) . '" data-openlingua-translation>' . esc_textarea( $target_value ) . '</textarea></div></section>';
 			}
 		}
 		if ( $acf_segments ) { echo '<h2>' . esc_html__( 'Custom fields', 'openlingua' ) . '</h2>'; }
@@ -121,6 +134,7 @@ final class Translation_Editor {
 		$source = get_post( $source_id );
 		$target = get_post( $target_id );
 		$is_divi = $source && Divi_Content::is_divi( $source->post_content );
+		$is_gutenberg = $source && ! $is_divi && Gutenberg_Content::is_gutenberg( $source->post_content );
 		$content = $translation['post_content'] ?? '';
 		$excerpt = $translation['post_excerpt'] ?? '';
 		if ( $is_divi ) {
@@ -133,8 +147,19 @@ final class Translation_Editor {
 			}
 			$base_content = $target && Divi_Content::is_divi( $target->post_content ) ? $target->post_content : $source->post_content;
 			$content = Divi_Content::apply( $base_content, $allowed );
+		} elseif ( $is_gutenberg ) {
+			$submitted = isset( $_POST['gutenberg_translation'] ) ? (array) wp_unslash( $_POST['gutenberg_translation'] ) : array();
+			$allowed = array();
+			foreach ( Gutenberg_Content::extract( $source->post_content ) as $segment ) {
+				if ( ! array_key_exists( $segment['id'], $submitted ) ) { continue; }
+				$value = $submitted[ $segment['id'] ];
+				$allowed[ $segment['id'] ] = 'html' === $segment['format'] ? ( current_user_can( 'unfiltered_html' ) ? $value : wp_kses_post( $value ) ) : sanitize_textarea_field( $value );
+			}
+			$base_content = $target && Gutenberg_Content::is_gutenberg( $target->post_content ) ? $target->post_content : $source->post_content;
+			$target_row = Translations::row( 'post', $target_id );
+			$content = Gutenberg_Content::apply( $base_content, $allowed, $target_row ? $target_row->language : '' );
 		}
-		if ( ! current_user_can( 'unfiltered_html' ) ) { if ( ! $is_divi ) { $content = wp_kses_post( $content ); } $excerpt = wp_kses_post( $excerpt ); }
+		if ( ! current_user_can( 'unfiltered_html' ) ) { if ( ! $is_divi && ! $is_gutenberg ) { $content = wp_kses_post( $content ); } $excerpt = wp_kses_post( $excerpt ); }
 		if ( ! self::is_translation_pair( $source_id, $target_id ) ) { wp_die( esc_html__( 'These posts are not linked translations.', 'openlingua' ) ); }
 		$status = isset( $_POST['translation_status'] ) ? sanitize_key( wp_unslash( $_POST['translation_status'] ) ) : 'in-progress';
 		if ( ! in_array( $status, array( 'in-progress', 'complete' ), true ) ) { $status = 'in-progress'; }

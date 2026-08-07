@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.2.10
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ Stable supported features:
 * Configurable public visibility, administration locale, browser redirect, footer switcher, and missing-translation behavior.
 * Pages, posts, public custom post types, attachments, categories, tags, and custom taxonomies.
 * One-click translation drafts with translated hierarchy and taxonomy mapping.
-* Gutenberg/classic content and configurable metadata policies for ACF and page-builder data.
+* Block-level Gutenberg translation for native, nested, reusable, dynamic, and third-party block content.
 * Translation workflow statuses and outdated-source detection.
 * Per-language menu assignment for registered theme locations.
 * Language-aware public archives, searches, canonical URLs, `hreflang`, and `x-default`.
@@ -113,6 +113,12 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.3.0 =
+
+* Added block-level Gutenberg extraction and editing without exposing block comments or JSON.
+* Added generic support for nested third-party block attributes and dynamic block output.
+* Added translated synchronized-pattern reference mapping and automatic-translation integration.
 
 = 1.2.10 =
 
