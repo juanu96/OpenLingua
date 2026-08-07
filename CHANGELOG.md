@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.3
+
+- Reworked the translation editor into an original OpenLingua workspace with independent field cards, a distinct language route, and responsive actions.
+
 ## 1.2.2
 
 - Reworked the string administration queries to use prepared table identifiers and parameters.
