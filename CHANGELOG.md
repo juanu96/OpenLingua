@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1
+
+- Added the complete distribution license and directory-ready release metadata.
+- Documented all optional external translation services and their data flow.
+- Expanded the WordPress privacy-policy suggestion for provider use and local data retention.
+- Added REST argument validation and a bounded request size for dynamic shortcode translation.
+
 ## 1.1.0
 
 - Replaces the original language table with an independently designed, sectioned settings screen.

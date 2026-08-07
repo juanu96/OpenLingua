@@ -104,7 +104,8 @@ final class Menus implements Module {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
 		check_admin_referer( 'openlingua_save_menus' );
 		$clean = array();
-		foreach ( (array) ( $_POST['menus'] ?? array() ) as $location => $languages ) {
+		$submitted_menus = isset( $_POST['menus'] ) ? (array) wp_unslash( $_POST['menus'] ) : array();
+		foreach ( $submitted_menus as $location => $languages ) {
 			foreach ( (array) $languages as $code => $menu_id ) {
 				if ( Languages::is_valid( $code ) ) { $clean[ sanitize_key( $location ) ][ sanitize_key( $code ) ] = absint( $menu_id ); }
 			}
@@ -112,7 +113,7 @@ final class Menus implements Module {
 		update_option( 'openlingua_menu_map', $clean );
 		$settings = Language_Settings::get();
 		$allowed_locations = array_keys( get_registered_nav_menus() );
-		$settings['switcher']['menu_locations'] = array_values( array_intersect( $allowed_locations, array_map( 'sanitize_key', (array) ( $_POST['switcher_menu_locations'] ?? array() ) ) ) );
+		$settings['switcher']['menu_locations'] = array_values( array_intersect( $allowed_locations, array_map( 'sanitize_key', isset( $_POST['switcher_menu_locations'] ) ? (array) wp_unslash( $_POST['switcher_menu_locations'] ) : array() ) ) );
 		$settings['switcher']['menu_position'] = 'first' === sanitize_key( wp_unslash( $_POST['switcher_menu_position'] ?? '' ) ) ? 'first' : 'last';
 		$settings['switcher']['dropdown'] = 'dropdown' === sanitize_key( wp_unslash( $_POST['switcher_style'] ?? '' ) );
 		$settings['switcher']['show_flag'] = ! empty( $_POST['switcher_show_flag'] );

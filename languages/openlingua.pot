@@ -1,0 +1,1701 @@
+# Copyright (C) 2026 OpenLingua Contributors
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: OpenLingua 1.2.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/openlingua\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-08-07T16:56:32+02:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: openlingua\n"
+
+#. Plugin Name of the plugin
+#: openlingua.php
+#: src/class-admin.php:19
+msgid "OpenLingua"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: openlingua.php
+msgid "https://github.com/juanu96/OpenLingua"
+msgstr ""
+
+#. Description of the plugin
+#: openlingua.php
+msgid "Multilingual content, custom post types, custom fields and strings for WordPress."
+msgstr ""
+
+#. Author of the plugin
+#: openlingua.php
+msgid "OpenLingua Contributors"
+msgstr ""
+
+#. Author URI of the plugin
+#: openlingua.php
+msgid "https://profiles.wordpress.org/juanu96/"
+msgstr ""
+
+#: src/class-acf-content.php:70
+msgid "Link text"
+msgstr ""
+
+#. translators: %d: repeater row number.
+#: src/class-acf-content.php:93
+#, php-format
+msgid "Row %d"
+msgstr ""
+
+#: src/class-admin.php:20
+#: src/class-admin.php:128
+msgid "String translations"
+msgstr ""
+
+#: src/class-admin.php:20
+msgid "Strings"
+msgstr ""
+
+#: src/class-admin.php:49
+#: src/class-admin.php:76
+#: src/class-admin.php:86
+msgid "All languages"
+msgstr ""
+
+#: src/class-admin.php:82
+msgid "Current content language"
+msgstr ""
+
+#: src/class-admin.php:129
+msgid "Translate all strings discovered from WordPress themes, plugins and shortcodes. The Shortcodes section provides an additional view grouped by shortcode."
+msgstr ""
+
+#: src/class-admin.php:130
+msgid "Search strings"
+msgstr ""
+
+#: src/class-admin.php:130
+msgid "Search text, key or domain"
+msgstr ""
+
+#: src/class-admin.php:130
+msgid "Filter by domain"
+msgstr ""
+
+#: src/class-admin.php:130
+msgid "All domains"
+msgstr ""
+
+#: src/class-admin.php:132
+msgid "Translation language"
+msgstr ""
+
+#: src/class-admin.php:134
+#: src/class-taxonomies.php:52
+msgid "Filter"
+msgstr ""
+
+#: src/class-admin.php:135
+#: src/class-shortcode-admin.php:50
+#: src/class-taxonomies.php:53
+msgid "Clear"
+msgstr ""
+
+#: src/class-admin.php:138
+msgid "No interface strings match these filters. Enable gettext discovery in Settings and visit the relevant pages to discover more."
+msgstr ""
+
+#: src/class-admin.php:142
+#: src/class-admin.php:145
+msgid "Domain"
+msgstr ""
+
+#: src/class-admin.php:142
+#: src/class-admin.php:145
+#: src/class-divi-theme-builder.php:99
+#: src/class-shortcode-admin.php:53
+#: src/class-shortcode-admin.php:60
+#: src/class-shortcode-admin.php:109
+#: src/class-taxonomies.php:86
+#: src/class-translation-editor.php:56
+msgid "Original"
+msgstr ""
+
+#: src/class-admin.php:145
+#: src/class-shortcode-admin.php:109
+#: src/class-translation-editor.php:56
+#: src/modules/class-workflow.php:61
+msgid "Translation"
+msgstr ""
+
+#: src/class-admin.php:147
+msgid "Save translations"
+msgstr ""
+
+#: src/class-admin.php:154
+#: src/class-shortcode-admin.php:126
+#: src/modules/class-anthropic-provider.php:39
+#: src/modules/class-gemini-provider.php:33
+#: src/modules/class-google-translate-provider.php:46
+#: src/modules/class-jobs.php:173
+#: src/modules/class-language-settings.php:89
+#: src/modules/class-menus.php:104
+#: src/modules/class-menus.php:140
+#: src/modules/class-metadata.php:79
+#: src/modules/class-openai-provider.php:62
+#: src/modules/class-portability.php:80
+#: src/modules/class-portability.php:87
+msgid "Permission denied."
+msgstr ""
+
+#: src/class-content.php:37
+#: src/class-plugin.php:70
+#: src/class-plugin.php:73
+msgid "Languages"
+msgstr ""
+
+#: src/class-content.php:47
+msgid "Content language"
+msgstr ""
+
+#: src/class-content.php:52
+msgid "Translations"
+msgstr ""
+
+#: src/class-content.php:57
+msgid "Edit translation"
+msgstr ""
+
+#: src/class-content.php:60
+#: src/class-taxonomies.php:159
+msgid "Create"
+msgstr ""
+
+#: src/class-content.php:65
+msgid "Translation status"
+msgstr ""
+
+#: src/class-content.php:89
+msgid "You cannot create this translation."
+msgstr ""
+
+#: src/class-content.php:215
+msgid "trashed translation"
+msgstr ""
+
+#: src/class-content.php:217
+msgid "Language unavailable"
+msgstr ""
+
+#. translators: %s: language name.
+#: src/class-content.php:230
+#, php-format
+msgid "Restore %s translation from Trash"
+msgstr ""
+
+#. translators: %s: language name.
+#: src/class-content.php:236
+#: src/class-divi-theme-builder.php:112
+#: src/class-taxonomies.php:68
+#: src/class-taxonomies.php:193
+#, php-format
+msgid "Edit %s translation"
+msgstr ""
+
+#. translators: %s: language name.
+#: src/class-content.php:241
+#: src/class-divi-theme-builder.php:120
+#: src/class-taxonomies.php:70
+#: src/class-taxonomies.php:198
+#, php-format
+msgid "Add %s translation"
+msgstr ""
+
+#. translators: %s: language name.
+#: src/class-content.php:249
+#: src/class-taxonomies.php:206
+#, php-format
+msgid "View %s translation"
+msgstr ""
+
+#. translators: %s: language name.
+#: src/class-content.php:253
+#: src/class-divi-theme-builder.php:114
+#, php-format
+msgid "Move %s translation to Trash"
+msgstr ""
+
+#. translators: %s: language name.
+#: src/class-content.php:255
+#: src/class-translation-editor.php:107
+#, php-format
+msgid "Move the %s translation to Trash? The original content will not be deleted."
+msgstr ""
+
+#: src/class-content.php:289
+#: src/class-content.php:312
+#: src/class-translation-editor.php:137
+#: src/modules/class-jobs.php:57
+#: src/modules/class-openai-provider.php:137
+msgid "These posts are not linked translations."
+msgstr ""
+
+#: src/class-content.php:292
+msgid "You cannot delete this translation."
+msgstr ""
+
+#: src/class-content.php:296
+msgid "The translation could not be moved to Trash."
+msgstr ""
+
+#: src/class-content.php:315
+msgid "The translation could not be restored."
+msgstr ""
+
+#: src/class-divi-content.php:65
+msgid "Content"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:33
+#: src/class-divi-theme-builder.php:45
+msgid "Divi Theme Builder translations"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:33
+msgid "Divi Theme Builder"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:47
+msgid "Divi Theme Builder is not available."
+msgstr ""
+
+#: src/class-divi-theme-builder.php:51
+msgid "Keep layout design and display conditions in Divi. Translate the textual content of each header, body and footer here."
+msgstr ""
+
+#: src/class-divi-theme-builder.php:52
+msgid "Open Divi Theme Builder"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:54
+msgid "No custom Divi Theme Builder layouts were found."
+msgstr ""
+
+#: src/class-divi-theme-builder.php:58
+msgid "Divi template"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:58
+msgid "Section"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:62
+msgid "Dynamic Post Content modules remain connected to the translated page or post and are not duplicated as static text."
+msgstr ""
+
+#: src/class-divi-theme-builder.php:69
+msgid "Default Website Template"
+msgstr ""
+
+#. translators: %d: Divi template ID.
+#: src/class-divi-theme-builder.php:71
+#, php-format
+msgid "Template #%d"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:91
+msgid "Header"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:91
+msgid "Body"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:91
+msgid "Footer"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:94
+msgid "Global"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:94
+msgid "Disabled"
+msgstr ""
+
+#: src/class-divi-theme-builder.php:100
+msgid "Edit original layout in Divi"
+msgstr ""
+
+#. translators: %s: language name.
+#: src/class-divi-theme-builder.php:105
+#, php-format
+msgid "Restore %s translation"
+msgstr ""
+
+#. translators: %s: language name.
+#: src/class-divi-theme-builder.php:110
+#, php-format
+msgid "Move the %s translation to Trash? The original layout will not be deleted."
+msgstr ""
+
+#: src/class-seo.php:12
+#: src/class-seo.php:21
+#: src/class-seo.php:30
+#: src/class-seo.php:65
+msgid "SEO title"
+msgstr ""
+
+#: src/class-seo.php:12
+#: src/class-seo.php:21
+#: src/class-seo.php:30
+#: src/class-seo.php:65
+msgid "Meta description"
+msgstr ""
+
+#: src/class-seo.php:13
+msgid "Focus keyphrase"
+msgstr ""
+
+#: src/class-seo.php:13
+#: src/class-seo.php:22
+#: src/class-seo.php:31
+#: src/class-seo.php:65
+msgid "Facebook title"
+msgstr ""
+
+#: src/class-seo.php:14
+#: src/class-seo.php:23
+#: src/class-seo.php:32
+#: src/class-seo.php:65
+msgid "Facebook description"
+msgstr ""
+
+#: src/class-seo.php:14
+#: src/class-seo.php:23
+#: src/class-seo.php:32
+#: src/class-seo.php:65
+msgid "X title"
+msgstr ""
+
+#: src/class-seo.php:15
+#: src/class-seo.php:24
+#: src/class-seo.php:33
+#: src/class-seo.php:65
+msgid "X description"
+msgstr ""
+
+#: src/class-seo.php:22
+msgid "Focus keyword"
+msgstr ""
+
+#: src/class-seo.php:31
+msgid "Target keywords"
+msgstr ""
+
+#: src/class-shortcode-admin.php:19
+#: src/class-shortcode-admin.php:44
+msgid "Shortcode translations"
+msgstr ""
+
+#: src/class-shortcode-admin.php:19
+msgid "Shortcodes"
+msgstr ""
+
+#: src/class-shortcode-admin.php:20
+msgid "Shortcode translation editor"
+msgstr ""
+
+#: src/class-shortcode-admin.php:45
+msgid "Shortcode translation saved."
+msgstr ""
+
+#: src/class-shortcode-admin.php:46
+msgid "OpenLingua lists every shortcode registered in WordPress. Translation icons become available after a shortcode has rendered and its visible strings have been detected."
+msgstr ""
+
+#: src/class-shortcode-admin.php:47
+msgid "All registered"
+msgstr ""
+
+#: src/class-shortcode-admin.php:47
+msgid "Available"
+msgstr ""
+
+#: src/class-shortcode-admin.php:48
+msgid "Search shortcodes"
+msgstr ""
+
+#: src/class-shortcode-admin.php:48
+msgid "Search shortcode or detected text"
+msgstr ""
+
+#: src/class-shortcode-admin.php:49
+msgid "Search"
+msgstr ""
+
+#: src/class-shortcode-admin.php:53
+#: src/class-shortcode-admin.php:60
+msgid "Shortcode"
+msgstr ""
+
+#: src/class-shortcode-admin.php:57
+msgid "No shortcodes found."
+msgstr ""
+
+#. translators: %d: number of detected strings.
+#: src/class-shortcode-admin.php:70
+#, php-format
+msgid "%d detected string"
+msgid_plural "%d detected strings"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of detected strings.
+#: src/class-shortcode-admin.php:70
+msgid "No strings detected yet"
+msgstr ""
+
+#. translators: %d: number of detected strings.
+#: src/class-shortcode-admin.php:70
+msgid "Show more details"
+msgstr ""
+
+#: src/class-shortcode-admin.php:75
+msgid "Render this shortcode on the site to detect its strings."
+msgstr ""
+
+#. translators: 1: language name, 2: shortcode name.
+#: src/class-shortcode-admin.php:80
+#, php-format
+msgid "Edit %1$s translation for %2$s"
+msgstr ""
+
+#: src/class-shortcode-admin.php:99
+msgid "The shortcode translation could not be loaded."
+msgstr ""
+
+#: src/class-shortcode-admin.php:101
+msgid "Choose a language different from the original."
+msgstr ""
+
+#: src/class-shortcode-admin.php:108
+#: src/class-translation-editor.php:55
+msgid "Back"
+msgstr ""
+
+#: src/class-shortcode-admin.php:108
+msgid "Translating shortcode"
+msgstr ""
+
+#: src/class-shortcode-admin.php:108
+#: src/class-translation-editor.php:55
+msgid "Search content"
+msgstr ""
+
+#. translators: %d: number of detected texts.
+#: src/class-shortcode-admin.php:113
+#, php-format
+msgid "Detected texts (%d)"
+msgstr ""
+
+#. translators: %d: sequential text number.
+#: src/class-shortcode-admin.php:118
+#, php-format
+msgid "Text %d"
+msgstr ""
+
+#. translators: %d: number of shortcode texts.
+#: src/class-shortcode-admin.php:122
+#, php-format
+msgid "%d shortcode texts"
+msgstr ""
+
+#. translators: %d: number of shortcode texts.
+#: src/class-shortcode-admin.php:122
+#: src/class-translation-editor.php:110
+msgid "Save and complete"
+msgstr ""
+
+#: src/class-shortcode-admin.php:130
+msgid "Invalid shortcode translation."
+msgstr ""
+
+#: src/class-shortcode-content.php:62
+msgid "Invalid shortcode strings request."
+msgstr ""
+
+#: src/class-taxonomies.php:19
+#: src/class-taxonomies.php:48
+msgid "Taxonomy translations"
+msgstr ""
+
+#: src/class-taxonomies.php:19
+msgid "Taxonomies"
+msgstr ""
+
+#: src/class-taxonomies.php:48
+msgid "Translate term names, URL slugs and descriptions from one compact screen."
+msgstr ""
+
+#: src/class-taxonomies.php:49
+msgid "Taxonomy translation saved."
+msgstr ""
+
+#: src/class-taxonomies.php:50
+msgid "Search terms"
+msgstr ""
+
+#: src/class-taxonomies.php:50
+msgid "Filter by taxonomy"
+msgstr ""
+
+#: src/class-taxonomies.php:54
+msgid "Original term"
+msgstr ""
+
+#: src/class-taxonomies.php:54
+msgid "Taxonomy"
+msgstr ""
+
+#: src/class-taxonomies.php:54
+#: src/class-taxonomies.php:86
+msgid "Description"
+msgstr ""
+
+#: src/class-taxonomies.php:57
+msgid "No terms found."
+msgstr ""
+
+#: src/class-taxonomies.php:84
+msgid "Taxonomy translation"
+msgstr ""
+
+#: src/class-taxonomies.php:84
+msgid "Close"
+msgstr ""
+
+#: src/class-taxonomies.php:86
+msgid "Name"
+msgstr ""
+
+#: src/class-taxonomies.php:86
+msgid "URL slug"
+msgstr ""
+
+#: src/class-taxonomies.php:86
+msgid "Cancel"
+msgstr ""
+
+#: src/class-taxonomies.php:86
+msgid "Save translation"
+msgstr ""
+
+#: src/class-taxonomies.php:90
+msgid "Invalid request."
+msgstr ""
+
+#: src/class-taxonomies.php:100
+msgid "You cannot save this taxonomy translation."
+msgstr ""
+
+#: src/class-taxonomies.php:138
+#: src/class-taxonomies.php:149
+#: src/modules/class-menus.php:263
+msgid "Language"
+msgstr ""
+
+#: src/class-taxonomies.php:151
+msgid "Translations of this term:"
+msgstr ""
+
+#: src/class-taxonomies.php:156
+msgid "Edit"
+msgstr ""
+
+#: src/class-taxonomies.php:228
+msgid "You cannot create this term translation."
+msgstr ""
+
+#: src/class-taxonomies.php:231
+msgid "Source term not found."
+msgstr ""
+
+#: src/class-translation-editor.php:14
+msgid "Translation editor"
+msgstr ""
+
+#: src/class-translation-editor.php:34
+msgid "The translation could not be loaded."
+msgstr ""
+
+#: src/class-translation-editor.php:35
+msgid "You cannot edit this translation."
+msgstr ""
+
+#: src/class-translation-editor.php:44
+msgid "Title"
+msgstr ""
+
+#: src/class-translation-editor.php:45
+msgid "Excerpt"
+msgstr ""
+
+#: src/class-translation-editor.php:47
+#: src/class-translation-editor.php:74
+msgid "Main content"
+msgstr ""
+
+#: src/class-translation-editor.php:55
+#: src/modules/class-jobs.php:190
+#: src/modules/class-jobs.php:202
+msgid "Translating"
+msgstr ""
+
+#: src/class-translation-editor.php:57
+msgid "Automatic translation queued. You may leave this page; OpenLingua will notify you when it is ready to review."
+msgstr ""
+
+#: src/class-translation-editor.php:58
+msgid "The automatic translation could not be queued. Check the provider settings and the Jobs screen."
+msgstr ""
+
+#. translators: %s: translation provider name.
+#: src/class-translation-editor.php:64
+#, php-format
+msgid "Translate with %s"
+msgstr ""
+
+#: src/class-translation-editor.php:67
+msgid "Configure the selected translation provider"
+msgstr ""
+
+#: src/class-translation-editor.php:69
+msgid "The result will be saved as in progress for your review."
+msgstr ""
+
+#: src/class-translation-editor.php:82
+#: src/class-translation-editor.php:92
+msgid "Show HTML"
+msgstr ""
+
+#: src/class-translation-editor.php:82
+#: src/class-translation-editor.php:92
+msgid "Visual view"
+msgstr ""
+
+#: src/class-translation-editor.php:87
+msgid "Custom fields"
+msgstr ""
+
+#. translators: %s: SEO integration name.
+#: src/class-translation-editor.php:99
+#, php-format
+msgid "SEO — %s"
+msgstr ""
+
+#: src/class-translation-editor.php:108
+msgid "Open WordPress editor"
+msgstr ""
+
+#: src/class-translation-editor.php:109
+msgid "Move translation to Trash"
+msgstr ""
+
+#: src/class-translation-editor.php:110
+msgid "Save draft"
+msgstr ""
+
+#: src/class-translation-editor.php:118
+msgid "You cannot save this translation."
+msgstr ""
+
+#: src/class-translations.php:14
+msgid "Invalid language."
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:27
+msgid "Automatic translation with Claude"
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:27
+msgid "Connect an Anthropic API key. Claude Code login or subscription credentials are not used by WordPress."
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:29
+msgid "Sign in to the Anthropic Console or create an account."
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:29
+msgid "Anthropic Console"
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:30
+msgid "Add billing or usage credits if your account requires them."
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:30
+msgid "Billing settings"
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:31
+msgid "Open API keys and create a key."
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:31
+#: src/modules/class-openai-provider.php:48
+msgid "API keys"
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:32
+#: src/modules/class-gemini-provider.php:26
+#: src/modules/class-google-translate-provider.php:38
+msgid "Copy the key and paste it below."
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:33
+msgid "Claude Code and Claude subscriptions do not provide an API key to WordPress."
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:34
+msgid "Anthropic API key"
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:35
+#: src/modules/class-gemini-provider.php:29
+#: src/modules/class-google-translate-provider.php:41
+#: src/modules/class-openai-provider.php:53
+msgid "A key is configured."
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:35
+#: src/modules/class-gemini-provider.php:29
+#: src/modules/class-google-translate-provider.php:41
+msgid "Leave empty to keep it."
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:35
+#: src/modules/class-gemini-provider.php:29
+#: src/modules/class-google-translate-provider.php:41
+#: src/modules/class-openai-provider.php:53
+msgid "Remove the saved key"
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:36
+#: src/modules/class-gemini-provider.php:30
+#: src/modules/class-openai-provider.php:54
+msgid "Model"
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:36
+#: src/modules/class-gemini-provider.php:30
+#: src/modules/class-google-translate-provider.php:42
+#: src/modules/class-openai-provider.php:56
+msgid "Active provider"
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:36
+msgid "Use Claude for automatic translations"
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:36
+msgid "Save Claude settings"
+msgstr ""
+
+#: src/modules/class-anthropic-provider.php:55
+msgid "The Anthropic API key is not configured."
+msgstr ""
+
+#: src/modules/class-diagnostics.php:35
+msgid "Diagnostics"
+msgstr ""
+
+#. translators: %d: number of enabled languages.
+#: src/modules/class-diagnostics.php:48
+#, php-format
+msgid "%d language is enabled."
+msgid_plural "%d languages are enabled."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of configured translation services.
+#: src/modules/class-diagnostics.php:50
+#, php-format
+msgid "%d translation service is configured."
+msgid_plural "%d translation services are configured."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/modules/class-diagnostics.php:52
+msgid "Translation database"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:52
+msgid "The storage needed for translations is working correctly."
+msgstr ""
+
+#: src/modules/class-diagnostics.php:52
+msgid "One or more translation tables are missing. OpenLingua cannot reliably save all translation data."
+msgstr ""
+
+#: src/modules/class-diagnostics.php:52
+msgid "Review installed plugins"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:53
+#: src/modules/class-language-settings.php:52
+msgid "Site languages"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:53
+msgid "Only one language is enabled. Add another language before creating translations."
+msgstr ""
+
+#: src/modules/class-diagnostics.php:53
+msgid "Manage languages"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:54
+msgid "Automatic translation"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:54
+msgid "No automatic translation service is configured. Manual translation will continue to work normally."
+msgstr ""
+
+#: src/modules/class-diagnostics.php:54
+msgid "Configure services"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:55
+msgid "Background translations"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:55
+msgid "WordPress automatic scheduling is disabled. Translation jobs require a server cron task to run on time."
+msgstr ""
+
+#: src/modules/class-diagnostics.php:55
+msgid "WordPress can start queued translation jobs automatically."
+msgstr ""
+
+#: src/modules/class-diagnostics.php:55
+msgid "View translation jobs"
+msgstr ""
+
+#. translators: %d: number of diagnostic items requiring attention.
+#: src/modules/class-diagnostics.php:59
+#, php-format
+msgid "%d item below may require action."
+msgid_plural "%d items below may require action."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/modules/class-diagnostics.php:60
+msgid "OpenLingua site health"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:60
+msgid "A simple overview of the features OpenLingua needs to translate your website."
+msgstr ""
+
+#: src/modules/class-diagnostics.php:61
+msgid "Some items need your attention"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:61
+msgid "OpenLingua is ready"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:61
+msgid "The main translation components are working correctly."
+msgstr ""
+
+#: src/modules/class-diagnostics.php:64
+msgid "Working"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:64
+msgid "Check this"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:64
+msgid "Action required"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:64
+msgid "Optional"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:69
+msgid "Installation details"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:69
+msgid "OpenLingua version"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:69
+#: src/modules/class-language-settings.php:61
+msgid "Language URL format"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:69
+msgid "Available translation services"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:70
+msgid "Technical information for support"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:70
+msgid "A developer or support technician may ask you to copy this information. It does not contain your API keys."
+msgstr ""
+
+#: src/modules/class-diagnostics.php:74
+msgid "Language directories, such as /es/"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:74
+msgid "Language parameter, such as ?lang=es"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:74
+msgid "A separate domain for each language"
+msgstr ""
+
+#: src/modules/class-diagnostics.php:82
+msgid "Multilingual plugin health information."
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:21
+msgid "Automatic translation with Gemini"
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:21
+msgid "Connect your Google AI Studio Gemini API key."
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:23
+msgid "Sign in to Google AI Studio with your Google account."
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:23
+msgid "Google AI Studio"
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:24
+msgid "Accept the terms and select or import a Google Cloud project."
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:25
+msgid "Create a Gemini API key for that project."
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:25
+msgid "Create API key"
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:27
+msgid "Availability and free usage limits depend on the selected model, project, and region."
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:28
+msgid "Gemini API key"
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:30
+msgid "Use Gemini for automatic translations"
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:30
+msgid "Save Gemini settings"
+msgstr ""
+
+#: src/modules/class-gemini-provider.php:42
+msgid "The Gemini API key is not configured."
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:32
+msgid "Automatic translation with Google Translate"
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:32
+msgid "Connect Google Cloud Translation to translate content with its Neural Machine Translation model."
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:34
+msgid "Create or select a Google Cloud project."
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:34
+msgid "Select a project"
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:35
+msgid "Enable billing for the project."
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:35
+msgid "Cloud Billing"
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:36
+msgid "Enable the Cloud Translation API."
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:36
+msgid "Enable the API"
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:37
+msgid "Create an API key in Credentials, then restrict it to the Cloud Translation API and, when possible, your server IP."
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:37
+msgid "Create credentials"
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:39
+msgid "Google Cloud requires billing. Its current pricing includes a monthly credit for the first 500,000 translated characters; verify the current limits before use."
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:40
+msgid "Google Cloud API key"
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:42
+msgid "Translation model"
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:42
+msgid "Google Neural Machine Translation (NMT)"
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:42
+msgid "Cloud Translation Basic selects this model automatically."
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:42
+msgid "Use Google Translate for automatic translations"
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:42
+msgid "Save Google Translate settings"
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:51
+msgid "The Google Cloud Translation API key is not configured."
+msgstr ""
+
+#. translators: %d: HTTP response status code.
+#: src/modules/class-google-translate-provider.php:56
+#, php-format
+msgid "Google Translate returned HTTP status %d."
+msgstr ""
+
+#: src/modules/class-google-translate-provider.php:57
+msgid "Google Translate returned an incomplete response."
+msgstr ""
+
+#: src/modules/class-jobs.php:30
+msgid "The translation job is not valid or the provider is not configured."
+msgstr ""
+
+#: src/modules/class-jobs.php:54
+#: src/modules/class-openai-provider.php:134
+msgid "You cannot translate this content."
+msgstr ""
+
+#: src/modules/class-jobs.php:74
+msgid "Provider or source content is unavailable."
+msgstr ""
+
+#: src/modules/class-jobs.php:92
+msgid "Provider returned an invalid response."
+msgstr ""
+
+#: src/modules/class-jobs.php:166
+msgid "OpenLingua finished the automatic translation. It is ready for review."
+msgstr ""
+
+#: src/modules/class-jobs.php:166
+#: src/modules/class-jobs.php:212
+msgid "Review translation"
+msgstr ""
+
+#: src/modules/class-jobs.php:179
+#: src/modules/class-jobs.php:200
+msgid "Translation jobs"
+msgstr ""
+
+#: src/modules/class-jobs.php:179
+msgid "Jobs"
+msgstr ""
+
+#: src/modules/class-jobs.php:189
+#: src/modules/class-jobs.php:202
+msgid "Queued"
+msgstr ""
+
+#: src/modules/class-jobs.php:191
+#: src/modules/class-jobs.php:202
+msgid "Ready for review"
+msgstr ""
+
+#: src/modules/class-jobs.php:192
+#: src/modules/class-jobs.php:202
+msgid "Failed"
+msgstr ""
+
+#: src/modules/class-jobs.php:201
+msgid "Automatic jobs start on their own. This screen shows whether each translation is waiting, running, ready to review, or needs attention."
+msgstr ""
+
+#: src/modules/class-jobs.php:203
+msgid "Source"
+msgstr ""
+
+#: src/modules/class-jobs.php:203
+msgid "Target"
+msgstr ""
+
+#: src/modules/class-jobs.php:203
+msgid "Provider"
+msgstr ""
+
+#: src/modules/class-jobs.php:203
+msgid "Status"
+msgstr ""
+
+#: src/modules/class-jobs.php:203
+msgid "Action"
+msgstr ""
+
+#: src/modules/class-jobs.php:211
+msgid "Retry"
+msgstr ""
+
+#: src/modules/class-jobs.php:213
+msgid "Starts automatically"
+msgstr ""
+
+#: src/modules/class-jobs.php:214
+msgid "Please wait"
+msgstr ""
+
+#: src/modules/class-language-settings.php:40
+msgid "OpenLingua language settings"
+msgstr ""
+
+#: src/modules/class-language-settings.php:47
+msgid "Save language settings"
+msgstr ""
+
+#: src/modules/class-language-settings.php:52
+msgid "Enable the languages visitors can use and select the default language."
+msgstr ""
+
+#: src/modules/class-language-settings.php:55
+msgid "Default language"
+msgstr ""
+
+#: src/modules/class-language-settings.php:57
+msgid "Add a custom language"
+msgstr ""
+
+#: src/modules/class-language-settings.php:57
+msgid "Code"
+msgstr ""
+
+#: src/modules/class-language-settings.php:57
+msgid "English name"
+msgstr ""
+
+#: src/modules/class-language-settings.php:57
+msgid "Native name"
+msgstr ""
+
+#: src/modules/class-language-settings.php:57
+msgid "WordPress locale"
+msgstr ""
+
+#: src/modules/class-language-settings.php:57
+#: src/modules/class-menus.php:96
+msgid "Flag or symbol"
+msgstr ""
+
+#: src/modules/class-language-settings.php:57
+msgid "Text direction"
+msgstr ""
+
+#: src/modules/class-language-settings.php:62
+msgid "Directories: example.com/es/page/"
+msgstr ""
+
+#: src/modules/class-language-settings.php:62
+msgid "Query parameter: example.com/page/?lang=es"
+msgstr ""
+
+#: src/modules/class-language-settings.php:62
+msgid "A different domain or subdomain for each language"
+msgstr ""
+
+#: src/modules/class-language-settings.php:64
+msgid "Language domains"
+msgstr ""
+
+#: src/modules/class-language-settings.php:64
+msgid "Enter a complete HTTPS base URL. DNS and WordPress must already accept each domain."
+msgstr ""
+
+#: src/modules/class-language-settings.php:71
+msgid "Language switcher"
+msgstr ""
+
+#: src/modules/class-language-settings.php:72
+msgid "Show flag or symbol"
+msgstr ""
+
+#: src/modules/class-language-settings.php:72
+msgid "Show translated language name"
+msgstr ""
+
+#: src/modules/class-language-settings.php:72
+msgid "Show native language name"
+msgstr ""
+
+#: src/modules/class-language-settings.php:72
+msgid "Include the current language"
+msgstr ""
+
+#: src/modules/class-language-settings.php:72
+msgid "Render as a dropdown"
+msgstr ""
+
+#: src/modules/class-language-settings.php:72
+msgid "Automatically show a switcher in the footer"
+msgstr ""
+
+#: src/modules/class-language-settings.php:73
+msgid "When a translation is missing"
+msgstr ""
+
+#: src/modules/class-language-settings.php:73
+msgid "Link to that language homepage"
+msgstr ""
+
+#: src/modules/class-language-settings.php:73
+msgid "Hide the language"
+msgstr ""
+
+#: src/modules/class-language-settings.php:77
+msgid "Language visibility"
+msgstr ""
+
+#: src/modules/class-language-settings.php:77
+msgid "Hidden languages remain editable by administrators but are removed from public switchers and discovery endpoints."
+msgstr ""
+
+#: src/modules/class-language-settings.php:83
+msgid "Administration and browser behavior"
+msgstr ""
+
+#: src/modules/class-language-settings.php:83
+msgid "WordPress administration language"
+msgstr ""
+
+#: src/modules/class-language-settings.php:83
+msgid "Use the site default language"
+msgstr ""
+
+#: src/modules/class-language-settings.php:83
+msgid "Use each user profile language"
+msgstr ""
+
+#: src/modules/class-language-settings.php:85
+msgid "Browser language redirect"
+msgstr ""
+
+#: src/modules/class-language-settings.php:85
+msgid "Disabled (recommended for SEO)"
+msgstr ""
+
+#: src/modules/class-language-settings.php:85
+msgid "Redirect only on the first visit"
+msgstr ""
+
+#: src/modules/class-language-settings.php:85
+msgid "Redirect whenever the requested language differs"
+msgstr ""
+
+#: src/modules/class-language-settings.php:85
+msgid "Temporarily discover gettext strings from themes and plugins"
+msgstr ""
+
+#: src/modules/class-language-settings.php:105
+msgid "At least one language must remain enabled."
+msgstr ""
+
+#: src/modules/class-menus.php:63
+#: src/modules/class-menus.php:70
+msgid "Menu translations"
+msgstr ""
+
+#: src/modules/class-menus.php:63
+msgid "Menus"
+msgstr ""
+
+#: src/modules/class-menus.php:71
+msgid "Assign or create a separate WordPress menu for each language. Use Edit menu to translate its navigation labels in the native menu editor."
+msgstr ""
+
+#: src/modules/class-menus.php:72
+msgid "Menu translations updated."
+msgstr ""
+
+#: src/modules/class-menus.php:73
+msgid "The active theme has no registered menu locations."
+msgstr ""
+
+#: src/modules/class-menus.php:76
+msgid "Theme location"
+msgstr ""
+
+#: src/modules/class-menus.php:77
+msgid "default"
+msgstr ""
+
+#: src/modules/class-menus.php:83
+msgid "Not assigned"
+msgstr ""
+
+#: src/modules/class-menus.php:90
+msgid "Language switcher in navigation menus"
+msgstr ""
+
+#: src/modules/class-menus.php:90
+msgid "Choose the theme menu locations where OpenLingua should insert the language switcher automatically."
+msgstr ""
+
+#: src/modules/class-menus.php:95
+msgid "Switcher style"
+msgstr ""
+
+#: src/modules/class-menus.php:95
+msgid "Dropdown"
+msgstr ""
+
+#: src/modules/class-menus.php:95
+msgid "Show the current language and open the other languages below it."
+msgstr ""
+
+#: src/modules/class-menus.php:95
+msgid "Language list"
+msgstr ""
+
+#: src/modules/class-menus.php:95
+msgid "Show all languages as separate menu items."
+msgstr ""
+
+#: src/modules/class-menus.php:96
+msgid "What to display"
+msgstr ""
+
+#: src/modules/class-menus.php:96
+msgid "Language name"
+msgstr ""
+
+#: src/modules/class-menus.php:96
+msgid "Native language name"
+msgstr ""
+
+#: src/modules/class-menus.php:96
+msgid "Include the current language in list style"
+msgstr ""
+
+#: src/modules/class-menus.php:97
+msgid "Switcher position"
+msgstr ""
+
+#: src/modules/class-menus.php:97
+msgid "At the end of the menu"
+msgstr ""
+
+#: src/modules/class-menus.php:97
+msgid "At the beginning of the menu"
+msgstr ""
+
+#: src/modules/class-menus.php:98
+msgid "Preview"
+msgstr ""
+
+#: src/modules/class-menus.php:98
+msgid "Menu item"
+msgstr ""
+
+#: src/modules/class-menus.php:98
+msgid "The final typography and colors are inherited from your WordPress theme."
+msgstr ""
+
+#: src/modules/class-menus.php:99
+msgid "Missing-translation behavior and footer placement remain available under OpenLingua → Language switcher."
+msgstr ""
+
+#: src/modules/class-menus.php:129
+msgid "Edit menu"
+msgstr ""
+
+#: src/modules/class-menus.php:133
+msgid "Select or create a menu first."
+msgstr ""
+
+#: src/modules/class-menus.php:136
+msgid "Create translation"
+msgstr ""
+
+#: src/modules/class-menus.php:144
+msgid "Invalid menu translation."
+msgstr ""
+
+#: src/modules/class-menus.php:149
+msgid "Assign a menu to the default language before creating its translation."
+msgstr ""
+
+#: src/modules/class-menus.php:243
+msgid "OpenLingua translations"
+msgstr ""
+
+#: src/modules/class-menus.php:271
+msgid "not created"
+msgstr ""
+
+#: src/modules/class-menus.php:279
+msgid "Edit a separate menu for each language. Navigation labels can be changed normally in the menu items."
+msgstr ""
+
+#: src/modules/class-menus.php:290
+msgid "Assign this menu to a language from OpenLingua → Menus to link its translations."
+msgstr ""
+
+#: src/modules/class-menus.php:291
+msgid "Manage menu languages"
+msgstr ""
+
+#: src/modules/class-metadata.php:44
+#: src/modules/class-metadata.php:58
+msgid "OpenLingua advanced settings"
+msgstr ""
+
+#: src/modules/class-metadata.php:44
+msgid "Advanced settings"
+msgstr ""
+
+#: src/modules/class-metadata.php:59
+msgid "Technical controls for exceptional multilingual content behavior. The automatic defaults are suitable for most websites."
+msgstr ""
+
+#: src/modules/class-metadata.php:61
+msgid "OpenAI settings saved."
+msgstr ""
+
+#: src/modules/class-metadata.php:62
+msgid "The API key must begin with sk-. The previous key was kept."
+msgstr ""
+
+#: src/modules/class-metadata.php:63
+msgid "Automatic translation provider"
+msgstr ""
+
+#: src/modules/class-metadata.php:71
+msgid "Custom field policies"
+msgstr ""
+
+#: src/modules/class-metadata.php:72
+msgid "Override how specific WordPress or ACF fields behave when a translation is created."
+msgstr ""
+
+#: src/modules/class-metadata.php:73
+msgid "Edit technical rules"
+msgstr ""
+
+#: src/modules/class-metadata.php:73
+msgid "One rule per line: post-type|meta-key|policy. Use * for every post type. Policies: translate, copy, copy-once, ignore."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:44
+msgid "Automatic translation with OpenAI"
+msgstr ""
+
+#: src/modules/class-openai-provider.php:45
+msgid "Connect your own OpenAI API account. OpenLingua sends only the content selected for an automatic translation job."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:47
+msgid "Sign in to the OpenAI Platform or create an account."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:47
+msgid "OpenAI Platform"
+msgstr ""
+
+#: src/modules/class-openai-provider.php:48
+msgid "Open API keys and create a new secret key."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:49
+msgid "Add API billing or credits to the project if needed."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:49
+msgid "API billing"
+msgstr ""
+
+#: src/modules/class-openai-provider.php:50
+msgid "Copy the key when it is shown and paste it below."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:51
+msgid "A ChatGPT subscription does not include OpenAI API usage."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:52
+msgid "OpenAI API key"
+msgstr ""
+
+#: src/modules/class-openai-provider.php:53
+msgid "Leave this field empty to keep it."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:56
+msgid "Models available to the configured OpenAI project. The list is refreshed automatically."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:56
+msgid "Save an API key to load the models available to your OpenAI project."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:56
+msgid "Use OpenAI for automatic translations"
+msgstr ""
+
+#: src/modules/class-openai-provider.php:57
+msgid "Save OpenAI settings"
+msgstr ""
+
+#: src/modules/class-openai-provider.php:113
+msgid "Balanced"
+msgstr ""
+
+#: src/modules/class-openai-provider.php:114
+msgid "Lower cost"
+msgstr ""
+
+#: src/modules/class-openai-provider.php:115
+msgid "Highest quality"
+msgstr ""
+
+#: src/modules/class-openai-provider.php:148
+msgid "The OpenAI API key is not configured."
+msgstr ""
+
+#. translators: %d: HTTP response status code.
+#: src/modules/class-openai-provider.php:176
+#, php-format
+msgid "OpenAI returned HTTP status %d."
+msgstr ""
+
+#: src/modules/class-openai-provider.php:181
+msgid "OpenAI returned a response that OpenLingua could not read."
+msgstr ""
+
+#: src/modules/class-portability.php:37
+msgid "Unsupported OpenLingua import format."
+msgstr ""
+
+#: src/modules/class-portability.php:68
+#: src/modules/class-portability.php:72
+msgid "Import and export"
+msgstr ""
+
+#: src/modules/class-portability.php:68
+msgid "Tools"
+msgstr ""
+
+#: src/modules/class-portability.php:72
+msgid "Export"
+msgstr ""
+
+#: src/modules/class-portability.php:72
+msgid "Download languages, relationships, strings, menus, and field policies as JSON."
+msgstr ""
+
+#: src/modules/class-portability.php:74
+msgid "Download export"
+msgstr ""
+
+#: src/modules/class-portability.php:74
+#: src/modules/class-portability.php:76
+msgid "Merge import"
+msgstr ""
+
+#: src/modules/class-portability.php:74
+msgid "Existing content is not deleted. Matching relationships and strings are updated."
+msgstr ""
+
+#: src/modules/class-portability.php:90
+msgid "Invalid or oversized import file."
+msgstr ""
+
+#: src/modules/class-portability.php:92
+msgid "Invalid JSON document."
+msgstr ""
+
+#: src/modules/class-privacy.php:16
+msgid "OpenLingua stores language relationships, translated strings, settings, workflow status, and translation-job metadata in this WordPress database. This data is preserved when the plugin is removed unless the site owner explicitly enables permanent removal before uninstalling."
+msgstr ""
+
+#: src/modules/class-privacy.php:17
+msgid "Manual translation does not require an external service. If an administrator configures OpenAI, Anthropic, Google Gemini, or Google Cloud Translation and explicitly starts an automatic translation job, OpenLingua sends the selected content, source and target language identifiers, translation instructions, and the site owner's API credential to that provider. Model-list requests send the credential but no site content. The site owner should disclose the selected provider and review its terms, privacy policy, retention settings, billing, and consent requirements."
+msgstr ""
+
+#: src/modules/class-privacy.php:18
+msgid "OpenLingua does not include analytics or usage tracking."
+msgstr ""
+
+#: src/modules/class-providers.php:53
+msgid "How to get your API key"
+msgstr ""
+
+#: src/modules/class-providers.php:57
+msgid "Open official page"
+msgstr ""
+
+#: src/modules/class-providers.php:57
+msgid "(opens in a new tab)"
+msgstr ""
+
+#: src/modules/class-workflow.php:23
+msgid "Draft"
+msgstr ""
+
+#: src/modules/class-workflow.php:23
+msgid "In progress"
+msgstr ""
+
+#: src/modules/class-workflow.php:24
+msgid "Complete"
+msgstr ""
+
+#: src/modules/class-workflow.php:24
+msgid "Outdated"
+msgstr ""
+
+#. translators: %s: translation provider name.
+#: src/modules/trait-provider-secrets.php:25
+#, php-format
+msgid "%s returned a response that OpenLingua could not read."
+msgstr ""

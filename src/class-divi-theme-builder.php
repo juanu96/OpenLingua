@@ -67,6 +67,7 @@ final class Divi_Theme_Builder {
 		foreach ( $templates as $template ) {
 			$template_id = absint( $template['id'] ?? 0 );
 			$template_name = ! empty( $template['default'] ) ? __( 'Default Website Template', 'openlingua' ) : trim( (string) ( $template['title'] ?? '' ) );
+			/* translators: %d: Divi template ID. */
 			if ( '' === $template_name ) { $template_name = sprintf( __( 'Template #%d', 'openlingua' ), $template_id ); }
 			foreach ( self::$layout_types as $kind => $post_type ) {
 				$layout = $template['layouts'][ $kind ] ?? array();
@@ -100,15 +101,24 @@ final class Divi_Theme_Builder {
 			} elseif ( isset( $group[ $code ] ) ) {
 				$translation_id = absint( $group[ $code ] );
 				if ( 'trash' === get_post_status( $translation_id ) ) {
-					echo '<a class="openlingua-translation-action" href="' . esc_url( Content::restore_translation_url( $post->ID, $translation_id ) ) . '" title="' . esc_attr( sprintf( __( 'Restore %s translation', 'openlingua' ), $language['name'] ) ) . '"><span class="dashicons dashicons-undo" aria-hidden="true"></span></a>';
+					/* translators: %s: language name. */
+					$restore_label = sprintf( __( 'Restore %s translation', 'openlingua' ), $language['name'] );
+					echo '<a class="openlingua-translation-action" href="' . esc_url( Content::restore_translation_url( $post->ID, $translation_id ) ) . '" title="' . esc_attr( $restore_label ) . '"><span class="dashicons dashicons-undo" aria-hidden="true"></span></a>';
 				} else {
 					$editor_url = Translation_Editor::url( $post->ID, $translation_id, $return_url );
+					/* translators: %s: language name. */
 					$confirmation = sprintf( __( 'Move the %s translation to Trash? The original layout will not be deleted.', 'openlingua' ), $language['name'] );
-					echo '<span class="openlingua-translation-links"><a class="openlingua-translation-action" href="' . esc_url( $editor_url ) . '" title="' . esc_attr( sprintf( __( 'Edit %s translation', 'openlingua' ), $language['name'] ) ) . '"><span class="dashicons dashicons-edit" aria-hidden="true"></span></a><a class="openlingua-translation-action openlingua-translation-action--delete" href="' . esc_url( Content::delete_translation_url( $post->ID, $translation_id, $return_url ) ) . '" data-openlingua-confirm="' . esc_attr( $confirmation ) . '" title="' . esc_attr( sprintf( __( 'Move %s translation to Trash', 'openlingua' ), $language['name'] ) ) . '"><span class="dashicons dashicons-trash" aria-hidden="true"></span></a></span>';
+					/* translators: %s: language name. */
+					$edit_label = sprintf( __( 'Edit %s translation', 'openlingua' ), $language['name'] );
+					/* translators: %s: language name. */
+					$trash_label = sprintf( __( 'Move %s translation to Trash', 'openlingua' ), $language['name'] );
+					echo '<span class="openlingua-translation-links"><a class="openlingua-translation-action" href="' . esc_url( $editor_url ) . '" title="' . esc_attr( $edit_label ) . '"><span class="dashicons dashicons-edit" aria-hidden="true"></span></a><a class="openlingua-translation-action openlingua-translation-action--delete" href="' . esc_url( Content::delete_translation_url( $post->ID, $translation_id, $return_url ) ) . '" data-openlingua-confirm="' . esc_attr( $confirmation ) . '" title="' . esc_attr( $trash_label ) . '"><span class="dashicons dashicons-trash" aria-hidden="true"></span></a></span>';
 				}
 			} else {
 				$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_duplicate', 'post_id' => $post->ID, 'language' => $code, 'redirect_to' => $return_url ), admin_url( 'admin-post.php' ) ), 'openlingua_duplicate_' . $post->ID );
-				echo '<a class="openlingua-translation-action" href="' . esc_url( $url ) . '" title="' . esc_attr( sprintf( __( 'Add %s translation', 'openlingua' ), $language['name'] ) ) . '"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span></a>';
+				/* translators: %s: language name. */
+				$add_label = sprintf( __( 'Add %s translation', 'openlingua' ), $language['name'] );
+				echo '<a class="openlingua-translation-action" href="' . esc_url( $url ) . '" title="' . esc_attr( $add_label ) . '"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span></a>';
 			}
 			echo '</td>';
 		}

@@ -88,7 +88,7 @@ final class Language_Settings implements Module {
 	public static function save() {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
 		check_admin_referer( 'openlingua_save_language_settings' );
-		$custom = (array) ( $_POST['custom'] ?? array() );
+		$custom = isset( $_POST['custom'] ) ? (array) wp_unslash( $_POST['custom'] ) : array();
 		$custom_code = sanitize_key( wp_unslash( $custom['code'] ?? '' ) );
 		$custom_languages = (array) get_option( 'openlingua_custom_languages', array() );
 		if ( $custom_code && ! empty( $custom['name'] ) ) {
@@ -96,7 +96,7 @@ final class Language_Settings implements Module {
 			update_option( 'openlingua_custom_languages', $custom_languages );
 		}
 		$catalog = array_replace( Language_Catalog::all(), $custom_languages );
-		$enabled_codes = array_map( 'sanitize_key', (array) ( $_POST['enabled_languages'] ?? array() ) );
+		$enabled_codes = array_map( 'sanitize_key', isset( $_POST['enabled_languages'] ) ? (array) wp_unslash( $_POST['enabled_languages'] ) : array() );
 		if ( $custom_code ) { $enabled_codes[] = $custom_code; }
 		$default = sanitize_key( wp_unslash( $_POST['default_language'] ?? '' ) );
 		if ( ! isset( $catalog[ $default ] ) ) { $default = Languages::default_code(); }
@@ -106,14 +106,15 @@ final class Language_Settings implements Module {
 		update_option( 'openlingua_languages', $enabled ); update_option( 'openlingua_default_language', $default );
 		$url_mode = sanitize_key( wp_unslash( $_POST['url_mode'] ?? 'directory' ) );
 		if ( ! in_array( $url_mode, array( 'directory', 'query', 'domain' ), true ) ) { $url_mode = 'directory'; }
-		$domains = array(); foreach ( (array) ( $_POST['domains'] ?? array() ) as $code => $url ) { if ( isset( $enabled[ $code ] ) && $url ) { $domains[ sanitize_key( $code ) ] = untrailingslashit( esc_url_raw( wp_unslash( $url ) ) ); } }
+		$submitted_domains = isset( $_POST['domains'] ) ? (array) wp_unslash( $_POST['domains'] ) : array();
+		$domains = array(); foreach ( $submitted_domains as $code => $url ) { if ( isset( $enabled[ $code ] ) && $url ) { $domains[ sanitize_key( $code ) ] = untrailingslashit( esc_url_raw( $url ) ); } }
 		$admin_language = sanitize_key( wp_unslash( $_POST['admin_language'] ?? 'site-default' ) ); if ( ! in_array( $admin_language, array_merge( array( 'site-default', 'user' ), array_keys( $enabled ) ), true ) ) { $admin_language = 'site-default'; }
 		$browser = sanitize_key( wp_unslash( $_POST['browser_redirect'] ?? 'off' ) ); if ( ! in_array( $browser, array( 'off', 'once', 'always' ), true ) ) { $browser = 'off'; }
-		$switcher = (array) ( $_POST['switcher'] ?? array() );
+		$switcher = isset( $_POST['switcher'] ) ? (array) wp_unslash( $_POST['switcher'] ) : array();
 		$registered_locations = array_keys( get_registered_nav_menus() );
 		$menu_locations = array_values( array_intersect( $registered_locations, array_map( 'sanitize_key', (array) ( $switcher['menu_locations'] ?? array() ) ) ) );
 		$clean_switcher = array( 'show_flag' => ! empty( $switcher['show_flag'] ), 'show_name' => ! empty( $switcher['show_name'] ), 'show_native_name' => ! empty( $switcher['show_native_name'] ), 'show_current' => ! empty( $switcher['show_current'] ), 'dropdown' => ! empty( $switcher['dropdown'] ), 'footer' => ! empty( $switcher['footer'] ), 'missing' => 'hide' === ( $switcher['missing'] ?? '' ) ? 'hide' : 'home', 'menu_locations' => $menu_locations, 'menu_position' => 'first' === ( $switcher['menu_position'] ?? '' ) ? 'first' : 'last' );
-		$hidden = array_values( array_intersect( array_keys( $enabled ), array_map( 'sanitize_key', (array) ( $_POST['hidden_languages'] ?? array() ) ) ) );
+		$hidden = array_values( array_intersect( array_keys( $enabled ), array_map( 'sanitize_key', isset( $_POST['hidden_languages'] ) ? (array) wp_unslash( $_POST['hidden_languages'] ) : array() ) ) );
 		update_option( 'openlingua_language_settings', array( 'url_mode' => $url_mode, 'domains' => $domains, 'admin_language' => $admin_language, 'hidden_languages' => $hidden, 'browser_redirect' => $browser, 'switcher' => $clean_switcher ) );
 		update_option( 'openlingua_string_discovery', ! empty( $_POST['string_discovery'] ) ); update_option( 'openlingua_flush_rewrite_rules', 1 );
 		wp_safe_redirect( add_query_arg( array( 'page' => 'openlingua', 'updated' => 1 ), admin_url( 'admin.php' ) ) ); exit;
@@ -131,7 +132,7 @@ final class Language_Settings implements Module {
 			if ( $target ) {
 				setcookie( 'openlingua_browser_redirect', '1', array( 'expires' => time() + MONTH_IN_SECONDS, 'path' => COOKIEPATH ?: '/', 'secure' => is_ssl(), 'httponly' => true, 'samesite' => 'Lax' ) );
 				if ( $target !== Languages::current() ) {
-					$request_path = (string) wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '/' ), PHP_URL_PATH );
+					$request_path = (string) wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ?? '/' ) ), PHP_URL_PATH );
 					wp_safe_redirect( Languages::url( home_url( $request_path ?: '/' ), $target ), 302 ); exit;
 				}
 				break;

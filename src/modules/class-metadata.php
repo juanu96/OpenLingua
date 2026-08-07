@@ -57,8 +57,9 @@ final class Metadata implements Module {
 		}
 		echo '<div class="wrap openlingua-settings"><h1>' . esc_html__( 'OpenLingua advanced settings', 'openlingua' ) . '</h1>';
 		echo '<p>' . esc_html__( 'Technical controls for exceptional multilingual content behavior. The automatic defaults are suitable for most websites.', 'openlingua' ) . '</p>';
-		if ( 'saved' === ( $_GET['openai_notice'] ?? '' ) ) { echo '<div class="notice notice-success inline"><p>' . esc_html__( 'OpenAI settings saved.', 'openlingua' ) . '</p></div>'; }
-		if ( 'invalid-key' === ( $_GET['openai_notice'] ?? '' ) ) { echo '<div class="notice notice-error inline"><p>' . esc_html__( 'The API key must begin with sk-. The previous key was kept.', 'openlingua' ) . '</p></div>'; }
+		$provider_notice = isset( $_GET['openai_notice'] ) ? sanitize_key( wp_unslash( $_GET['openai_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only status notice.
+		if ( 'saved' === $provider_notice ) { echo '<div class="notice notice-success inline"><p>' . esc_html__( 'OpenAI settings saved.', 'openlingua' ) . '</p></div>'; }
+		if ( 'invalid-key' === $provider_notice ) { echo '<div class="notice notice-error inline"><p>' . esc_html__( 'The API key must begin with sk-. The previous key was kept.', 'openlingua' ) . '</p></div>'; }
 		echo '<div class="openlingua-provider-settings" data-openlingua-provider-tabs><div class="nav-tab-wrapper" role="tablist" aria-label="' . esc_attr__( 'Automatic translation provider', 'openlingua' ) . '">';
 		$active_provider = Providers::active_id();
 		echo '<button type="button" class="nav-tab" role="tab" data-openlingua-provider-tab="openai">OpenAI' . ( 'openai' === $active_provider ? ' ✓' : '' ) . '</button>';

@@ -66,7 +66,7 @@ final class OpenAI_Provider implements Module, Translation_Provider {
 		if ( '' === $model ) { $model = 'gpt-5.6-terra'; }
 		$encrypted = $current['api_key'];
 		if ( ! empty( $_POST['clear_api_key'] ) ) { $encrypted = ''; }
-		$key = trim( (string) wp_unslash( $_POST['api_key'] ?? '' ) );
+		$key = sanitize_text_field( wp_unslash( $_POST['api_key'] ?? '' ) );
 		if ( '' !== $key ) {
 			if ( 0 !== strpos( $key, 'sk-' ) ) { self::redirect_settings( 'invalid-key' ); }
 			$encrypted = self::encrypt( $key );
@@ -135,7 +135,7 @@ final class OpenAI_Provider implements Module, Translation_Provider {
 		$target = \OpenLingua\Translations::row( 'post', $target_id );
 		$source = \OpenLingua\Translations::row( 'post', $source_id );
 		if ( ! $source || ! $target || $source->group_uuid !== $target->group_uuid ) { wp_die( esc_html__( 'These posts are not linked translations.', 'openlingua' ) ); }
-		$return_to = wp_validate_redirect( wp_unslash( $_GET['return_to'] ?? '' ), '' );
+		$return_to = wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['return_to'] ?? '' ) ), '' );
 		$editor_url = \OpenLingua\Translation_Editor::url( $source_id, $target_id, $return_to );
 		$job_id = Jobs::enqueue( $source_id, $target_id, $target->language, self::ID );
 		if ( is_wp_error( $job_id ) ) { wp_safe_redirect( add_query_arg( 'automatic_translation', 'error', $editor_url ) ); exit; }
@@ -172,6 +172,7 @@ final class OpenAI_Provider implements Module, Translation_Provider {
 		$status = wp_remote_retrieve_response_code( $response );
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( $status < 200 || $status >= 300 ) {
+			/* translators: %d: HTTP response status code. */
 			$message = $body['error']['message'] ?? sprintf( __( 'OpenAI returned HTTP status %d.', 'openlingua' ), $status );
 			return new \WP_Error( 'openlingua_openai_api', sanitize_text_field( $message ) );
 		}

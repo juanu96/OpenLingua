@@ -60,6 +60,7 @@ final class Translation_Editor {
 		$provider = \OpenLingua\Modules\Providers::active();
 		if ( $provider && $provider->is_configured() ) {
 			$automatic_url = \OpenLingua\Modules\Jobs::enqueue_url( $source->ID, $target->ID, $provider->id(), $return_to );
+			/* translators: %s: translation provider name. */
 			echo '<a class="button button-primary" href="' . esc_url( $automatic_url ) . '"><span class="dashicons dashicons-translation" aria-hidden="true"></span>' . sprintf( esc_html__( 'Translate with %s', 'openlingua' ), esc_html( $provider->label() ) ) . '</a>';
 		} else {
 			$settings_url = $provider && method_exists( $provider, 'settings_url' ) ? $provider->settings_url() : \OpenLingua\Modules\OpenAI_Provider::settings_url();
@@ -94,6 +95,7 @@ final class Translation_Editor {
 			}
 		}
 		foreach ( $seo_groups as $group ) {
+			/* translators: %s: SEO integration name. */
 			echo '<h2>' . sprintf( esc_html__( 'SEO — %s', 'openlingua' ), esc_html( $group['name'] ) ) . '</h2>';
 			foreach ( $group['fields'] as $field ) {
 				$rows = false !== stripos( $field['label'], 'description' ) ? 4 : 2;
@@ -101,6 +103,7 @@ final class Translation_Editor {
 			}
 		}
 		$delete_url = Content::delete_translation_url( $source->ID, $target->ID, $back );
+		/* translators: %s: language name. */
 		$delete_confirmation = sprintf( __( 'Move the %s translation to Trash? The original content will not be deleted.', 'openlingua' ), $target_language['name'] );
 		echo '</main><footer class="openlingua-editor__footer"><div class="openlingua-editor__footer-actions"><a class="button" href="' . esc_url( get_edit_post_link( $target->ID, 'url' ) ) . '">' . esc_html__( 'Open WordPress editor', 'openlingua' ) . '</a>';
 		if ( current_user_can( 'delete_post', $target->ID ) ) { echo ' <a class="button openlingua-editor__delete" href="' . esc_url( $delete_url ) . '" data-openlingua-confirm="' . esc_attr( $delete_confirmation ) . '"><span class="dashicons dashicons-trash" aria-hidden="true"></span>' . esc_html__( 'Move translation to Trash', 'openlingua' ) . '</a>'; }

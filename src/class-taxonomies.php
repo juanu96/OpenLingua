@@ -64,7 +64,11 @@ final class Taxonomies {
 				$target = $target_id ? get_term( $target_id, $term->taxonomy ) : null;
 				if ( is_wp_error( $target ) ) { $target = null; $target_id = 0; }
 				$payload = array( 'sourceId' => $term->term_id, 'targetId' => $target_id, 'taxonomy' => $term->taxonomy, 'language' => $code, 'languageName' => $language['name'], 'flag' => $language['flag'] ?? '🌐', 'sourceName' => $term->name, 'name' => $target ? $target->name : $term->name, 'slug' => $target ? $target->slug : $term->slug, 'description' => $target ? $target->description : $term->description );
-				$label = $target ? sprintf( __( 'Edit %s translation', 'openlingua' ), $language['name'] ) : sprintf( __( 'Add %s translation', 'openlingua' ), $language['name'] );
+				/* translators: %s: language name. */
+				$edit_label = sprintf( __( 'Edit %s translation', 'openlingua' ), $language['name'] );
+				/* translators: %s: language name. */
+				$add_label = sprintf( __( 'Add %s translation', 'openlingua' ), $language['name'] );
+				$label = $target ? $edit_label : $add_label;
 				echo '<td class="column-language"><button type="button" class="openlingua-taxonomy-action" data-openlingua-taxonomy-edit data-term="' . esc_attr( wp_json_encode( $payload ) ) . '" aria-label="' . esc_attr( $label ) . '" title="' . esc_attr( $label ) . '"><span class="dashicons ' . ( $target ? 'dashicons-edit' : 'dashicons-plus-alt2' ) . '" aria-hidden="true"></span></button></td>';
 			}
 			echo '</tr>';
@@ -113,7 +117,7 @@ final class Taxonomies {
 		}
 		if ( is_wp_error( $result ) ) { wp_die( esc_html( $result->get_error_message() ) ); }
 		Translations::assign( 'term', $target_id, $language, $group, $row ? $row->language : Languages::default_code() );
-		$return_to = isset( $_POST['return_to'] ) ? wp_validate_redirect( wp_unslash( $_POST['return_to'] ), '' ) : '';
+		$return_to = isset( $_POST['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['return_to'] ) ), '' ) : '';
 		wp_safe_redirect( add_query_arg( 'updated', '1', $return_to ?: admin_url( 'admin.php?page=openlingua-taxonomies' ) ) ); exit;
 	}
 
@@ -185,10 +189,12 @@ final class Taxonomies {
 		if ( isset( $group[ $code ] ) ) {
 			$translation_id = absint( $group[ $code ] );
 			$url   = get_edit_term_link( $translation_id, $term->taxonomy );
+			/* translators: %s: language name. */
 			$label = sprintf( __( 'Edit %s translation', 'openlingua' ), $name );
 			$icon  = 'dashicons-edit';
 		} else {
 			$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_duplicate_term', 'term_id' => $term_id, 'taxonomy' => $term->taxonomy, 'language' => $code ), admin_url( 'admin-post.php' ) ), 'openlingua_duplicate_term_' . $term_id );
+			/* translators: %s: language name. */
 			$label = sprintf( __( 'Add %s translation', 'openlingua' ), $name );
 			$icon  = 'dashicons-plus-alt2';
 		}
@@ -196,6 +202,7 @@ final class Taxonomies {
 		$output = '<span class="openlingua-translation-links"><a class="openlingua-translation-action" href="' . esc_url( $url ) . '" title="' . esc_attr( $label ) . '" aria-label="' . esc_attr( $label ) . '"><span class="dashicons ' . esc_attr( $icon ) . '" aria-hidden="true"></span></a>';
 		if ( isset( $translation_id ) ) {
 			$view_url = get_term_link( $translation_id, $term->taxonomy );
+			/* translators: %s: language name. */
 			$view_label = sprintf( __( 'View %s translation', 'openlingua' ), $name );
 			if ( ! is_wp_error( $view_url ) ) { $output .= '<a class="openlingua-translation-action" href="' . esc_url( $view_url ) . '" target="_blank" rel="noopener noreferrer" title="' . esc_attr( $view_label ) . '" aria-label="' . esc_attr( $view_label ) . '"><span class="dashicons dashicons-visibility" aria-hidden="true"></span></a>'; }
 		}

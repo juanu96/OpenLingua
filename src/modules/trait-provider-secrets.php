@@ -21,6 +21,7 @@ trait Provider_Secrets {
 	private static function json_result( $text, array $segments, $provider ) {
 		$text = trim( preg_replace( '/^```(?:json)?\s*|\s*```$/i', '', trim( $text ) ) );
 		$result = json_decode( $text, true );
+		/* translators: %s: translation provider name. */
 		if ( ! is_array( $result ) ) { return new \WP_Error( 'openlingua_' . $provider . '_response', sprintf( __( '%s returned a response that OpenLingua could not read.', 'openlingua' ), ucfirst( $provider ) ) ); }
 		return array_intersect_key( $result, $segments );
 	}

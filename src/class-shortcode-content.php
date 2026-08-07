@@ -46,6 +46,11 @@ final class Shortcode_Content {
 			'methods'             => 'POST',
 			'callback'            => array( __CLASS__, 'dynamic_strings' ),
 			'permission_callback' => '__return_true',
+			'args'                => array(
+				'shortcode' => array( 'required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_key' ),
+				'language'  => array( 'required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_key' ),
+				'entries'   => array( 'required' => true, 'type' => 'array' ),
+			),
 		) );
 	}
 
@@ -57,7 +62,7 @@ final class Shortcode_Content {
 			return new \WP_Error( 'openlingua_invalid_shortcode_strings', __( 'Invalid shortcode strings request.', 'openlingua' ), array( 'status' => 400 ) );
 		}
 
-		$entries = array_slice( $entries, 0, 100 );
+		$entries = array_slice( $entries, 0, 50 );
 		$domain  = 'shortcode-' . $tag;
 		$can_discover = current_user_can( 'manage_options' ) && Languages::default_code() === Languages::current();
 		$result = array();

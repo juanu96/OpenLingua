@@ -89,6 +89,7 @@ final class ACF_Content {
 					$sub_key = $sub_field['key'] ?? '';
 					if ( ! $sub_name || ! $sub_key ) { continue; }
 					$sub_value = is_array( $row ) ? ( $row[ $sub_name ] ?? ( $row[ $sub_field['key'] ] ?? null ) ) : null;
+					/* translators: %d: repeater row number. */
 					self::walk( $sub_field, $sub_value, array_merge( $path, array( $row_index, $sub_key ) ), array_merge( $labels, array( sprintf( __( 'Row %d', 'openlingua' ), $row_index + 1 ) ) ), $root_key, $post_type, $segments );
 				}
 			}

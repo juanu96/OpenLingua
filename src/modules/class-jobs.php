@@ -55,7 +55,7 @@ final class Jobs implements Module {
 		$source = \OpenLingua\Translations::row( 'post', $source_id );
 		$target = \OpenLingua\Translations::row( 'post', $target_id );
 		if ( ! $source || ! $target || $source->group_uuid !== $target->group_uuid ) { wp_die( esc_html__( 'These posts are not linked translations.', 'openlingua' ) ); }
-		$return_to = wp_validate_redirect( wp_unslash( $_GET['return_to'] ?? '' ), '' );
+		$return_to = wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['return_to'] ?? '' ) ), '' );
 		$editor_url = Translation_Editor::url( $source_id, $target_id, $return_to );
 		$job_id = self::enqueue( $source_id, $target_id, $target->language, $provider_id );
 		$status = is_wp_error( $job_id ) ? 'error' : 'queued';

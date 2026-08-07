@@ -1,19 +1,35 @@
 <?php
 /**
  * Plugin Name: OpenLingua
- * Plugin URI:  https://github.com/openlingua/openlingua
+ * Plugin URI:  https://github.com/juanu96/OpenLingua
  * Description: Multilingual content, custom post types, custom fields and strings for WordPress.
- * Version:     1.2.0
+ * Version:     1.2.1
  * Requires at least: 6.4
  * Requires PHP: 7.4
  * Author:      OpenLingua Contributors
+ * Author URI:  https://profiles.wordpress.org/juanu96/
  * License:     GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: openlingua
+ */
+
+/**
+ * Copyright (C) 2026 OpenLingua Contributors
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'OPENLINGUA_VERSION', '1.2.0' );
+define( 'OPENLINGUA_VERSION', '1.2.1' );
 define( 'OPENLINGUA_FILE', __FILE__ );
 define( 'OPENLINGUA_DIR', plugin_dir_path( __FILE__ ) );
 

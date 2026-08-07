@@ -37,7 +37,7 @@ final class Anthropic_Provider implements Module, Translation_Provider {
 	}
 	public static function save_settings() {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); } check_admin_referer( 'openlingua_save_anthropic' );
-		$s = self::settings(); $encrypted = ! empty( $_POST['clear_api_key'] ) ? '' : $s['api_key']; $key = trim( (string) wp_unslash( $_POST['api_key'] ?? '' ) );
+		$s = self::settings(); $encrypted = ! empty( $_POST['clear_api_key'] ) ? '' : $s['api_key']; $key = sanitize_text_field( wp_unslash( $_POST['api_key'] ?? '' ) );
 		if ( '' !== $key ) { $encrypted = self::encrypt_secret( $key ); }
 		update_option( self::OPTION, array( 'api_key' => $encrypted, 'model' => sanitize_text_field( wp_unslash( $_POST['model'] ?? 'claude-sonnet-4-6' ) ) ), false ); if ( $encrypted && ! empty( $_POST['activate_provider'] ) ) { Providers::activate( 'anthropic' ); } delete_transient( 'openlingua_anthropic_models' );
 		wp_safe_redirect( add_query_arg( array( 'page' => 'openlingua-fields', 'section' => 'anthropic' ), admin_url( 'admin.php' ) ) ); exit;

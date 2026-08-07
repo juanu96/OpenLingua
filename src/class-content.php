@@ -226,15 +226,18 @@ final class Content {
 		if ( isset( $group[ $code ] ) && 'trash' === get_post_status( absint( $group[ $code ] ) ) ) {
 			$translation_id = absint( $group[ $code ] );
 			$url   = self::restore_translation_url( $post_id, $translation_id );
+			/* translators: %s: language name. */
 			$label = sprintf( __( 'Restore %s translation from Trash', 'openlingua' ), $name );
 			$icon  = 'dashicons-undo';
 		} elseif ( isset( $group[ $code ] ) ) {
 			$translation_id = absint( $group[ $code ] );
 			$url   = Translation_Editor::url( $post_id, $translation_id );
+			/* translators: %s: language name. */
 			$label = sprintf( __( 'Edit %s translation', 'openlingua' ), $name );
 			$icon  = 'dashicons-edit';
 		} else {
 			$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_duplicate', 'post_id' => $post_id, 'language' => $code ), admin_url( 'admin-post.php' ) ), 'openlingua_duplicate_' . $post_id );
+			/* translators: %s: language name. */
 			$label = sprintf( __( 'Add %s translation', 'openlingua' ), $name );
 			$icon  = 'dashicons-plus-alt2';
 		}
@@ -242,10 +245,13 @@ final class Content {
 		echo '<span class="openlingua-translation-links"><a class="openlingua-translation-action" href="' . esc_url( $url ) . '" title="' . esc_attr( $label ) . '" aria-label="' . esc_attr( $label ) . '"><span class="dashicons ' . esc_attr( $icon ) . '" aria-hidden="true"></span></a>';
 		if ( isset( $translation_id ) && 'trash' !== get_post_status( $translation_id ) ) {
 			$view_url = 'publish' === get_post_status( $translation_id ) ? get_permalink( $translation_id ) : get_preview_post_link( $translation_id );
+			/* translators: %s: language name. */
 			$view_label = sprintf( __( 'View %s translation', 'openlingua' ), $name );
 			if ( $view_url ) { echo '<a class="openlingua-translation-action" href="' . esc_url( $view_url ) . '" target="_blank" rel="noopener noreferrer" title="' . esc_attr( $view_label ) . '" aria-label="' . esc_attr( $view_label ) . '"><span class="dashicons dashicons-visibility" aria-hidden="true"></span></a>'; }
 			if ( current_user_can( 'delete_post', $translation_id ) ) {
+				/* translators: %s: language name. */
 				$delete_label = sprintf( __( 'Move %s translation to Trash', 'openlingua' ), $name );
+				/* translators: %s: language name. */
 				$confirmation = sprintf( __( 'Move the %s translation to Trash? The original content will not be deleted.', 'openlingua' ), $name );
 				echo '<a class="openlingua-translation-action openlingua-translation-action--delete" href="' . esc_url( self::delete_translation_url( $post_id, $translation_id ) ) . '" data-openlingua-confirm="' . esc_attr( $confirmation ) . '" title="' . esc_attr( $delete_label ) . '" aria-label="' . esc_attr( $delete_label ) . '"><span class="dashicons dashicons-trash" aria-hidden="true"></span></a>';
 			}

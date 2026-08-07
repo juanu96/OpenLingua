@@ -17,7 +17,7 @@ delete_option( 'openlingua_language_settings' );
 delete_option( 'openlingua_custom_languages' );
 delete_option( 'openlingua_flush_rewrite_rules' );
 wp_clear_scheduled_hook( 'openlingua_run_translation_job' );
-foreach ( array( 'administrator', 'editor' ) as $role_name ) {
-	$role = get_role( $role_name );
+foreach ( array( 'administrator', 'editor' ) as $openlingua_role_name ) {
+	$role = get_role( $openlingua_role_name );
 	if ( $role ) { $role->remove_cap( 'openlingua_translate' ); }
 }

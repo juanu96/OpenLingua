@@ -1,17 +1,18 @@
 === OpenLingua ===
-Contributors: openlingua
-Tags: multilingual, translation, languages, acf, custom post types, woocommerce
+Contributors: juanu96
+Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
-Tested up to: 6.7
+Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A free, community-first multilingual foundation for WordPress.
 
 == Description ==
 
-OpenLingua 1.2 is independently developed and distributed under the GPLv2-or-later license.
+OpenLingua is free software for managing translated WordPress content from one installation. Core translation features work without an external account.
 
 Stable supported features:
 
@@ -31,7 +32,7 @@ Stable supported features:
 * Portable JSON backup/merge import, REST endpoints, WP-CLI commands, diagnostics, object caching, privacy text, and multisite-safe per-site tables.
 * Data preservation on uninstall unless `OPENLINGUA_REMOVE_DATA` is explicitly enabled.
 
-OpenLingua does not send content to an external translation service unless a provider is configured and an administrator explicitly starts an automatic translation job.
+OpenLingua does not send content to a translation service unless an administrator configures a provider and explicitly starts an automatic translation job. See External services below before enabling a provider.
 
 == Installation ==
 
@@ -78,7 +79,53 @@ ACF and builders are supported through metadata policies. Complex components tha
 
 WooCommerce 1.0 support covers translated product content and synchronized operational product metadata. Full multilingual checkout text, variation duplication, order localization, subscriptions, and third-party WooCommerce extensions require dedicated adapters and are not claimed as supported by this release.
 
+== External services ==
+
+OpenLingua can optionally send content selected for automatic translation to one configured provider. These integrations are disabled until an administrator adds their own API credential, selects that provider, and starts a translation job. OpenLingua itself does not create provider accounts, collect provider payments, or receive the submitted content.
+
+Depending on the selected provider, the plugin sends the source and target language identifiers, the human-readable content segments being translated, and an instruction to preserve structural markup. The configured API credential is sent only to that provider for authentication. Provider model-list requests send the credential but no site content. Review the applicable provider terms and privacy policy before use:
+
+* OpenAI API: `https://api.openai.com/v1/models` and `https://api.openai.com/v1/responses`. [Terms](https://openai.com/policies/terms-of-use/) and [Privacy](https://openai.com/policies/privacy-policy/).
+* Anthropic API: `https://api.anthropic.com/v1/models` and `https://api.anthropic.com/v1/messages`. [Terms](https://www.anthropic.com/legal/commercial-terms) and [Privacy](https://www.anthropic.com/legal/privacy).
+* Google Gemini API: `https://generativelanguage.googleapis.com/v1beta/models` and its `generateContent` endpoint. [Terms](https://ai.google.dev/gemini-api/terms) and [Privacy](https://policies.google.com/privacy).
+* Google Cloud Translation API: `https://translation.googleapis.com/language/translate/v2`. [Terms](https://cloud.google.com/terms/) and [Privacy](https://policies.google.com/privacy).
+
+API credentials are stored encrypted in the WordPress options table when OpenSSL is available. Translation jobs and error summaries are stored in the site's database. Site owners remain responsible for obtaining any required consent and for their provider account, billing, retention settings, and data-processing obligations.
+
+== Privacy ==
+
+Without an enabled automatic-translation provider, OpenLingua keeps language relationships, translated strings, settings, workflow status, and jobs in the local WordPress database. It does not include analytics or usage tracking. Administrators can copy the suggested disclosure added by OpenLingua to WordPress's Privacy Policy Guide and adapt it to the site's actual configuration.
+
+Removing the plugin preserves data by default to prevent accidental loss. To request permanent removal during uninstall, define `OPENLINGUA_REMOVE_DATA` as `true` before uninstalling and make a backup first.
+
+== Frequently Asked Questions ==
+
+= Do I need a paid API? =
+
+No. Manual translation works without an external service. Automatic translation requires an account and credential from the provider selected by the site administrator, and that provider may charge for usage.
+
+= Does OpenLingua guarantee search indexing or legal compliance? =
+
+No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisions belong to search engines. Site owners must review translated content, privacy disclosures, provider terms, and laws applicable to their site.
+
+= What happens to my translations when I uninstall the plugin? =
+
+They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
+
 == Changelog ==
+
+= 1.2.1 =
+
+* Added complete distribution licensing and clearer third-party service disclosures.
+* Updated release metadata and privacy guidance for directory submission.
+* Hardened dynamic shortcode translation requests and validation.
+
+= 1.2.0 =
+
+* Added visual translation editing for builder content and custom fields.
+* Added language-aware content, taxonomy, menu, shortcode, SEO, and Theme Builder workflows.
+* Added configurable OpenAI, Anthropic, Gemini, and Google Translate providers with queued jobs.
+* Added language-switcher presentation controls, diagnostics, and administration usability improvements.
 
 = 1.1.0 =
 

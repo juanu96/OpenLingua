@@ -43,7 +43,7 @@ final class Google_Translate_Provider implements Module, Translation_Provider {
 	}
 
 	public static function save_settings() {
-		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); } check_admin_referer( 'openlingua_save_google_translate' ); $current = self::settings(); $encrypted = ! empty( $_POST['clear_api_key'] ) ? '' : $current['api_key']; $key = trim( (string) wp_unslash( $_POST['api_key'] ?? '' ) ); if ( '' !== $key ) { $encrypted = self::encrypt_secret( $key ); }
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); } check_admin_referer( 'openlingua_save_google_translate' ); $current = self::settings(); $encrypted = ! empty( $_POST['clear_api_key'] ) ? '' : $current['api_key']; $key = sanitize_text_field( wp_unslash( $_POST['api_key'] ?? '' ) ); if ( '' !== $key ) { $encrypted = self::encrypt_secret( $key ); }
 		update_option( self::OPTION, array( 'api_key' => $encrypted ), false ); if ( $encrypted && ! empty( $_POST['activate_provider'] ) ) { Providers::activate( self::ID ); } wp_safe_redirect( self::settings_url() ); exit;
 	}
 
@@ -52,6 +52,7 @@ final class Google_Translate_Provider implements Module, Translation_Provider {
 		foreach ( array_chunk( $segments, 100, true ) as $batch ) {
 			$payload = array( 'q' => array_values( $batch ), 'source' => str_replace( '_', '-', sanitize_text_field( $source_language ) ), 'target' => str_replace( '_', '-', sanitize_text_field( $target_language ) ), 'format' => 'html', 'model' => 'nmt' );
 			$response = wp_remote_post( 'https://translation.googleapis.com/language/translate/v2', array( 'timeout' => 120, 'headers' => array( 'X-Goog-Api-Key' => $key, 'Content-Type' => 'application/json' ), 'body' => wp_json_encode( $payload ) ) ); if ( is_wp_error( $response ) ) { return $response; } $status = wp_remote_retrieve_response_code( $response ); $body = json_decode( wp_remote_retrieve_body( $response ), true );
+			/* translators: %d: HTTP response status code. */
 			if ( $status < 200 || $status >= 300 ) { return new \WP_Error( 'openlingua_google_translate_api', sanitize_text_field( $body['error']['message'] ?? sprintf( __( 'Google Translate returned HTTP status %d.', 'openlingua' ), $status ) ) ); }
 			$items = (array) ( $body['data']['translations'] ?? array() ); if ( count( $items ) !== count( $batch ) ) { return new \WP_Error( 'openlingua_google_translate_response', __( 'Google Translate returned an incomplete response.', 'openlingua' ) ); }
 			foreach ( array_combine( array_keys( $batch ), $items ) as $id => $item ) { $translated[ $id ] = html_entity_decode( (string) ( $item['translatedText'] ?? '' ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ); }
