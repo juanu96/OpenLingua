@@ -4,14 +4,14 @@ Tags: multilingual, translation, languages, acf, custom post types, woocommerce
 Requires at least: 6.4
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 
 A free, community-first multilingual foundation for WordPress.
 
 == Description ==
 
-OpenLingua 1.1 is an original GPL implementation. It does not include WPML code and is not a drop-in WPML replacement.
+OpenLingua 1.2 is independently developed and distributed under the GPLv2-or-later license.
 
 Stable supported features:
 
@@ -31,7 +31,7 @@ Stable supported features:
 * Portable JSON backup/merge import, REST endpoints, WP-CLI commands, diagnostics, object caching, privacy text, and multisite-safe per-site tables.
 * Data preservation on uninstall unless `OPENLINGUA_REMOVE_DATA` is explicitly enabled.
 
-OpenLingua does not send content to an external translation service unless a separate provider is installed, configured, and explicitly selected for a job.
+OpenLingua does not send content to an external translation service unless a provider is configured and an administrator explicitly starts an automatic translation job.
 
 == Installation ==
 
