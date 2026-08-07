@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4
+
+- Increased the spacing between translation field cards on desktop and mobile.
+
 ## 1.2.3
 
 - Reworked the translation editor into an original OpenLingua workspace with independent field cards, a distinct language route, and responsive actions.
