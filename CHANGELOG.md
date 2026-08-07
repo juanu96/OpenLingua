@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1
+
+- Language switchers now hide unavailable or unpublished translations on singular content and taxonomy archives.
+- Non-content views such as post archives continue to link to each public language homepage.
+
 ## 1.3.0
 
 - Added a dedicated Gutenberg extractor for native, nested, freeform, and third-party blocks.

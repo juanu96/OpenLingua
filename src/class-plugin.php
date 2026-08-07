@@ -50,15 +50,14 @@ final class Plugin {
 	public static function switcher( $atts = array() ) {
 		$atts = shortcode_atts( array( 'context' => 'standalone' ), is_array( $atts ) ? $atts : array(), 'openlingua_switcher' );
 		$menu_context = 'menu' === $atts['context'];
-		$current_id = get_queried_object_id();
-		$group      = $current_id ? Translations::group( 'post', $current_id ) : array();
+		$context    = self::switcher_content_context();
 		$settings   = \OpenLingua\Modules\Language_Settings::get()['switcher'];
 		$items      = '';
 		foreach ( Languages::public_all() as $code => $language ) {
 			$is_current = Languages::current() === $code;
 			if ( $is_current && ( empty( $settings['show_current'] ) || ! empty( $settings['dropdown'] ) ) ) { continue; }
-			if ( 'hide' === $settings['missing'] && $current_id && ! isset( $group[ $code ] ) ) { continue; }
-			$url = isset( $group[ $code ] ) ? get_permalink( $group[ $code ] ) : home_url( '/' );
+			$url = self::switcher_language_url( $context, $code );
+			if ( '' === $url ) { continue; }
 			$label = self::switcher_language_label( $code, $language, $settings );
 			$items .= '<li class="openlingua-switcher__item menu-item"><a hreflang="' . esc_attr( $code ) . '" lang="' . esc_attr( $code ) . '" href="' . esc_url( Languages::url( $url, $code ) ) . '"' . ( Languages::current() === $code ? ' aria-current="page"' : '' ) . '>' . $label . '</a></li>';
 		}
@@ -71,6 +70,28 @@ final class Plugin {
 		}
 		if ( $menu_context ) { return $items; }
 		return '<nav class="openlingua-switcher" aria-label="' . esc_attr__( 'Languages', 'openlingua' ) . '"><ul>' . $items . '</ul></nav>';
+	}
+
+	private static function switcher_content_context() {
+		$element_id = get_queried_object_id();
+		if ( ! $element_id ) { return array(); }
+		if ( is_singular() ) { return array( 'type' => 'post', 'id' => $element_id, 'group' => Translations::group( 'post', $element_id ) ); }
+		if ( is_category() || is_tag() || is_tax() ) { return array( 'type' => 'term', 'id' => $element_id, 'group' => Translations::group( 'term', $element_id ) ); }
+		return array();
+	}
+
+	private static function switcher_language_url( array $context, $language ) {
+		if ( empty( $context['type'] ) ) { return home_url( '/' ); }
+		$target_id = Languages::current() === $language ? absint( $context['id'] ?? 0 ) : absint( $context['group'][ $language ] ?? 0 );
+		if ( ! $target_id ) { return ''; }
+		if ( 'post' === $context['type'] ) {
+			if ( 'publish' !== get_post_status( $target_id ) ) { return ''; }
+			$url = get_permalink( $target_id );
+		} else {
+			if ( ! term_exists( $target_id ) ) { return ''; }
+			$url = get_term_link( $target_id );
+		}
+		return ! is_wp_error( $url ) && is_string( $url ) ? $url : '';
 	}
 
 	private static function switcher_language_label( $code, array $language, array $settings ) {
