@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.3
+
+- Gutenberg tables now expose each header, cell, and caption independently in manual and automatic translation.
+- Table structure and untranslated neighboring cells remain unchanged during replacement.
+
 ## 1.3.2
 
 - The switcher keeps the current language visible when a page has no published alternatives.

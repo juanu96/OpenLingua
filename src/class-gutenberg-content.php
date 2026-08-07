@@ -57,16 +57,8 @@ final class Gutenberg_Content {
 			$label = self::block_label( $name, $path );
 			self::extract_attributes( (array) ( $block['attrs'] ?? array() ), array(), $path, $label, $segments );
 			foreach ( (array) ( $block['innerContent'] ?? array() ) as $fragment_index => $fragment ) {
-				if ( ! is_string( $fragment ) || ! self::has_visible_text( $fragment ) ) { continue; }
-				$segments[] = array(
-					'id' => self::segment_id( $path, 'content', array( $fragment_index ) ),
-					'label' => $label . ' — ' . __( 'Content', 'openlingua' ),
-					'value' => $fragment,
-					'format' => 'html',
-					'kind' => 'content',
-					'block_path' => $path,
-					'value_path' => array( $fragment_index ),
-				);
+				if ( ! is_string( $fragment ) ) { continue; }
+				$segments = array_merge( $segments, self::content_segments( $fragment, $name, $path, $fragment_index, $label ) );
 			}
 			self::walk_extract( (array) ( $block['innerBlocks'] ?? array() ), $path, $segments );
 		}
@@ -102,10 +94,17 @@ final class Gutenberg_Content {
 			if ( ! isset( $block['innerContent'] ) || ! is_array( $block['innerContent'] ) ) { $block['innerContent'] = array(); }
 			self::apply_attributes( $block['attrs'], array(), $path, $translations );
 			foreach ( (array) ( $block['innerContent'] ?? array() ) as $fragment_index => $fragment ) {
-				$id = self::segment_id( $path, 'content', array( $fragment_index ) );
-				if ( is_string( $fragment ) && array_key_exists( $id, $translations ) ) {
-					$block['innerContent'][ $fragment_index ] = wp_kses_post( (string) $translations[ $id ] );
+				if ( ! is_string( $fragment ) ) { continue; }
+				$label = self::block_label( $name, $path );
+				$replacements = array();
+				foreach ( self::content_segments( $fragment, $name, $path, $fragment_index, $label ) as $segment ) {
+					if ( ! array_key_exists( $segment['id'], $translations ) ) { continue; }
+					$value = (string) $translations[ $segment['id'] ];
+					$replacements[] = array( 'offset' => $segment['offset'], 'length' => $segment['length'], 'value' => 'html' === $segment['format'] ? wp_kses_post( $value ) : esc_html( sanitize_textarea_field( $value ) ) );
 				}
+				usort( $replacements, function ( $left, $right ) { return $right['offset'] <=> $left['offset']; } );
+				foreach ( $replacements as $replacement ) { $fragment = substr_replace( $fragment, $replacement['value'], $replacement['offset'], $replacement['length'] ); }
+				$block['innerContent'][ $fragment_index ] = $fragment;
 			}
 			if ( 'core/block' === $name && $target_language && ! empty( $block['attrs']['ref'] ) ) {
 				$translated_ref = Translations::translated_id( 'post', absint( $block['attrs']['ref'] ), $target_language );
@@ -140,6 +139,40 @@ final class Gutenberg_Content {
 
 	private static function has_visible_text( $html ) {
 		return '' !== trim( html_entity_decode( wp_strip_all_tags( (string) $html ), ENT_QUOTES, 'UTF-8' ) );
+	}
+
+	private static function content_segments( $fragment, $block_name, array $block_path, $fragment_index, $label ) {
+		if ( ! self::has_visible_text( $fragment ) ) { return array(); }
+		if ( 'core/table' !== $block_name ) {
+			return array( array(
+				'id' => self::segment_id( $block_path, 'content', array( $fragment_index ) ),
+				'label' => $label . ' — ' . __( 'Content', 'openlingua' ),
+				'value' => $fragment, 'format' => 'html', 'kind' => 'content',
+				'block_path' => $block_path, 'value_path' => array( $fragment_index ),
+				'offset' => 0, 'length' => strlen( $fragment ),
+			) );
+		}
+
+		preg_match_all( '~<(th|td|caption)\b[^>]*>(.*?)</\1\s*>~is', $fragment, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE );
+		$segments = array();
+		$counts = array( 'th' => 0, 'td' => 0, 'caption' => 0 );
+		foreach ( $matches as $match ) {
+			$tag = strtolower( $match[1][0] );
+			$value = $match[2][0];
+			if ( ! self::has_visible_text( $value ) ) { continue; }
+			$counts[ $tag ]++;
+			$field = 'th' === $tag ? __( 'Header cell', 'openlingua' ) : ( 'caption' === $tag ? __( 'Caption', 'openlingua' ) : __( 'Cell', 'openlingua' ) );
+			$segments[] = array(
+				'id' => self::segment_id( $block_path, 'content', array( $fragment_index, $tag, $counts[ $tag ] ) ),
+				'label' => $label . ' — ' . $field . ' ' . $counts[ $tag ],
+				'value' => $value,
+				'format' => self::looks_like_html( $value ) ? 'html' : 'text',
+				'kind' => 'content', 'block_path' => $block_path,
+				'value_path' => array( $fragment_index, $tag, $counts[ $tag ] ),
+				'offset' => $match[2][1], 'length' => strlen( $value ),
+			);
+		}
+		return $segments;
 	}
 
 	private static function looks_like_html( $value ) {
