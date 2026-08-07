@@ -24,7 +24,7 @@ OpenLingua is independently developed and distributed under the GPL-2.0-or-later
 - Shows add, edit, view, delete, restore, and language-status actions in WordPress list tables.
 - Filters the admin list to the language currently selected in the OpenLingua admin bar.
 - Maintains translation groups with one element per language.
-- Allows translated content to reuse the same slug under different language paths, such as `/en/listing/balsa/` and `/es/listing/balsa/`.
+- Allows translated content to reuse the same slug under different language paths, such as `/en/example-page/` and `/es/example-page/`.
 - Provides a side-by-side translation editor with visual and HTML editing modes.
 
 ### Divi support
