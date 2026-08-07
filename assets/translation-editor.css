@@ -127,6 +127,9 @@ body.admin_page_openlingua-shortcode-editor #wpcontent { padding-left: 0; }
 	padding: 0 24px;
 }
 .openlingua-editor__segments h2 {
+	display: flex;
+	align-items: center;
+	gap: 14px;
 	margin: 30px 0 12px;
 	padding: 0;
 	color: #40495c;
@@ -134,6 +137,12 @@ body.admin_page_openlingua-shortcode-editor #wpcontent { padding-left: 0; }
 	font-weight: 700;
 	letter-spacing: .08em;
 	text-transform: uppercase;
+}
+.openlingua-editor__segments h2::after {
+	flex: 1;
+	height: 1px;
+	content: '';
+	background: linear-gradient(90deg, #c9c1ee, var(--ol-line));
 }
 .openlingua-editor__segment {
 	display: grid;

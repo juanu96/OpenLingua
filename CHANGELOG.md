@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.6
+
+- Added horizontal dividers to identify content, custom-field, and SEO translation sections.
+
 ## 1.2.5
 
 - Added horizontal separation between the original and translated content panels.
