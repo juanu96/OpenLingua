@@ -27,8 +27,8 @@ final class Portability implements Module {
 				'custom_languages' => get_option( 'openlingua_custom_languages', array() ),
 				'string_discovery' => (bool) get_option( 'openlingua_string_discovery', false ),
 			),
-			'translations' => $wpdb->get_results( 'SELECT group_uuid,element_type,element_id,language,source_language FROM ' . Database::table( 'translations' ), ARRAY_A ),
-			'strings' => $wpdb->get_results( 'SELECT domain,string_key,source_language,source_text,translations,updated_at FROM ' . Database::table( 'strings' ), ARRAY_A ),
+			'translations' => $wpdb->get_results( $wpdb->prepare( 'SELECT group_uuid,element_type,element_id,language,source_language FROM %i', Database::table( 'translations' ) ), ARRAY_A ),
+			'strings' => $wpdb->get_results( $wpdb->prepare( 'SELECT domain,string_key,source_language,source_text,translations,updated_at FROM %i', Database::table( 'strings' ) ), ARRAY_A ),
 		);
 	}
 

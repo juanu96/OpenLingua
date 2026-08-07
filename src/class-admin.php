@@ -157,7 +157,7 @@ final class Admin {
 		check_admin_referer( 'openlingua_save_strings' );
 		global $wpdb;
 		foreach ( (array) ( $_POST['translations'] ?? array() ) as $id => $translations ) {
-			$row = $wpdb->get_row( $wpdb->prepare( 'SELECT translations FROM ' . Database::table( 'strings' ) . ' WHERE id = %d', absint( $id ) ) );
+			$row = $wpdb->get_row( $wpdb->prepare( 'SELECT translations FROM %i WHERE id = %d', Database::table( 'strings' ), absint( $id ) ) );
 			$clean = $row ? ( json_decode( $row->translations, true ) ?: array() ) : array();
 			foreach ( (array) $translations as $code => $text ) {
 				if ( Languages::is_valid( $code ) ) {

@@ -1,5 +1,8 @@
 <?php
 namespace {
+	if ( ! function_exists( 'wp_strip_all_tags' ) ) {
+		function wp_strip_all_tags( $text ) { return preg_replace( '/<[^>]*>/', '', $text ); }
+	}
 	define( 'ABSPATH', __DIR__ . '/' );
 	$acf_test_updates = array();
 

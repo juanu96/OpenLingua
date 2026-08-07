@@ -120,6 +120,6 @@ final class Divi_Content {
 
 	private static function has_text( $value ) {
 		$value = preg_replace( '/@ET-DC@.*?@/s', '', $value );
-		return '' !== trim( html_entity_decode( strip_tags( $value ), ENT_QUOTES, 'UTF-8' ) );
+		return '' !== trim( html_entity_decode( wp_strip_all_tags( $value ), ENT_QUOTES, 'UTF-8' ) );
 	}
 }

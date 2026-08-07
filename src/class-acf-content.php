@@ -61,7 +61,7 @@ final class ACF_Content {
 		$labels = array_merge( $parents, array( $label ) );
 
 		if ( in_array( $type, self::$text_types, true ) ) {
-			if ( ! is_scalar( $value ) || '' === trim( html_entity_decode( strip_tags( (string) $value ), ENT_QUOTES, 'UTF-8' ) ) ) { return; }
+			if ( ! is_scalar( $value ) || '' === trim( html_entity_decode( wp_strip_all_tags( (string) $value ), ENT_QUOTES, 'UTF-8' ) ) ) { return; }
 			self::add_segment( $segments, $root_key, $path, $labels, (string) $value, 'wysiwyg' === $type ? 'html' : 'plain' );
 			return;
 		}

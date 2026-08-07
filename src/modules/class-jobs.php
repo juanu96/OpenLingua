@@ -66,7 +66,7 @@ final class Jobs implements Module {
 	public static function run( $job_id ) {
 		global $wpdb;
 		$table = Database::table( 'jobs' );
-		$job = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", absint( $job_id ) ) );
+		$job = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, absint( $job_id ) ) );
 		if ( ! $job || ! in_array( $job->status, array( 'pending', 'failed' ), true ) ) { return false; }
 		$provider = Providers::get( $job->provider );
 		$source   = get_post( $job->source_id );
@@ -196,7 +196,7 @@ final class Jobs implements Module {
 
 	public static function page() {
 		global $wpdb;
-		$jobs = $wpdb->get_results( 'SELECT * FROM ' . Database::table( 'jobs' ) . ' ORDER BY id DESC LIMIT 100' );
+		$jobs = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC LIMIT 100', Database::table( 'jobs' ) ) );
 		echo '<div class="wrap openlingua-jobs"><h1>' . esc_html__( 'Translation jobs', 'openlingua' ) . '</h1>';
 		echo '<p>' . esc_html__( 'Automatic jobs start on their own. This screen shows whether each translation is waiting, running, ready to review, or needs attention.', 'openlingua' ) . '</p>';
 		echo '<div class="openlingua-jobs__legend"><span class="openlingua-job-status openlingua-job-status--pending">' . esc_html__( 'Queued', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--processing">' . esc_html__( 'Translating', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--complete">' . esc_html__( 'Ready for review', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--failed">' . esc_html__( 'Failed', 'openlingua' ) . '</span></div>';

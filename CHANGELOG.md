@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.8
+
+- Prepared the remaining dynamic database identifiers used by administration, jobs, and portability.
+- Replaced discouraged HTML stripping calls with the corresponding WordPress API.
+
 ## 1.2.7
 
 - Standardized visual-editor typography regardless of embedded heading, link, or emphasis markup.
