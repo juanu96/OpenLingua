@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.7
+
+- Standardized visual-editor typography regardless of embedded heading, link, or emphasis markup.
+- Strengthened section separators with a labeled background and accent border.
+
 ## 1.2.6
 
 - Added horizontal dividers to identify content, custom-field, and SEO translation sections.

@@ -126,23 +126,26 @@ body.admin_page_openlingua-shortcode-editor #wpcontent { padding-left: 0; }
 	margin: 22px auto 0;
 	padding: 0 24px;
 }
-.openlingua-editor__segments h2 {
+.openlingua-editor__segments > h2 {
 	display: flex;
 	align-items: center;
 	gap: 14px;
-	margin: 30px 0 12px;
-	padding: 0;
-	color: #40495c;
+	margin: 36px 0 18px;
+	padding: 12px 16px;
+	color: var(--ol-brand-dark);
 	font-size: 13px;
 	font-weight: 700;
 	letter-spacing: .08em;
 	text-transform: uppercase;
+	background: #efedfb;
+	border-left: 4px solid var(--ol-brand);
+	border-radius: 7px;
 }
-.openlingua-editor__segments h2::after {
+.openlingua-editor__segments > h2::after {
 	flex: 1;
 	height: 1px;
 	content: '';
-	background: linear-gradient(90deg, #c9c1ee, var(--ol-line));
+	background: linear-gradient(90deg, #a99be7, #d8d2f3);
 }
 .openlingua-editor__segment {
 	display: grid;
@@ -197,7 +200,23 @@ body.admin_page_openlingua-shortcode-editor #wpcontent { padding-left: 0; }
 .openlingua-editor__field-heading .dashicons { width: 16px; height: 16px; font-size: 16px; }
 .openlingua-editor__visual { min-height: 38px; white-space: normal; overflow-wrap: anywhere; }
 .openlingua-editor__segment--rich:not(.is-code-mode) .openlingua-editor__visual,
-.openlingua-editor__segment--rich:not(.is-code-mode) .openlingua-editor__visual * { font-size: 14px; line-height: 1.55; }
+.openlingua-editor__segment--rich:not(.is-code-mode) .openlingua-editor__visual * {
+	font-family: inherit !important;
+	font-size: 14px !important;
+	font-style: normal !important;
+	font-weight: 400 !important;
+	letter-spacing: normal !important;
+	line-height: 1.55 !important;
+	text-align: left !important;
+	text-transform: none !important;
+}
+.openlingua-editor__segment--rich:not(.is-code-mode) .openlingua-editor__visual h1,
+.openlingua-editor__segment--rich:not(.is-code-mode) .openlingua-editor__visual h2,
+.openlingua-editor__segment--rich:not(.is-code-mode) .openlingua-editor__visual h3,
+.openlingua-editor__segment--rich:not(.is-code-mode) .openlingua-editor__visual h4,
+.openlingua-editor__segment--rich:not(.is-code-mode) .openlingua-editor__visual h5,
+.openlingua-editor__segment--rich:not(.is-code-mode) .openlingua-editor__visual h6,
+.openlingua-editor__segment--rich:not(.is-code-mode) .openlingua-editor__visual p { margin: 0 0 8px !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
 .openlingua-editor__visual > :first-child { margin-top: 0; }
 .openlingua-editor__visual > :last-child { margin-bottom: 0; }
 .openlingua-editor__visual--editable { padding: 11px 13px; background: #fff; border: 1px solid #c8ceda; border-radius: 7px; }
