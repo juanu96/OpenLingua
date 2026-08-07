@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.5
+
+- Added horizontal separation between the original and translated content panels.
+
 ## 1.2.4
 
 - Increased the spacing between translation field cards on desktop and mobile.

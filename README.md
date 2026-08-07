@@ -2,7 +2,7 @@
 
 OpenLingua is a free, GPL-licensed multilingual foundation for WordPress. It provides language-aware content, URLs, menus, taxonomies, custom fields, SEO metadata, interface strings, shortcodes, Divi layouts, and optional automatic translation without locking a site into a proprietary translation service.
 
-Current plugin version: **1.2.4**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
+Current plugin version: **1.2.5**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
 
 OpenLingua is independently developed and distributed under the GPL-2.0-or-later license.
 
