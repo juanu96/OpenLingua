@@ -108,20 +108,22 @@ final class Admin {
 			$targets = array_keys( array_diff_key( $languages, array( Languages::default_code() => true ) ) );
 			$target_code = $targets ? reset( $targets ) : '';
 		}
-		$where = array();
-		$params = array();
-		if ( $domain ) { $where[] = 'domain = %s'; $params[] = $domain; }
-		if ( $search ) {
-			$like = '%' . $wpdb->esc_like( $search ) . '%';
-			$where[] = '(source_text LIKE %s OR domain LIKE %s OR string_key LIKE %s)';
-			array_push( $params, $like, $like, $like );
+		$offset = ( $paged - 1 ) * $per_page;
+		$like   = '%' . $wpdb->esc_like( $search ) . '%';
+		if ( $domain && $search ) {
+			$total = absint( $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE domain = %s AND (source_text LIKE %s OR domain LIKE %s OR string_key LIKE %s)', $table, $domain, $like, $like, $like ) ) );
+			$rows  = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE domain = %s AND (source_text LIKE %s OR domain LIKE %s OR string_key LIKE %s) ORDER BY domain, source_text LIMIT %d OFFSET %d', $table, $domain, $like, $like, $like, $per_page, $offset ) );
+		} elseif ( $domain ) {
+			$total = absint( $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE domain = %s', $table, $domain ) ) );
+			$rows  = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE domain = %s ORDER BY domain, source_text LIMIT %d OFFSET %d', $table, $domain, $per_page, $offset ) );
+		} elseif ( $search ) {
+			$total = absint( $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE source_text LIKE %s OR domain LIKE %s OR string_key LIKE %s', $table, $like, $like, $like ) ) );
+			$rows  = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE source_text LIKE %s OR domain LIKE %s OR string_key LIKE %s ORDER BY domain, source_text LIMIT %d OFFSET %d', $table, $like, $like, $like, $per_page, $offset ) );
+		} else {
+			$total = absint( $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) ) );
+			$rows  = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i ORDER BY domain, source_text LIMIT %d OFFSET %d', $table, $per_page, $offset ) );
 		}
-		$where_sql = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
-		$count_query = "SELECT COUNT(*) FROM {$table}{$where_sql}";
-		$total = absint( $wpdb->get_var( $params ? $wpdb->prepare( $count_query, $params ) : $count_query ) );
-		$query_params = array_merge( $params, array( $per_page, ( $paged - 1 ) * $per_page ) );
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table}{$where_sql} ORDER BY domain, source_text LIMIT %d OFFSET %d", $query_params ) );
-		$domains = $wpdb->get_col( "SELECT DISTINCT domain FROM {$table} ORDER BY domain" );
+		$domains = $wpdb->get_col( $wpdb->prepare( 'SELECT DISTINCT domain FROM %i ORDER BY domain', $table ) );
 		$return_args = array_filter( array( 'page' => 'openlingua-strings', 's' => $search, 'domain' => $domain, 'language' => $target_code, 'paged' => $paged ) );
 		$return_to = add_query_arg( $return_args, admin_url( 'admin.php' ) );
 

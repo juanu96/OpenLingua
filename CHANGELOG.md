@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.2
+
+- Reworked the string administration queries to use prepared table identifiers and parameters.
+- Updated the declared WordPress compatibility to 7.0.
+
 ## 1.2.1
 
 - Added the complete distribution license and directory-ready release metadata.
