@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.0
+
+- Added a dedicated Global content translation screen for Site Editor templates, template parts, navigation entities, and reusable patterns.
+- Published block-template and template-part translations are selected automatically for the frontend language.
+- Draft or missing translations safely fall back to the source template.
+- Added regression tests for translated global template resolution.
+
 ## 1.4.0
 
 - Interface translations stored under Strings are now applied to theme and plugin gettext output.
