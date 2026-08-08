@@ -8,6 +8,23 @@ final class Translation_Editor {
 		add_action( 'admin_menu', array( __CLASS__, 'register_page' ) );
 		add_action( 'admin_post_openlingua_save_translation', array( __CLASS__, 'save' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
+		add_action( 'admin_bar_menu', array( __CLASS__, 'admin_bar_link' ), 85 );
+	}
+
+	public static function admin_bar_link( $admin_bar ) {
+		if ( is_admin() || ! is_admin_bar_showing() || ! is_singular() ) { return; }
+		$target_id = get_queried_object_id();
+		$row = $target_id ? Translations::row( 'post', $target_id ) : null;
+		if ( ! $row || ! $row->source_language ) { return; }
+		$source_id = Translations::translated_id( 'post', $target_id, $row->source_language );
+		if ( ! $source_id || absint( $source_id ) === absint( $target_id ) || ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { return; }
+		$admin_bar->add_node( array(
+			'id'     => 'openlingua-edit-translation',
+			'parent' => false,
+			'title'  => '<span class="ab-icon dashicons-translation" aria-hidden="true"></span><span class="ab-label">' . esc_html__( 'Edit translation', 'openlingua' ) . '</span>',
+			'href'   => self::url( $source_id, $target_id, get_permalink( $target_id ) ),
+			'meta'   => array( 'title' => esc_attr__( 'Edit this translation with OpenLingua', 'openlingua' ) ),
+		) );
 	}
 
 	public static function register_page() {

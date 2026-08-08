@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.8.2
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,9 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.9.0 =
+* Add an Edit translation action to the front-end WordPress toolbar when viewing linked translated content.
 
 = 1.8.2 =
 * Protect Slider Revolution aliases, encoded shortcodes, and Divi module configuration from page translation.

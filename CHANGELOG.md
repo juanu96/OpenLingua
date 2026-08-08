@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.0
+
+- Add a front-end WordPress toolbar action that opens the current page in OpenLingua's translation editor.
+- Show the action only for linked translations and users who can edit both the source and target content.
+
 ## 1.8.2
 
 - Exclude encoded Slider Revolution shortcodes and technical module attributes from Divi translation fields.
