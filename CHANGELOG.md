@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0
+
+- Interface translations stored under Strings are now applied to theme and plugin gettext output.
+- Added separate keys for contextual and basic plural strings.
+- Native WordPress locale output remains the fallback when no custom translation exists.
+- Disabled discovery no longer creates missing string records as a side effect of rendering.
+
 ## 1.3.4
 
 - WordPress now initializes locale-dependent output using the language detected from the request path, query mode, or configured domain.

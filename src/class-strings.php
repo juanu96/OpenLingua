@@ -15,11 +15,11 @@ final class Strings {
 		return $text;
 	}
 
-	public static function translate( $key, $fallback = '', $domain = 'default', $language = '' ) {
+	public static function translate( $key, $fallback = '', $domain = 'default', $language = '', $register_missing = true ) {
 		global $wpdb;
 		$table = Database::table( 'strings' );
 		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT source_text, translations FROM %i WHERE domain = %s AND string_key = %s', $table, sanitize_key( $domain ), sanitize_key( $key ) ) );
-		if ( ! $row ) { return self::register( $key, $fallback, $domain ); }
+		if ( ! $row ) { return $register_missing ? self::register( $key, $fallback, $domain ) : $fallback; }
 		$translations = json_decode( $row->translations, true );
 		$language = $language ?: Languages::current();
 		return ! empty( $translations[ $language ] ) ? $translations[ $language ] : $row->source_text;
