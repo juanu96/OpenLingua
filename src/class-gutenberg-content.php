@@ -93,6 +93,7 @@ final class Gutenberg_Content {
 			if ( ! isset( $block['innerBlocks'] ) || ! is_array( $block['innerBlocks'] ) ) { $block['innerBlocks'] = array(); }
 			if ( ! isset( $block['innerContent'] ) || ! is_array( $block['innerContent'] ) ) { $block['innerContent'] = array(); }
 			self::apply_attributes( $block['attrs'], array(), $path, $translations );
+			if ( $target_language ) { self::map_block_references( $name, $block['attrs'], $target_language ); }
 			foreach ( (array) ( $block['innerContent'] ?? array() ) as $fragment_index => $fragment ) {
 				if ( ! is_string( $fragment ) ) { continue; }
 				$label = self::block_label( $name, $path );
@@ -104,15 +105,64 @@ final class Gutenberg_Content {
 				}
 				usort( $replacements, function ( $left, $right ) { return $right['offset'] <=> $left['offset']; } );
 				foreach ( $replacements as $replacement ) { $fragment = substr_replace( $fragment, $replacement['value'], $replacement['offset'], $replacement['length'] ); }
-				$block['innerContent'][ $fragment_index ] = $fragment;
-			}
-			if ( 'core/block' === $name && $target_language && ! empty( $block['attrs']['ref'] ) ) {
-				$translated_ref = Translations::translated_id( 'post', absint( $block['attrs']['ref'] ), $target_language );
-				if ( $translated_ref ) { $block['attrs']['ref'] = absint( $translated_ref ); }
+				$block['innerContent'][ $fragment_index ] = $target_language ? self::map_html_links( $fragment, $target_language ) : $fragment;
 			}
 			self::walk_apply( $block['innerBlocks'], $path, $translations, $target_language );
 		}
 		unset( $block );
+	}
+
+	private static function map_block_references( $name, array &$attributes, $target_language ) {
+		if ( in_array( $name, array( 'core/block', 'core/navigation' ), true ) && ! empty( $attributes['ref'] ) ) {
+			$translated = Translations::translated_id( 'post', absint( $attributes['ref'] ), $target_language );
+			if ( $translated && 'publish' === get_post_status( $translated ) ) { $attributes['ref'] = absint( $translated ); }
+		}
+		if ( 'core/navigation-link' === $name && ! empty( $attributes['id'] ) ) {
+			$element_type = 'taxonomy' === ( $attributes['kind'] ?? '' ) ? 'term' : 'post';
+			$translated = Translations::translated_id( $element_type, absint( $attributes['id'] ), $target_language );
+			if ( $translated ) {
+				$attributes['id'] = absint( $translated );
+				if ( 'term' === $element_type && function_exists( 'get_term_link' ) ) {
+					$url = get_term_link( $translated, sanitize_key( $attributes['type'] ?? '' ) );
+					if ( ! is_wp_error( $url ) ) { $attributes['url'] = $url; }
+				} elseif ( 'publish' === get_post_status( $translated ) ) {
+					$url = get_permalink( $translated );
+					if ( $url ) { $attributes['url'] = $url; }
+				}
+			}
+		}
+		self::map_url_attributes( $attributes, $target_language );
+	}
+
+	private static function map_url_attributes( array &$attributes, $target_language ) {
+		foreach ( $attributes as $key => &$value ) {
+			if ( is_array( $value ) ) { self::map_url_attributes( $value, $target_language ); continue; }
+			if ( is_string( $value ) && preg_match( '/(?:url|href|link)$/i', (string) $key ) ) { $value = self::map_internal_url( $value, $target_language ); }
+		}
+		unset( $value );
+	}
+
+	private static function map_html_links( $html, $target_language ) {
+		return preg_replace_callback( '/\bhref=((["\'])(.*?)\2)/i', static function ( $match ) use ( $target_language ) {
+			return 'href=' . $match[2] . esc_url( self::map_internal_url( html_entity_decode( $match[3], ENT_QUOTES, 'UTF-8' ), $target_language ) ) . $match[2];
+		}, (string) $html );
+	}
+
+	public static function map_internal_url( $url, $target_language ) {
+		$url = (string) $url;
+		if ( '' === $url || 0 === strpos( $url, '#' ) || preg_match( '~^(?:mailto:|tel:|javascript:)~i', $url ) ) { return $url; }
+		$home_host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+		$url_host = wp_parse_url( $url, PHP_URL_HOST );
+		if ( $url_host && $home_host && strtolower( $url_host ) !== strtolower( $home_host ) ) { return $url; }
+		$post_id = url_to_postid( $url );
+		if ( ! $post_id ) { return $url; }
+		$translated_id = Translations::translated_id( 'post', $post_id, $target_language );
+		if ( ! $translated_id || 'publish' !== get_post_status( $translated_id ) ) { return $url; }
+		$translated_url = get_permalink( $translated_id );
+		if ( ! $translated_url ) { return $url; }
+		$query = wp_parse_url( $url, PHP_URL_QUERY );
+		$fragment = wp_parse_url( $url, PHP_URL_FRAGMENT );
+		return $translated_url . ( $query ? '?' . $query : '' ) . ( $fragment ? '#' . $fragment : '' );
 	}
 
 	private static function apply_attributes( array &$attributes, array $attribute_path, array $block_path, array $translations ) {

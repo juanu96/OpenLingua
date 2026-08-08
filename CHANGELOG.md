@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.0
+
+- Gutenberg reusable-block and navigation references now map to published translations.
+- Internal URLs in block attributes and markup now point to translated posts automatically.
+- Navigation-link post and taxonomy IDs are updated together with their destination URLs.
+- Query arguments and fragments are preserved; external and unavailable destinations are left untouched.
+- Added relationship regression tests.
+
 ## 1.5.0
 
 - Added a dedicated Global content translation screen for Site Editor templates, template parts, navigation entities, and reusable patterns.
