@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.1
+
+- Import historical translation pairs when a language pair first opens in the editor.
+- Recognize copied source-language values as untranslated placeholders that memory may safely replace.
+
 ## 1.8.0
 
 - Add local exact-match translation memory across posts, pages, custom post types, Divi, Gutenberg, ACF, and SEO fields.

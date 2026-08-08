@@ -37,6 +37,7 @@ final class Translation_Editor {
 		$target_row = Translations::row( 'post', $target->ID );
 		$source_code = $source_row ? $source_row->language : Languages::default_code();
 		$target_code = $target_row ? $target_row->language : '';
+		Translation_Memory::import_existing_pair( $source_code, $target_code );
 		$source_language = Languages::all()[ $source_code ] ?? array( 'name' => strtoupper( $source_code ), 'flag' => '🌐' );
 		$target_language = Languages::all()[ $target_code ] ?? array( 'name' => strtoupper( $target_code ), 'flag' => '🌐' );
 		$is_divi = Divi_Content::is_divi( $source->post_content );
@@ -239,8 +240,9 @@ final class Translation_Editor {
 	private static function apply_memory( $id, $source, &$target, $source_language, $target_language, $format, array &$fields ) {
 		$format = 'html' === $format ? 'html' : 'text';
 		$suggestion = Translation_Memory::find( $source, $source_language, $target_language, $format );
-		$applied = '' === trim( (string) $target ) && '' !== $suggestion;
+		$replaceable = '' === trim( (string) $target ) || Translation_Memory::normalize( $source, $format ) === Translation_Memory::normalize( $target, $format );
+		$applied = $replaceable && '' !== $suggestion;
 		if ( $applied ) { $target = $suggestion; }
-		$fields[ $id ] = array( 'key' => $format . ':' . Translation_Memory::key( $source, $format ), 'applied' => $applied );
+		$fields[ $id ] = array( 'key' => $format . ':' . Translation_Memory::key( $source, $format ), 'applied' => $applied, 'replaceable' => $replaceable );
 	}
 }

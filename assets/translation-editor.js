@@ -42,10 +42,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (config.applied) { setFieldValue(field, field.value, true); }
 	});
 	Object.keys(memoryGroups).forEach(function (key) {
-		var translated = memoryGroups[key].find(function (field) { return field.value.trim() !== ''; });
+		var translated = memoryGroups[key].find(function (field) {
+			var config = memory.fields[field.id];
+			return field.value.trim() !== '' && config && !config.replaceable;
+		});
 		if (!translated) { return; }
 		memoryGroups[key].forEach(function (field) {
-			if (field.value.trim() === '') { setFieldValue(field, translated.value, true); }
+			var config = memory.fields[field.id];
+			if (config && config.replaceable) { setFieldValue(field, translated.value, true); config.replaceable = false; }
 		});
 	});
 
@@ -53,8 +57,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		var config = memory.fields[field.id];
 		if (!config || field.value.trim() === '') { return; }
 		(memoryGroups[config.key] || []).forEach(function (peer) {
-			if (peer !== field && peer.value.trim() === '') { setFieldValue(peer, field.value, true); }
+			var peerConfig = memory.fields[peer.id];
+			if (peer !== field && peerConfig && peerConfig.replaceable) { setFieldValue(peer, field.value, true); peerConfig.replaceable = false; }
 		});
+		config.replaceable = false;
 		updateProgress();
 	}
 

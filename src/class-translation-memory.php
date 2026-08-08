@@ -76,6 +76,26 @@ final class Translation_Memory {
 		}
 	}
 
+	/** Imports translations created before translation memory was available. */
+	public static function import_existing_pair( $source_language, $target_language ) {
+		global $wpdb;
+		$source_language = sanitize_key( $source_language );
+		$target_language = sanitize_key( $target_language );
+		$option = 'openlingua_memory_import_' . md5( $source_language . ':' . $target_language );
+		if ( get_option( $option ) ) { return; }
+		$table = Database::table( 'translations' );
+		$pairs = $wpdb->get_results( $wpdb->prepare(
+			'SELECT source.element_id AS source_id, target.element_id AS target_id FROM %i AS target INNER JOIN %i AS source ON source.group_uuid = target.group_uuid AND source.element_type = target.element_type WHERE target.element_type = %s AND target.language = %s AND source.language = %s',
+			$table,
+			$table,
+			'post',
+			$target_language,
+			$source_language
+		) );
+		foreach ( (array) $pairs as $pair ) { self::learn_post( absint( $pair->source_id ), absint( $pair->target_id ) ); }
+		update_option( $option, current_time( 'mysql' ), false );
+	}
+
 	private static function learn_segments( array $segments, array $values, $remember, $format_key ) {
 		foreach ( $segments as $segment ) {
 			if ( ! array_key_exists( $segment['id'], $values ) ) { continue; }
