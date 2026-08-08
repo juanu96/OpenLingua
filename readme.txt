@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,11 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.7.1 =
+
+* Exclude URL-encoded Divi configuration objects and UUID-based global design metadata from translation fields.
+* Expand automatic technical-attribute detection without hiding third-party module titles or content.
 
 = 1.7.0 =
 

@@ -21,7 +21,7 @@ $content = '[et_pb_section admin_label="Hero" background_color="#fff"]'
 	. '[et_pb_button button_text="Explore &amp; Learn" button_url="https://example.test/services" _builder_version="4.24.0"][/et_pb_button]'
 	. '[et_pb_blurb title="Solar Power" image="solar.jpg"]<p>Power your home.</p>[/et_pb_blurb]'
 	. '[et_pb_text _dynamic_attributes="content"]@ET-DC@encoded-value@[/et_pb_text]'
-	. '[dica_divi_carousel autoplay="off" item_spacing="30"]'
+	. '[dica_divi_carousel autoplay="off" item_spacing="30" global_colors_info="{%22gcid-8b0b6c72-988e-4b8f-bab4-0b219133c41d%22:%91%22title_text_color%22%93}"]'
 	. '[dica_divi_carouselitem title="Paula Barrado" image_url="https://example.test/paula.jpg"]<p>Wonderful service.</p>[/dica_divi_carouselitem]'
 	. '[/dica_divi_carousel]'
 	. '[vendor_card _builder_version="4.24.0" card_heading="Independent module"]<p>Detected from Divi metadata.</p>[/vendor_card]'
@@ -40,6 +40,7 @@ divi_assert( 'Paula Barrado' === $values['divi_dica_divi_carouselitem_1_title'],
 divi_assert( '<p>Wonderful service.</p>' === $values['divi_dica_divi_carouselitem_1_content'], 'detects third-party Divi module body content automatically' );
 divi_assert( 'Independent module' === $values['divi_vendor_card_1_card_heading'], 'detects an unknown module through Divi metadata' );
 divi_assert( ! isset( $values['divi_dica_divi_carousel_1_content'] ), 'does not duplicate text from a third-party container module' );
+divi_assert( false === strpos( implode( '|', array_keys( $values ) ), 'global_colors_info' ), 'ignores encoded Divi global color metadata' );
 
 $translated = \OpenLingua\Divi_Content::apply( $content, array(
 	'divi_et_pb_text_1_content' => '<h2>Energía limpia</h2><p>Para todos.</p>',

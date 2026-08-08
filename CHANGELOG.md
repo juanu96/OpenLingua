@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.1
+
+- Divi global color information and similar encoded configuration objects are no longer exposed as translation fields.
+- Machine-payload detection now handles URL encoding, object-like data, UUID metadata, configuration keys, and global design attributes.
+- Third-party module titles and body content remain available for translation.
+
 ## 1.7.0
 
 - Replaced the fixed `et_pb_*`-only scan with generic third-party Divi module discovery.

@@ -88,20 +88,26 @@ final class Divi_Content {
 		$value = trim( html_entity_decode( (string) $value, ENT_QUOTES, 'UTF-8' ) );
 		if ( '' === $value || 'admin_label' === $attribute || 0 === strpos( $attribute, '_' ) || false !== strpos( $value, '@ET-DC@' ) ) { return false; }
 		if ( in_array( $attribute, self::$translatable_attributes, true ) ) { return true; }
-		if ( preg_match( '/(?:^|_)(?:url|uri|href|src|link|id|ids|class|css|style|color|gradient|image|icon|font|size|width|height|align|layout|margin|padding|spacing|border|shadow|animation|position|transform|version|preset|order|speed|delay|duration|autoplay|loop|arrow|dots|responsive|desktop|tablet|phone|mobile|enabled|disabled|visibility)(?:$|_)/i', $attribute ) ) { return false; }
+		if ( preg_match( '/(?:^|_)(?:url|uri|href|src|link|id|ids|class|css|style|color|colors|gradient|image|icon|font|size|width|height|align|layout|margin|padding|spacing|border|shadow|animation|position|transform|version|preset|order|speed|delay|duration|autoplay|loop|arrow|dots|responsive|desktop|tablet|phone|mobile|enabled|disabled|visibility|config|configuration|settings|props|metadata|global)(?:$|_)/i', $attribute ) ) { return false; }
 		if ( preg_match( '~^(?:on|off|yes|no|true|false|none|inherit|default|\d+(?:\.\d+)?(?:px|em|rem|%|s|ms)?)$~i', $value ) ) { return false; }
-		if ( preg_match( '~^(?:https?:)?//|^mailto:|^tel:|^#(?:[0-9a-f]{3,8})$~i', $value ) || self::looks_like_json( $value ) ) { return false; }
+		if ( preg_match( '~^(?:https?:)?//|^mailto:|^tel:|^#(?:[0-9a-f]{3,8})$~i', $value ) || self::looks_like_machine_payload( $value ) ) { return false; }
 		$text = trim( html_entity_decode( wp_strip_all_tags( $value ), ENT_QUOTES, 'UTF-8' ) );
 		if ( '' === $text || ! preg_match( '/\p{L}/u', $text ) ) { return false; }
 		if ( preg_match( '/(?:text|content|title|heading|caption|description|label|placeholder|message|button|summary|citation|author|name|alt|aria)/i', $attribute ) ) { return true; }
 		return (bool) preg_match( '/\s|[.!?,;:¿¡]/u', $text );
 	}
 
-	private static function looks_like_json( $value ) {
+	private static function looks_like_machine_payload( $value ) {
 		$value = trim( (string) $value );
-		if ( ! in_array( substr( $value, 0, 1 ), array( '{', '[' ), true ) ) { return false; }
-		json_decode( $value, true );
-		return JSON_ERROR_NONE === json_last_error();
+		$decoded = trim( rawurldecode( $value ) );
+		foreach ( array_unique( array( $value, $decoded ) ) as $candidate ) {
+			if ( ! in_array( substr( $candidate, 0, 1 ), array( '{', '[' ), true ) ) { continue; }
+			json_decode( $candidate, true );
+			if ( JSON_ERROR_NONE === json_last_error() ) { return true; }
+			if ( preg_match( '/(?:%22|["\']).+?(?:%22|["\'])\s*(?::|%3A)/i', $candidate ) ) { return true; }
+			if ( preg_match( '/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i', $candidate ) ) { return true; }
+		}
+		return false;
 	}
 
 	public static function values( $content ) {
