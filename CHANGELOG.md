@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.2
+
+- Fixed the Global content submenu registration order that caused WordPress to return a 403 access error.
+
 ## 1.6.1
 
 - Resolved all blocking errors reported by WordPress Plugin Check.

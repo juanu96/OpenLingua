@@ -20,7 +20,8 @@ final class Global_Content {
 	}
 
 	public static function hooks() {
-		add_action( 'admin_menu', array( __CLASS__, 'menu' ) );
+		// Register after OpenLingua's parent menu so WordPress grants access to the submenu route.
+		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 17 );
 		add_filter( 'get_block_template', array( __CLASS__, 'translate_template' ), 20, 3 );
 		add_filter( 'get_block_templates', array( __CLASS__, 'translate_templates' ), 20, 3 );
 	}
