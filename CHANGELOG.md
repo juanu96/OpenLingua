@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.0
+
+- Add local exact-match translation memory across posts, pages, custom post types, Divi, Gutenberg, ACF, and SEO fields.
+- Learn reusable translations after manual saves and completed automatic translation jobs.
+- Fill only empty matching fields and visibly identify memory-applied values.
+- Synchronize repeated source text inside the translation editor without overwriting existing translations.
+
 ## 1.7.1
 
 - Divi global color information and similar encoded configuration objects are no longer exposed as translation fields.

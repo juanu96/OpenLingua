@@ -1,0 +1,105 @@
+<?php
+namespace OpenLingua;
+
+defined( 'ABSPATH' ) || exit;
+
+/** Stores and reuses exact translations locally. */
+final class Translation_Memory {
+	private static $pairs = array();
+
+	public static function normalize( $text, $format = 'text' ) {
+		$text = html_entity_decode( (string) $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		$text = str_replace( array( "\r\n", "\r", "\xC2\xA0" ), array( "\n", "\n", ' ' ), $text );
+		if ( 'html' === $format ) {
+			$text = preg_replace( '/>\s+</u', '><', trim( $text ) );
+		} else {
+			$text = preg_replace( '/\s+/u', ' ', trim( $text ) );
+		}
+		return is_string( $text ) ? $text : '';
+	}
+
+	public static function key( $source, $format = 'text' ) {
+		return hash( 'sha256', self::normalize( $source, $format ) );
+	}
+
+	public static function find( $source, $source_language, $target_language, $format = 'text' ) {
+		$index = self::pair_index( $source_language, $target_language );
+		$key = $format . ':' . self::key( $source, $format );
+		return isset( $index[ $key ] ) ? $index[ $key ] : '';
+	}
+
+	public static function remember( $source, $translation, $source_language, $target_language, $format = 'text' ) {
+		global $wpdb;
+		$source = self::normalize( $source, $format );
+		$translation = trim( (string) $translation );
+		$source_language = sanitize_key( $source_language );
+		$target_language = sanitize_key( $target_language );
+		$format = 'html' === $format ? 'html' : 'text';
+		if ( ! self::is_eligible( $source, $translation ) || ! $source_language || ! $target_language || $source_language === $target_language ) { return false; }
+		$table = Database::table( 'memory' );
+		$hash = self::key( $source, $format );
+		$existing = $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE source_language = %s AND target_language = %s AND source_hash = %s AND format = %s', $table, $source_language, $target_language, $hash, $format ) );
+		$data = array( 'source_text' => $source, 'translation' => $translation, 'updated_at' => current_time( 'mysql' ) );
+		if ( $existing ) {
+			$result = $wpdb->update( $table, $data, array( 'id' => absint( $existing ) ) );
+		} else {
+			$data += array( 'source_language' => $source_language, 'target_language' => $target_language, 'source_hash' => $hash, 'format' => $format );
+			$result = $wpdb->insert( $table, $data );
+		}
+		unset( self::$pairs[ $source_language . ':' . $target_language ] );
+		return false !== $result;
+	}
+
+	public static function learn_post( $source_id, $target_id ) {
+		$source = get_post( $source_id );
+		$target = get_post( $target_id );
+		$source_row = Translations::row( 'post', $source_id );
+		$target_row = Translations::row( 'post', $target_id );
+		if ( ! $source || ! $target || ! $source_row || ! $target_row ) { return; }
+		$remember = function ( $original, $translated, $format = 'text' ) use ( $source_row, $target_row ) {
+			self::remember( $original, $translated, $source_row->language, $target_row->language, $format );
+		};
+		$remember( $source->post_title, $target->post_title );
+		$remember( $source->post_excerpt, $target->post_excerpt, 'html' );
+		$is_divi = Divi_Content::is_divi( $source->post_content );
+		$is_gutenberg = ! $is_divi && Gutenberg_Content::is_gutenberg( $source->post_content );
+		if ( $is_divi ) {
+			self::learn_segments( Divi_Content::extract( $source->post_content ), Divi_Content::values( $target->post_content ), $remember, 'kind' );
+		} elseif ( $is_gutenberg ) {
+			self::learn_segments( Gutenberg_Content::extract( $source->post_content ), Gutenberg_Content::values( $target->post_content ), $remember, 'format' );
+		} else {
+			$remember( $source->post_content, $target->post_content, 'html' );
+		}
+		self::learn_segments( ACF_Content::extract( $source_id ), ACF_Content::values( $target_id ), $remember, 'format' );
+		foreach ( SEO::translation_fields( $source_id, $target_id ) as $group ) {
+			foreach ( $group['fields'] as $field ) { $remember( $field['source'], $field['target'] ); }
+		}
+	}
+
+	private static function learn_segments( array $segments, array $values, $remember, $format_key ) {
+		foreach ( $segments as $segment ) {
+			if ( ! array_key_exists( $segment['id'], $values ) ) { continue; }
+			$is_html = 'html' === ( $segment[ $format_key ] ?? '' ) || 'content' === ( $segment[ $format_key ] ?? '' );
+			$remember( $segment['value'], $values[ $segment['id'] ], $is_html ? 'html' : 'text' );
+		}
+	}
+
+	private static function is_eligible( $source, $translation ) {
+		if ( '' === $source || '' === $translation || self::normalize( $translation ) === self::normalize( $source ) ) { return false; }
+		if ( preg_match( '#^(?:https?://|/|\d+(?:[.,]\d+)?\s*)$#i', $source ) ) { return false; }
+		return (bool) preg_match( '/[\p{L}\p{N}]/u', wp_strip_all_tags( $source ) );
+	}
+
+	private static function pair_index( $source_language, $target_language ) {
+		global $wpdb;
+		$source_language = sanitize_key( $source_language );
+		$target_language = sanitize_key( $target_language );
+		$cache_key = $source_language . ':' . $target_language;
+		if ( isset( self::$pairs[ $cache_key ] ) ) { return self::$pairs[ $cache_key ]; }
+		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT source_hash, format, translation FROM %i WHERE source_language = %s AND target_language = %s', Database::table( 'memory' ), $source_language, $target_language ) );
+		$index = array();
+		foreach ( (array) $rows as $row ) { $index[ $row->format . ':' . $row->source_hash ] = $row->translation; }
+		self::$pairs[ $cache_key ] = $index;
+		return $index;
+	}
+}

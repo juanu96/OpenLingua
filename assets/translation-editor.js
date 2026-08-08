@@ -11,6 +11,52 @@ document.addEventListener('DOMContentLoaded', function () {
 	var bar = document.querySelector('[data-openlingua-progress-bar]');
 	var search = document.querySelector('.openlingua-editor__search input');
 	var richSegments = Array.prototype.slice.call(document.querySelectorAll('[data-openlingua-rich-segment]'));
+	var memory = window.OpenLinguaTranslationMemory || { fields: {}, label: '' };
+	var memoryGroups = {};
+
+	function richVisual(field) {
+		var segment = field.closest('[data-openlingua-rich-segment]');
+		return segment ? segment.querySelector('[data-openlingua-target-visual]') : null;
+	}
+
+	function setFieldValue(field, value, showBadge) {
+		field.value = value;
+		var visual = richVisual(field);
+		if (visual) { visual.innerHTML = value; }
+		if (showBadge) {
+			var target = field.closest('.openlingua-editor__target');
+			if (target && !target.querySelector('.openlingua-memory-badge')) {
+				var badge = document.createElement('span');
+				badge.className = 'openlingua-memory-badge';
+				badge.textContent = memory.label;
+				target.appendChild(badge);
+			}
+		}
+	}
+
+	fields.forEach(function (field) {
+		var config = memory.fields[field.id];
+		if (!config) { return; }
+		memoryGroups[config.key] = memoryGroups[config.key] || [];
+		memoryGroups[config.key].push(field);
+		if (config.applied) { setFieldValue(field, field.value, true); }
+	});
+	Object.keys(memoryGroups).forEach(function (key) {
+		var translated = memoryGroups[key].find(function (field) { return field.value.trim() !== ''; });
+		if (!translated) { return; }
+		memoryGroups[key].forEach(function (field) {
+			if (field.value.trim() === '') { setFieldValue(field, translated.value, true); }
+		});
+	});
+
+	function propagateTranslation(field) {
+		var config = memory.fields[field.id];
+		if (!config || field.value.trim() === '') { return; }
+		(memoryGroups[config.key] || []).forEach(function (peer) {
+			if (peer !== field && peer.value.trim() === '') { setFieldValue(peer, field.value, true); }
+		});
+		updateProgress();
+	}
 
 	function updateProgress() {
 		var complete = fields.filter(function (field) { return field.value.trim() !== ''; }).length;
@@ -19,7 +65,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		bar.style.width = percent + '%';
 	}
 
-	fields.forEach(function (field) { field.addEventListener('input', updateProgress); });
+	fields.forEach(function (field) {
+		field.addEventListener('input', updateProgress);
+		field.addEventListener('change', function () { propagateTranslation(field); });
+	});
 	richSegments.forEach(function (segment) {
 		var toggle = segment.querySelector('[data-openlingua-html-toggle]');
 		var toggleLabel = segment.querySelector('[data-openlingua-toggle-label]');
@@ -34,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 
 		targetVisual.addEventListener('input', syncVisualToCode);
+		targetVisual.addEventListener('blur', function () { syncVisualToCode(); propagateTranslation(targetCode); });
 		targetVisual.addEventListener('paste', function (event) {
 			var clipboard = event.clipboardData || window.clipboardData;
 			if (!clipboard) { return; }

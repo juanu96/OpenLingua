@@ -8,6 +8,7 @@ use OpenLingua\Gutenberg_Content;
 use OpenLingua\ACF_Content;
 use OpenLingua\SEO;
 use OpenLingua\Translation_Editor;
+use OpenLingua\Translation_Memory;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -136,6 +137,7 @@ final class Jobs implements Module {
 			}
 		}
 		SEO::save_translation_fields( $source->ID, $target->ID, $seo_translation );
+		Translation_Memory::learn_post( $source->ID, $target->ID );
 		update_post_meta( $job->target_id, Workflow::STATUS_META, 'in-progress' );
 		$payload = json_decode( (string) $job->payload, true );
 		$payload = is_array( $payload ) ? $payload : array();

@@ -43,6 +43,7 @@ final class Database {
 		$links   = self::table( 'translations' );
 		$strings = self::table( 'strings' );
 		$jobs    = self::table( 'jobs' );
+		$memory  = self::table( 'memory' );
 
 		dbDelta( "CREATE TABLE {$links} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -83,6 +84,20 @@ final class Database {
 			PRIMARY KEY  (id),
 			KEY status (status),
 			KEY target (target_id,target_language)
+		) {$charset};" );
+
+		dbDelta( "CREATE TABLE {$memory} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			source_language varchar(20) NOT NULL,
+			target_language varchar(20) NOT NULL,
+			source_hash char(64) NOT NULL,
+			source_text longtext NOT NULL,
+			translation longtext NOT NULL,
+			format varchar(10) NOT NULL DEFAULT 'text',
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY memory_identity (source_language,target_language,source_hash,format),
+			KEY language_pair (source_language,target_language)
 		) {$charset};" );
 
 		if ( ! get_option( 'openlingua_languages' ) ) {

@@ -53,6 +53,32 @@ final class Translation_Editor {
 		$acf_segments = ACF_Content::extract( $source->ID );
 		$target_acf = ACF_Content::values( $target->ID );
 		$seo_groups = SEO::translation_fields( $source->ID, $target->ID );
+		$memory_fields = array();
+		foreach ( $fields as $name => &$field ) {
+			self::apply_memory( 'openlingua-' . $name, $field['source'], $field['target'], $source_code, $target_code, 'post_title' === $name ? 'text' : 'html', $memory_fields );
+		}
+		unset( $field );
+		foreach ( $divi_segments as $segment ) {
+			$target_divi[ $segment['id'] ] = $target_divi[ $segment['id'] ] ?? '';
+			self::apply_memory( 'openlingua-' . $segment['id'], $segment['value'], $target_divi[ $segment['id'] ], $source_code, $target_code, 'content' === $segment['kind'] ? 'html' : 'text', $memory_fields );
+		}
+		foreach ( $gutenberg_segments as $segment ) {
+			$target_gutenberg[ $segment['id'] ] = $target_gutenberg[ $segment['id'] ] ?? '';
+			self::apply_memory( 'openlingua-' . $segment['id'], $segment['value'], $target_gutenberg[ $segment['id'] ], $source_code, $target_code, $segment['format'], $memory_fields );
+		}
+		foreach ( $acf_segments as $segment ) {
+			$target_acf[ $segment['id'] ] = $target_acf[ $segment['id'] ] ?? '';
+			self::apply_memory( 'openlingua-' . $segment['id'], $segment['value'], $target_acf[ $segment['id'] ], $source_code, $target_code, $segment['format'], $memory_fields );
+		}
+		foreach ( $seo_groups as &$group ) {
+			foreach ( $group['fields'] as &$field ) { self::apply_memory( 'openlingua-seo-' . $field['id'], $field['source'], $field['target'], $source_code, $target_code, 'text', $memory_fields ); }
+			unset( $field );
+		}
+		unset( $group );
+		wp_localize_script( 'openlingua-translation-editor', 'OpenLinguaTranslationMemory', array(
+			'fields' => $memory_fields,
+			'label'  => __( 'Applied from translation memory', 'openlingua' ),
+		) );
 		$return_to = isset( $_GET['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['return_to'] ) ), '' ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only editor navigation parameter.
 		$back = $return_to ?: ( get_edit_post_link( $source->ID, 'url' ) ?: admin_url( 'edit.php' ) );
 		echo '<div class="wrap openlingua-editor"><header class="openlingua-editor__top"><a class="openlingua-editor__back" href="' . esc_url( $back ) . '"><span class="dashicons dashicons-arrow-left-alt"></span>' . esc_html__( 'Back', 'openlingua' ) . '</a><div><span>' . esc_html__( 'Translating', 'openlingua' ) . '</span><strong>' . esc_html( get_the_title( $source ) ) . '</strong></div><label class="openlingua-editor__search"><span class="dashicons dashicons-search"></span><input type="search" placeholder="' . esc_attr__( 'Search content', 'openlingua' ) . '"></label></header>';
@@ -177,6 +203,7 @@ final class Translation_Editor {
 		ACF_Content::save( $source_id, $target_id, $acf_translation, current_user_can( 'unfiltered_html' ) );
 		$seo_translation = self::posted_array( 'seo_translation' );
 		SEO::save_translation_fields( $source_id, $target_id, $seo_translation );
+		Translation_Memory::learn_post( $source_id, $target_id );
 		update_post_meta( $target_id, \OpenLingua\Modules\Workflow::STATUS_META, $status );
 		\OpenLingua\Modules\Workflow::mark_created( $target_id, $source_id );
 		update_post_meta( $target_id, \OpenLingua\Modules\Workflow::STATUS_META, $status );
@@ -207,5 +234,13 @@ final class Translation_Editor {
 
 	private static function should_refresh_slug( $target, $source, $desired_slug ) {
 		return ! $target->post_name || 'draft' === $target->post_status || sanitize_title( $source->post_title ) === $target->post_name || preg_match( '/^' . preg_quote( $desired_slug, '/' ) . '-\d+$/', $target->post_name );
+	}
+
+	private static function apply_memory( $id, $source, &$target, $source_language, $target_language, $format, array &$fields ) {
+		$format = 'html' === $format ? 'html' : 'text';
+		$suggestion = Translation_Memory::find( $source, $source_language, $target_language, $format );
+		$applied = '' === trim( (string) $target ) && '' !== $suggestion;
+		if ( $applied ) { $target = $suggestion; }
+		$fields[ $id ] = array( 'key' => $format . ':' . Translation_Memory::key( $source, $format ), 'applied' => $applied );
 	}
 }

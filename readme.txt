@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.7.1
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,12 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.8.0 =
+* Added a local exact-match translation memory for manual and automatic translations.
+* Repeated empty fields are filled from previously saved translations without overwriting existing content.
+* Matching repeated fields in the same editor stay synchronized after a translation is entered.
+* Added a visual indicator when a value was applied from translation memory.
 
 = 1.7.1 =
 

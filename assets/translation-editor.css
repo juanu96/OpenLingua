@@ -272,3 +272,14 @@ body.admin_page_openlingua-shortcode-editor #wpcontent { padding-left: 0; }
 	.openlingua-editor__segment { margin-bottom: 18px; }
 	.openlingua-editor__footer { left: 12px; }
 }
+.openlingua-memory-badge {
+	display: inline-flex;
+	align-items: center;
+	margin-top: 8px;
+	padding: 3px 8px;
+	border-radius: 999px;
+	background: #eef8f3;
+	color: #146c43;
+	font-size: 12px;
+	font-weight: 600;
+}
