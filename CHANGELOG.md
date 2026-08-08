@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.1
+
+- Resolved all blocking errors reported by WordPress Plugin Check.
+- Replaced dynamic routing SQL placeholders with a simpler prepared lookup, safe post-type filtering, and object caching.
+- Added persistent caching and explicit invalidation for translation groups and interface strings.
+- Hardened portable JSON imports with uploaded-file, size, extension, and MIME validation.
+- Centralized translation-editor request arrays while preserving field-specific sanitization after nonce verification.
+
 ## 1.6.0
 
 - Gutenberg reusable-block and navigation references now map to published translations.

@@ -87,16 +87,18 @@ final class Portability implements Module {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
 		check_admin_referer( 'openlingua_import' );
 		$file = null;
-		if ( isset( $_FILES['openlingua_file'] ) && is_array( $_FILES['openlingua_file'] ) ) {
-			$uploaded = wp_unslash( $_FILES['openlingua_file'] );
+		if ( isset( $_FILES['openlingua_file'] ) && is_array( $_FILES['openlingua_file'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Uploaded-file fields are validated individually below.
+			$uploaded = $_FILES['openlingua_file']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- PHP upload paths must not be unslashed or text-sanitized.
 			$file = array(
 				'name'     => sanitize_file_name( $uploaded['name'] ?? '' ),
-				'tmp_name' => sanitize_text_field( $uploaded['tmp_name'] ?? '' ),
+				'tmp_name' => isset( $uploaded['tmp_name'] ) ? (string) $uploaded['tmp_name'] : '',
 				'error'    => absint( $uploaded['error'] ?? UPLOAD_ERR_NO_FILE ),
 				'size'     => absint( $uploaded['size'] ?? 0 ),
 			);
 		}
-		if ( ! $file || UPLOAD_ERR_OK !== $file['error'] || $file['size'] > 10 * MB_IN_BYTES ) { wp_die( esc_html__( 'Invalid or oversized import file.', 'openlingua' ) ); }
+		if ( ! $file || UPLOAD_ERR_OK !== $file['error'] || $file['size'] > 10 * MB_IN_BYTES || ! is_uploaded_file( $file['tmp_name'] ) ) { wp_die( esc_html__( 'Invalid or oversized import file.', 'openlingua' ) ); }
+		$filetype = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'], array( 'json' => 'application/json' ) );
+		if ( 'json' !== ( $filetype['ext'] ?? '' ) ) { wp_die( esc_html__( 'Only JSON import files are allowed.', 'openlingua' ) ); }
 		$data = json_decode( file_get_contents( $file['tmp_name'] ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$result = is_array( $data ) ? self::merge( $data ) : new \WP_Error( 'openlingua_json', __( 'Invalid JSON document.', 'openlingua' ) );
 		if ( is_wp_error( $result ) ) { wp_die( esc_html( $result->get_error_message() ) ); }

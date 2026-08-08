@@ -53,11 +53,11 @@ final class Translation_Editor {
 		$acf_segments = ACF_Content::extract( $source->ID );
 		$target_acf = ACF_Content::values( $target->ID );
 		$seo_groups = SEO::translation_fields( $source->ID, $target->ID );
-		$return_to = isset( $_GET['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['return_to'] ) ), '' ) : '';
+		$return_to = isset( $_GET['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['return_to'] ) ), '' ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only editor navigation parameter.
 		$back = $return_to ?: ( get_edit_post_link( $source->ID, 'url' ) ?: admin_url( 'edit.php' ) );
 		echo '<div class="wrap openlingua-editor"><header class="openlingua-editor__top"><a class="openlingua-editor__back" href="' . esc_url( $back ) . '"><span class="dashicons dashicons-arrow-left-alt"></span>' . esc_html__( 'Back', 'openlingua' ) . '</a><div><span>' . esc_html__( 'Translating', 'openlingua' ) . '</span><strong>' . esc_html( get_the_title( $source ) ) . '</strong></div><label class="openlingua-editor__search"><span class="dashicons dashicons-search"></span><input type="search" placeholder="' . esc_attr__( 'Search content', 'openlingua' ) . '"></label></header>';
 		echo '<div class="openlingua-editor__languages"><div><small>' . esc_html__( 'Original', 'openlingua' ) . '</small><strong><span aria-hidden="true">' . esc_html( $source_language['flag'] ?? '🌐' ) . '</span> ' . esc_html( $source_language['name'] ) . '</strong></div><div><small>' . esc_html__( 'Translation', 'openlingua' ) . '</small><strong><span aria-hidden="true">' . esc_html( $target_language['flag'] ?? '🌐' ) . '</span> ' . esc_html( $target_language['name'] ) . '</strong></div></div>';
-		$automatic_status = isset( $_GET['automatic_translation'] ) ? sanitize_key( wp_unslash( $_GET['automatic_translation'] ) ) : '';
+		$automatic_status = isset( $_GET['automatic_translation'] ) ? sanitize_key( wp_unslash( $_GET['automatic_translation'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only status notice.
 		if ( 'queued' === $automatic_status ) { echo '<div class="notice notice-info inline"><p>' . esc_html__( 'Automatic translation queued. You may leave this page; OpenLingua will notify you when it is ready to review.', 'openlingua' ) . '</p></div>'; }
 		if ( 'error' === $automatic_status ) { echo '<div class="notice notice-error inline"><p>' . esc_html__( 'The automatic translation could not be queued. Check the provider settings and the Jobs screen.', 'openlingua' ) . '</p></div>'; }
 		echo '<div class="openlingua-editor__automatic">';
@@ -130,7 +130,7 @@ final class Translation_Editor {
 		$return_to = isset( $_POST['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['return_to'] ) ), '' ) : '';
 		check_admin_referer( 'openlingua_save_translation_' . $target_id );
 		if ( ! $source_id || ! $target_id || ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { wp_die( esc_html__( 'You cannot save this translation.', 'openlingua' ) ); }
-		$translation = isset( $_POST['translation'] ) ? (array) wp_unslash( $_POST['translation'] ) : array();
+		$translation = self::posted_array( 'translation' );
 		$source = get_post( $source_id );
 		$target = get_post( $target_id );
 		$is_divi = $source && Divi_Content::is_divi( $source->post_content );
@@ -138,7 +138,7 @@ final class Translation_Editor {
 		$content = $translation['post_content'] ?? '';
 		$excerpt = $translation['post_excerpt'] ?? '';
 		if ( $is_divi ) {
-			$submitted = isset( $_POST['divi_translation'] ) ? (array) wp_unslash( $_POST['divi_translation'] ) : array();
+			$submitted = self::posted_array( 'divi_translation' );
 			$allowed = array();
 			foreach ( Divi_Content::extract( $source->post_content ) as $segment ) {
 				if ( ! array_key_exists( $segment['id'], $submitted ) ) { continue; }
@@ -148,7 +148,7 @@ final class Translation_Editor {
 			$base_content = $target && Divi_Content::is_divi( $target->post_content ) ? $target->post_content : $source->post_content;
 			$content = Divi_Content::apply( $base_content, $allowed );
 		} elseif ( $is_gutenberg ) {
-			$submitted = isset( $_POST['gutenberg_translation'] ) ? (array) wp_unslash( $_POST['gutenberg_translation'] ) : array();
+			$submitted = self::posted_array( 'gutenberg_translation' );
 			$allowed = array();
 			foreach ( Gutenberg_Content::extract( $source->post_content ) as $segment ) {
 				if ( ! array_key_exists( $segment['id'], $submitted ) ) { continue; }
@@ -173,9 +173,9 @@ final class Translation_Editor {
 		}
 		$result = wp_update_post( wp_slash( $update ), true );
 		if ( is_wp_error( $result ) ) { wp_die( esc_html( $result->get_error_message() ) ); }
-		$acf_translation = isset( $_POST['acf_translation'] ) ? (array) wp_unslash( $_POST['acf_translation'] ) : array();
+		$acf_translation = self::posted_array( 'acf_translation' );
 		ACF_Content::save( $source_id, $target_id, $acf_translation, current_user_can( 'unfiltered_html' ) );
-		$seo_translation = isset( $_POST['seo_translation'] ) ? (array) wp_unslash( $_POST['seo_translation'] ) : array();
+		$seo_translation = self::posted_array( 'seo_translation' );
 		SEO::save_translation_fields( $source_id, $target_id, $seo_translation );
 		update_post_meta( $target_id, \OpenLingua\Modules\Workflow::STATUS_META, $status );
 		\OpenLingua\Modules\Workflow::mark_created( $target_id, $source_id );
@@ -187,6 +187,11 @@ final class Translation_Editor {
 		$source_id = isset( $_GET['source_id'] ) ? absint( $_GET['source_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$target_id = isset( $_GET['target_id'] ) ? absint( $_GET['target_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		return array( get_post( $source_id ), get_post( $target_id ) );
+	}
+
+	private static function posted_array( $key ) {
+		if ( ! isset( $_POST[ $key ] ) || ! is_array( $_POST[ $key ] ) ) { return array(); } // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.NonceVerification.Missing -- The save handler verifies its nonce before calling this method; values are sanitized by segment type.
+		return (array) wp_unslash( $_POST[ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.NonceVerification.Missing -- The save handler already verified its nonce; callers apply field-specific sanitization.
 	}
 
 	private static function is_translation_pair( $source_id, $target_id ) {

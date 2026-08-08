@@ -36,7 +36,7 @@ final class Global_Content {
 		if ( ! isset( $types[ $type ] ) ) { $type = 'wp_template'; }
 		$language = Admin::content_language();
 		if ( 'all' === $language || ! Languages::is_valid( $language ) ) { $language = Languages::default_code(); }
-		$posts = get_posts( array( 'post_type' => $type, 'post_status' => array( 'publish', 'draft', 'private' ), 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC', 'suppress_filters' => true ) );
+		$posts = get_posts( array( 'post_type' => $type, 'post_status' => array( 'publish', 'draft', 'private' ), 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) );
 		$posts = array_values( array_filter( $posts, static function ( $post ) use ( $language ) {
 			$row = Translations::row( 'post', $post->ID );
 			return $row ? $language === $row->language : Languages::default_code() === $language;
@@ -67,10 +67,12 @@ final class Global_Content {
 		$name = Languages::all()[ $language ]['name'] ?? strtoupper( $language );
 		if ( ! empty( $group[ $language ] ) && 'trash' !== get_post_status( $group[ $language ] ) ) {
 			$url = Translation_Editor::url( $post_id, $group[ $language ], $return_to );
+			/* translators: %s: language name. */
 			$label = sprintf( __( 'Edit %s translation', 'openlingua' ), $name );
 			$icon = 'dashicons-edit';
 		} else {
 			$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_duplicate', 'post_id' => $post_id, 'language' => $language, 'redirect_to' => $return_to ), admin_url( 'admin-post.php' ) ), 'openlingua_duplicate_' . $post_id );
+			/* translators: %s: language name. */
 			$label = sprintf( __( 'Add %s translation', 'openlingua' ), $name );
 			$icon = 'dashicons-plus-alt2';
 		}

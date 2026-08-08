@@ -107,12 +107,22 @@ final class Routing {
 		$slug = sanitize_title( $pagename ? basename( $pagename ) : $name );
 		global $wpdb;
 		$table = Database::table( 'translations' );
-		$placeholders = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-		$params = array_merge( array( $wpdb->posts, $table, Languages::current(), $slug ), $post_types );
-		$candidates = $wpdb->get_results( $wpdb->prepare(
-			"SELECT p.ID, p.post_type FROM %i p INNER JOIN %i ol_route ON ol_route.element_type = 'post' AND ol_route.element_id = p.ID WHERE ol_route.language = %s AND p.post_name = %s AND p.post_type IN ({$placeholders}) AND p.post_status NOT IN ('trash','auto-draft') ORDER BY p.ID",
-			$params
-		) );
+		$cache_key = 'route:' . md5( Languages::current() . '|' . $slug . '|' . implode( ',', $post_types ) );
+		$candidates = wp_cache_get( $cache_key, 'openlingua_routes', false, $found );
+		if ( ! $found ) {
+			// This lookup joins OpenLingua's relationship table, so no WordPress query API can express it.
+			$candidates = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$wpdb->prepare(
+					"SELECT p.ID, p.post_type FROM %i p INNER JOIN %i ol_route ON ol_route.element_type = 'post' AND ol_route.element_id = p.ID WHERE ol_route.language = %s AND p.post_name = %s AND p.post_status NOT IN ('trash','auto-draft') ORDER BY p.ID",
+					$wpdb->posts,
+					$table,
+					Languages::current(),
+					$slug
+				)
+			);
+			$candidates = array_values( array_filter( $candidates, static function ( $candidate ) use ( $post_types ) { return in_array( $candidate->post_type, $post_types, true ); } ) );
+			wp_cache_set( $cache_key, $candidates, 'openlingua_routes', HOUR_IN_SECONDS );
+		}
 		foreach ( $candidates as $candidate ) {
 			if ( $pagename && trim( get_page_uri( $candidate->ID ), '/' ) !== $pagename ) { continue; }
 			self::set_resolved_post( $query, $candidate->ID, $candidate->post_type );
