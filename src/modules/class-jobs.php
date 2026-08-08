@@ -104,6 +104,7 @@ final class Jobs implements Module {
 			}
 			$base_content = Divi_Content::is_divi( $target->post_content ) ? $target->post_content : $source->post_content;
 			$content = Divi_Content::apply( $base_content, $translated_divi );
+			$content = Divi_Content::restore_embedded_shortcodes( $source->post_content, $content );
 		} elseif ( $is_gutenberg ) {
 			$translated_blocks = array();
 			foreach ( $gutenberg_segments as $segment ) {

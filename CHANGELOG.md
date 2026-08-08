@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.2
+
+- Exclude encoded Slider Revolution shortcodes and technical module attributes from Divi translation fields.
+- Preserve Slider Revolution aliases and module structure exactly when saving a page translation.
+- Cover visible rendered slider layers through OpenLingua's dynamic shortcode discovery and translation editor.
+- Repair previously altered Slider Revolution module payloads from the linked source layout during translation saves.
+
 ## 1.8.1
 
 - Import historical translation pairs when a language pair first opens in the editor.

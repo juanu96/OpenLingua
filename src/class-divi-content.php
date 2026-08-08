@@ -88,7 +88,7 @@ final class Divi_Content {
 		$value = trim( html_entity_decode( (string) $value, ENT_QUOTES, 'UTF-8' ) );
 		if ( '' === $value || 'admin_label' === $attribute || 0 === strpos( $attribute, '_' ) || false !== strpos( $value, '@ET-DC@' ) ) { return false; }
 		if ( in_array( $attribute, self::$translatable_attributes, true ) ) { return true; }
-		if ( preg_match( '/(?:^|_)(?:url|uri|href|src|link|id|ids|class|css|style|color|colors|gradient|image|icon|font|size|width|height|align|layout|margin|padding|spacing|border|shadow|animation|position|transform|version|preset|order|speed|delay|duration|autoplay|loop|arrow|dots|responsive|desktop|tablet|phone|mobile|enabled|disabled|visibility|config|configuration|settings|props|metadata|global)(?:$|_)/i', $attribute ) ) { return false; }
+		if ( preg_match( '/(?:^|_)(?:url|uri|href|src|link|id|ids|class|css|style|color|colors|gradient|image|icon|font|size|width|height|align|layout|margin|padding|spacing|border|shadow|animation|position|transform|version|preset|order|speed|delay|duration|autoplay|loop|arrow|dots|responsive|desktop|tablet|phone|mobile|enabled|disabled|visibility|config|configuration|settings|props|metadata|global|shortcode|slider|revslider|alias)(?:$|_)/i', $attribute ) ) { return false; }
 		if ( preg_match( '~^(?:on|off|yes|no|true|false|none|inherit|default|\d+(?:\.\d+)?(?:px|em|rem|%|s|ms)?)$~i', $value ) ) { return false; }
 		if ( preg_match( '~^(?:https?:)?//|^mailto:|^tel:|^#(?:[0-9a-f]{3,8})$~i', $value ) || self::looks_like_machine_payload( $value ) ) { return false; }
 		$text = trim( html_entity_decode( wp_strip_all_tags( $value ), ENT_QUOTES, 'UTF-8' ) );
@@ -99,8 +99,10 @@ final class Divi_Content {
 
 	private static function looks_like_machine_payload( $value ) {
 		$value = trim( (string) $value );
-		$decoded = trim( rawurldecode( $value ) );
+		$revolution_decoded = str_ireplace( array( '%91', '%93' ), array( '[', ']' ), $value );
+		$decoded = trim( rawurldecode( $revolution_decoded ) );
 		foreach ( array_unique( array( $value, $decoded ) ) as $candidate ) {
+			if ( preg_match( '~\[/?[a-z][a-z0-9_-]*(?:\s[^\]]*)?\]~i', $candidate ) ) { return true; }
 			if ( ! in_array( substr( $candidate, 0, 1 ), array( '{', '[' ), true ) ) { continue; }
 			json_decode( $candidate, true );
 			if ( JSON_ERROR_NONE === json_last_error() ) { return true; }
@@ -129,6 +131,36 @@ final class Divi_Content {
 			$content = substr_replace( $content, $replacement['value'], $replacement['start'], $replacement['length'] );
 		}
 		return $content;
+	}
+
+	/** Restores encoded embedded shortcodes that an older editor save may have altered. */
+	public static function restore_embedded_shortcodes( $source_content, $target_content ) {
+		$source_values = self::embedded_shortcode_attributes( (string) $source_content, true );
+		$target_values = self::embedded_shortcode_attributes( (string) $target_content, false );
+		$replacements = array();
+		foreach ( $source_values as $key => $source ) {
+			if ( ! isset( $target_values[ $key ] ) || $target_values[ $key ]['value'] === $source['value'] ) { continue; }
+			$replacements[] = array( 'start' => $target_values[ $key ]['start'], 'length' => $target_values[ $key ]['length'], 'value' => $source['value'] );
+		}
+		usort( $replacements, function ( $left, $right ) { return $right['start'] <=> $left['start']; } );
+		foreach ( $replacements as $replacement ) { $target_content = substr_replace( $target_content, $replacement['value'], $replacement['start'], $replacement['length'] ); }
+		return $target_content;
+	}
+
+	private static function embedded_shortcode_attributes( $content, $source_only ) {
+		preg_match_all( '~\[(?!/)([a-z][a-z0-9_-]*)\b([^\]]*)\]~i', $content, $tokens, PREG_SET_ORDER | PREG_OFFSET_CAPTURE );
+		$counts = array();
+		$result = array();
+		foreach ( $tokens as $token ) {
+			$module = strtolower( $token[1][0] );
+			$counts[ $module ] = ( $counts[ $module ] ?? 0 ) + 1;
+			foreach ( self::attributes( $token[2][0], $token[2][1] ) as $name => $data ) {
+				$is_slider_attribute = (bool) preg_match( '/(?:^|_)(?:slider|revslider|shortcode)(?:$|_)/i', $name );
+				if ( ! $is_slider_attribute || ( $source_only && ! self::looks_like_machine_payload( $data['value'] ) ) ) { continue; }
+				$result[ $module . ':' . $counts[ $module ] . ':' . $name ] = $data;
+			}
+		}
+		return $result;
 	}
 
 	private static function attributes( $text, $absolute_start ) {

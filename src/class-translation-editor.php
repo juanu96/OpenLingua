@@ -174,6 +174,7 @@ final class Translation_Editor {
 			}
 			$base_content = $target && Divi_Content::is_divi( $target->post_content ) ? $target->post_content : $source->post_content;
 			$content = Divi_Content::apply( $base_content, $allowed );
+			$content = Divi_Content::restore_embedded_shortcodes( $source->post_content, $content );
 		} elseif ( $is_gutenberg ) {
 			$submitted = self::posted_array( 'gutenberg_translation' );
 			$allowed = array();

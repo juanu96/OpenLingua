@@ -21,6 +21,7 @@ $content = '[et_pb_section admin_label="Hero" background_color="#fff"]'
 	. '[et_pb_button button_text="Explore &amp; Learn" button_url="https://example.test/services" _builder_version="4.24.0"][/et_pb_button]'
 	. '[et_pb_blurb title="Solar Power" image="solar.jpg"]<p>Power your home.</p>[/et_pb_blurb]'
 	. '[et_pb_text _dynamic_attributes="content"]@ET-DC@encoded-value@[/et_pb_text]'
+	. '[revslider_divi revslider_divi="%91rev_slider alias=%22Home-Slider%22 slidertitle=%22Home Slider%22%93%91/rev_slider%93" _builder_version="4.27.4" /]'
 	. '[dica_divi_carousel autoplay="off" item_spacing="30" global_colors_info="{%22gcid-8b0b6c72-988e-4b8f-bab4-0b219133c41d%22:%91%22title_text_color%22%93}"]'
 	. '[dica_divi_carouselitem title="Paula Barrado" image_url="https://example.test/paula.jpg"]<p>Wonderful service.</p>[/dica_divi_carouselitem]'
 	. '[/dica_divi_carousel]'
@@ -41,6 +42,7 @@ divi_assert( '<p>Wonderful service.</p>' === $values['divi_dica_divi_carouselite
 divi_assert( 'Independent module' === $values['divi_vendor_card_1_card_heading'], 'detects an unknown module through Divi metadata' );
 divi_assert( ! isset( $values['divi_dica_divi_carousel_1_content'] ), 'does not duplicate text from a third-party container module' );
 divi_assert( false === strpos( implode( '|', array_keys( $values ) ), 'global_colors_info' ), 'ignores encoded Divi global color metadata' );
+divi_assert( false === strpos( implode( '|', array_keys( $values ) ), 'revslider' ), 'protects encoded Slider Revolution shortcodes from translation' );
 
 $translated = \OpenLingua\Divi_Content::apply( $content, array(
 	'divi_et_pb_text_1_content' => '<h2>Energía limpia</h2><p>Para todos.</p>',
@@ -52,11 +54,19 @@ $translated = \OpenLingua\Divi_Content::apply( $content, array(
 	'divi_vendor_card_1_card_heading' => 'Módulo independiente',
 	'divi_vendor_card_1_content' => '<p>Detectado por metadatos Divi.</p>',
 ) );
+$damaged_slider = str_replace(
+	'%91rev_slider alias=%22Home-Slider%22 slidertitle=%22Home Slider%22%93%91/rev_slider%93',
+	'rev_slider alias=Home-Slider slidertitle=Home Slider/rev_slider',
+	$content
+);
+$repaired_slider = \OpenLingua\Divi_Content::restore_embedded_shortcodes( $content, $damaged_slider );
 
 divi_assert( false !== strpos( $translated, '<h2>Energía limpia</h2><p>Para todos.</p>' ), 'replaces module body text' );
 divi_assert( false !== strpos( $translated, 'button_text="Explorar &quot;ahora&quot;"' ), 'escapes translated shortcode attributes' );
 divi_assert( false !== strpos( $translated, 'button_url="https://example.test/services"' ), 'preserves non-translatable URLs' );
 divi_assert( false !== strpos( $translated, '@ET-DC@encoded-value@' ), 'preserves dynamic Divi payloads' );
+divi_assert( false !== strpos( $translated, '%91rev_slider alias=%22Home-Slider%22 slidertitle=%22Home Slider%22%93%91/rev_slider%93' ), 'preserves Slider Revolution module configuration exactly' );
+divi_assert( false !== strpos( $repaired_slider, '%91rev_slider alias=%22Home-Slider%22 slidertitle=%22Home Slider%22%93%91/rev_slider%93' ), 'restores a damaged Slider Revolution shortcode from the source layout' );
 divi_assert( false !== strpos( $translated, 'title="Paula Traducida"' ) && false !== strpos( $translated, '<p>Servicio maravilloso.</p>' ), 'replaces third-party carousel text without changing its module structure' );
 divi_assert( false !== strpos( $translated, 'card_heading="Módulo independiente"' ), 'replaces text from an unknown metadata-identified module' );
 divi_assert( substr_count( $content, '[et_pb_' ) === substr_count( $translated, '[et_pb_' ), 'preserves the Divi module structure' );

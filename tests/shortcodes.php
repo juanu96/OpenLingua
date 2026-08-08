@@ -37,6 +37,7 @@ namespace OpenLingua {
 		. '</div>';
 	$output = Shortcode_Content::translate_output( $html, 'sample_widget' );
 	$divi_output = Shortcode_Content::translate_output( '<h4>Divi wrapper label</h4>', 'et_pb_column' );
+	$slider_output = Shortcode_Content::translate_output( '<div class="rev_slider"><rs-module><rs-slide><rs-layer>Discover our services</rs-layer></rs-slide></rs-module></div>', 'revslider_divi' );
 
 	$checks = array(
 		'heading label translated' => false !== strpos( $output, '>Título del widget</h4>' ),
@@ -50,6 +51,7 @@ namespace OpenLingua {
 		'dynamic root identified' => false !== strpos( $output, 'data-openlingua-shortcode="sample_widget"' ),
 		'domain grouped by shortcode' => 0 < count( array_filter( array_keys( Strings::$seen ), static function ( $key ) { return 0 === strpos( $key, 'shortcode-sample_widget:' ); } ) ),
 		'divi wrappers ignored' => '<h4>Divi wrapper label</h4>' === $divi_output && ! in_array( 'Divi wrapper label', Strings::$seen, true ),
+		'slider revolution output marked for dynamic text discovery' => false !== strpos( $slider_output, 'data-openlingua-shortcode="revslider_divi"' ),
 	);
 
 	foreach ( $checks as $label => $passed ) {
