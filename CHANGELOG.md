@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.0
+
+- Replaced the fixed `et_pb_*`-only scan with generic third-party Divi module discovery.
+- Registered Divi module callbacks, standard builder metadata, and third-party Divi naming conventions are recognized automatically.
+- Human-readable text attributes and leaf-module body content are extracted without hardcoding a specific extension.
+- Technical configuration, responsive controls, URLs, IDs, JSON, styles, dynamic payloads, and nested container duplicates are excluded.
+- Added regression coverage modeled on carousel items and an unknown metadata-identified module.
+
 ## 1.6.2
 
 - Fixed the Global content submenu registration order that caused WordPress to return a 403 access error.

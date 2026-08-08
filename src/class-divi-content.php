@@ -24,7 +24,7 @@ final class Divi_Content {
 	public static function extract( $content ) {
 		$content = (string) $content;
 		if ( ! self::is_divi( $content ) ) { return array(); }
-		preg_match_all( '~\[(\/?)(et_pb_[a-z0-9_]+)\b([^\]]*)\]~i', $content, $tokens, PREG_SET_ORDER | PREG_OFFSET_CAPTURE );
+		preg_match_all( '~\[(\/?)([a-z][a-z0-9_-]*)\b([^\]]*)\]~i', $content, $tokens, PREG_SET_ORDER | PREG_OFFSET_CAPTURE );
 		$segments = array();
 		$stack = array();
 		$counts = array();
@@ -35,12 +35,13 @@ final class Divi_Content {
 			$token_start = $token[0][1];
 			$token_end = $token_start + strlen( $token[0][0] );
 			if ( ! $is_closing ) {
+				$attributes = self::attributes( $token[3][0], $token[3][1] );
+				if ( ! self::is_divi_module( $module, $attributes ) ) { continue; }
 				$counts[ $module ] = ( $counts[ $module ] ?? 0 ) + 1;
 				$occurrence = $counts[ $module ];
-				$attributes = self::attributes( $token[3][0], $token[3][1] );
 				$label = self::module_label( $module, $occurrence, $attributes );
 				foreach ( $attributes as $attribute => $data ) {
-					if ( ! in_array( $attribute, self::$translatable_attributes, true ) || '' === trim( $data['value'] ) ) { continue; }
+					if ( ! self::is_translatable_attribute( $attribute, $data['value'] ) ) { continue; }
 					$segments[] = array(
 						'id' => self::segment_id( $module, $occurrence, $attribute ),
 						'label' => $label . ' — ' . self::field_label( $attribute ),
@@ -49,7 +50,7 @@ final class Divi_Content {
 					);
 				}
 				$dynamic = isset( $attributes['_dynamic_attributes'] ) && false !== strpos( $attributes['_dynamic_attributes']['value'], 'content' );
-				$stack[] = array( 'module' => $module, 'occurrence' => $occurrence, 'content_start' => $token_end, 'label' => $label, 'extract_content' => in_array( $module, self::$content_modules, true ) && ! $dynamic );
+				$stack[] = array( 'module' => $module, 'occurrence' => $occurrence, 'content_start' => $token_end, 'label' => $label, 'extract_content' => ! $dynamic );
 				continue;
 			}
 
@@ -60,6 +61,7 @@ final class Divi_Content {
 				if ( ! $opening['extract_content'] ) { break; }
 				$value = substr( $content, $opening['content_start'], $token_start - $opening['content_start'] );
 				if ( ! self::has_text( $value ) ) { break; }
+				if ( ! in_array( $module, self::$content_modules, true ) && preg_match( '~\[\/?[a-z][a-z0-9_-]*\b~i', $value ) ) { break; }
 				$segments[] = array(
 					'id' => self::segment_id( $module, $opening['occurrence'], 'content' ),
 					'label' => $opening['label'] . ' — ' . __( 'Content', 'openlingua' ),
@@ -71,6 +73,35 @@ final class Divi_Content {
 
 		usort( $segments, function ( $left, $right ) { return $left['start'] <=> $right['start']; } );
 		return $segments;
+	}
+
+	private static function is_divi_module( $module, array $attributes ) {
+		if ( 0 === strpos( $module, 'et_pb_' ) || false !== strpos( $module, 'divi' ) ) { return true; }
+		if ( isset( $attributes['_builder_version'] ) || isset( $attributes['_module_preset'] ) || isset( $attributes['global_colors_info'] ) ) { return true; }
+		global $shortcode_tags;
+		$callback = $shortcode_tags[ $module ] ?? null;
+		return is_array( $callback ) && is_object( $callback[0] ?? null ) && class_exists( 'ET_Builder_Module' ) && is_a( $callback[0], 'ET_Builder_Module' );
+	}
+
+	private static function is_translatable_attribute( $attribute, $value ) {
+		$attribute = strtolower( (string) $attribute );
+		$value = trim( html_entity_decode( (string) $value, ENT_QUOTES, 'UTF-8' ) );
+		if ( '' === $value || 'admin_label' === $attribute || 0 === strpos( $attribute, '_' ) || false !== strpos( $value, '@ET-DC@' ) ) { return false; }
+		if ( in_array( $attribute, self::$translatable_attributes, true ) ) { return true; }
+		if ( preg_match( '/(?:^|_)(?:url|uri|href|src|link|id|ids|class|css|style|color|gradient|image|icon|font|size|width|height|align|layout|margin|padding|spacing|border|shadow|animation|position|transform|version|preset|order|speed|delay|duration|autoplay|loop|arrow|dots|responsive|desktop|tablet|phone|mobile|enabled|disabled|visibility)(?:$|_)/i', $attribute ) ) { return false; }
+		if ( preg_match( '~^(?:on|off|yes|no|true|false|none|inherit|default|\d+(?:\.\d+)?(?:px|em|rem|%|s|ms)?)$~i', $value ) ) { return false; }
+		if ( preg_match( '~^(?:https?:)?//|^mailto:|^tel:|^#(?:[0-9a-f]{3,8})$~i', $value ) || self::looks_like_json( $value ) ) { return false; }
+		$text = trim( html_entity_decode( wp_strip_all_tags( $value ), ENT_QUOTES, 'UTF-8' ) );
+		if ( '' === $text || ! preg_match( '/\p{L}/u', $text ) ) { return false; }
+		if ( preg_match( '/(?:text|content|title|heading|caption|description|label|placeholder|message|button|summary|citation|author|name|alt|aria)/i', $attribute ) ) { return true; }
+		return (bool) preg_match( '/\s|[.!?,;:¿¡]/u', $text );
+	}
+
+	private static function looks_like_json( $value ) {
+		$value = trim( (string) $value );
+		if ( ! in_array( substr( $value, 0, 1 ), array( '{', '[' ), true ) ) { return false; }
+		json_decode( $value, true );
+		return JSON_ERROR_NONE === json_last_error();
 	}
 
 	public static function values( $content ) {

@@ -2,7 +2,7 @@
 
 OpenLingua is a free, GPL-licensed multilingual foundation for WordPress. It provides language-aware content, URLs, menus, taxonomies, custom fields, SEO metadata, interface strings, shortcodes, Divi layouts, and optional automatic translation without locking a site into a proprietary translation service.
 
-Current plugin version: **1.6.2**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
+Current plugin version: **1.7.0**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
 
 OpenLingua is independently developed and distributed under the GPL-2.0-or-later license.
 
@@ -30,6 +30,10 @@ OpenLingua is independently developed and distributed under the GPL-2.0-or-later
 ### Divi support
 
 - Extracts translatable text from Divi modules while preserving shortcode structure and builder settings.
+- Discovers human-readable attributes and body text from third-party Divi modules without plugin-specific field lists.
+- Recognizes registered Divi module callbacks, standard Divi metadata, and common third-party naming conventions.
+- Excludes technical settings, URLs, IDs, JSON, responsive values, styles, and dynamic-content payloads automatically.
+- Avoids duplicated text from nested carousel and other container modules.
 - Keeps visual-mode fields readable instead of exposing raw HTML by default.
 - Supports translated Divi Theme Builder headers, bodies, and footers.
 - Preserves dynamic post-content modules and layout metadata.
