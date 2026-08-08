@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.1
+
+- Exclude Divi alignment, orientation, placement, direction, and common visual-control enum values from translation fields.
+- Add regression coverage for `button_alignment="center"`.
+
 ## 1.9.0
 
 - Add a front-end WordPress toolbar action that opens the current page in OpenLingua's translation editor.

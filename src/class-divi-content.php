@@ -88,8 +88,8 @@ final class Divi_Content {
 		$value = trim( html_entity_decode( (string) $value, ENT_QUOTES, 'UTF-8' ) );
 		if ( '' === $value || 'admin_label' === $attribute || 0 === strpos( $attribute, '_' ) || false !== strpos( $value, '@ET-DC@' ) ) { return false; }
 		if ( in_array( $attribute, self::$translatable_attributes, true ) ) { return true; }
-		if ( preg_match( '/(?:^|_)(?:url|uri|href|src|link|id|ids|class|css|style|color|colors|gradient|image|icon|font|size|width|height|align|layout|margin|padding|spacing|border|shadow|animation|position|transform|version|preset|order|speed|delay|duration|autoplay|loop|arrow|dots|responsive|desktop|tablet|phone|mobile|enabled|disabled|visibility|config|configuration|settings|props|metadata|global|shortcode|slider|revslider|alias)(?:$|_)/i', $attribute ) ) { return false; }
-		if ( preg_match( '~^(?:on|off|yes|no|true|false|none|inherit|default|\d+(?:\.\d+)?(?:px|em|rem|%|s|ms)?)$~i', $value ) ) { return false; }
+		if ( preg_match( '/(?:^|_)(?:url|uri|href|src|link|id|ids|class|css|style|color|colors|gradient|image|icon|font|size|width|height|align|alignment|orientation|placement|direction|layout|margin|padding|spacing|border|shadow|animation|position|transform|version|preset|order|speed|delay|duration|autoplay|loop|arrow|dots|responsive|desktop|tablet|phone|mobile|enabled|disabled|visibility|config|configuration|settings|props|metadata|global|shortcode|slider|revslider|alias)(?:$|_)/i', $attribute ) ) { return false; }
+		if ( preg_match( '~^(?:on|off|yes|no|true|false|none|inherit|default|left|right|center|top|bottom|horizontal|vertical|start|end|justify|normal|reverse|\d+(?:\.\d+)?(?:px|em|rem|%|s|ms)?)$~i', $value ) ) { return false; }
 		if ( preg_match( '~^(?:https?:)?//|^mailto:|^tel:|^#(?:[0-9a-f]{3,8})$~i', $value ) || self::looks_like_machine_payload( $value ) ) { return false; }
 		$text = trim( html_entity_decode( wp_strip_all_tags( $value ), ENT_QUOTES, 'UTF-8' ) );
 		if ( '' === $text || ! preg_match( '/\p{L}/u', $text ) ) { return false; }
