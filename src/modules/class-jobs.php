@@ -38,11 +38,20 @@ final class Jobs implements Module {
 		if ( ! $source || ! $target || ! $provider || ! $provider->is_configured() ) {
 			return new \WP_Error( 'openlingua_invalid_job', __( 'The translation job is not valid or the provider is not configured.', 'openlingua' ) );
 		}
+		$behavior = Site_Settings::get();
+		$existing = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM %i WHERE source_id = %d AND target_id = %d AND provider = %s AND status IN ('pending','retrying','processing') ORDER BY id DESC LIMIT 1", Database::table( 'jobs' ), absint( $source_id ), absint( $target_id ), sanitize_key( $provider_id ) ) ) );
+		if ( $existing ) { return $existing; }
+		$monthly_limit = absint( $behavior['monthly_job_limit'] );
+		if ( $monthly_limit ) {
+			$month_start = gmdate( 'Y-m-01 00:00:00', current_time( 'timestamp' ) );
+			$count = absint( $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE created_at >= %s', Database::table( 'jobs' ), $month_start ) ) );
+			if ( $count >= $monthly_limit ) { return new \WP_Error( 'openlingua_monthly_limit', __( 'The configured monthly automatic-translation limit has been reached.', 'openlingua' ) ); }
+		}
 		$now = current_time( 'mysql' );
 		$wpdb->insert( Database::table( 'jobs' ), array(
 			'source_id' => absint( $source_id ), 'target_id' => absint( $target_id ),
 			'target_language' => sanitize_key( $target_language ), 'provider' => sanitize_key( $provider_id ),
-			'status' => 'pending', 'attempts' => 0, 'max_attempts' => 3, 'available_at' => $now,
+			'status' => 'pending', 'attempts' => 0, 'max_attempts' => max( 1, absint( $behavior['max_attempts'] ) ), 'available_at' => $now,
 			'payload' => wp_json_encode( array( 'requested_by' => get_current_user_id() ) ), 'error' => '', 'created_at' => $now, 'updated_at' => $now,
 		) );
 		if ( ! $wpdb->insert_id ) { return new \WP_Error( 'openlingua_job_db', $wpdb->last_error ); }
@@ -61,7 +70,7 @@ final class Jobs implements Module {
 		$target_id = absint( $_GET['target_id'] ?? 0 );
 		$provider_id = sanitize_key( wp_unslash( $_GET['provider'] ?? '' ) );
 		check_admin_referer( 'openlingua_enqueue_translation_' . $target_id );
-		if ( ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { wp_die( esc_html__( 'You cannot translate this content.', 'openlingua' ) ); }
+		if ( ! current_user_can( 'openlingua_translate' ) || ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { wp_die( esc_html__( 'You cannot translate this content.', 'openlingua' ) ); }
 		$source = \OpenLingua\Translations::row( 'post', $source_id );
 		$target = \OpenLingua\Translations::row( 'post', $target_id );
 		if ( ! $source || ! $target || $source->group_uuid !== $target->group_uuid ) { wp_die( esc_html__( 'These posts are not linked translations.', 'openlingua' ) ); }
@@ -139,8 +148,9 @@ final class Jobs implements Module {
 		}
 		$translated_title = sanitize_text_field( $result['title'] );
 		$update = array( 'ID' => absint( $job->target_id ), 'post_title' => $translated_title, 'post_excerpt' => wp_kses_post( $result['excerpt'] ?? '' ), 'post_content' => $content );
-		$desired_slug = sanitize_title( $translated_title );
-		if ( $desired_slug && ( ! $target->post_name || 'draft' === $target->post_status || sanitize_title( $source->post_title ) === $target->post_name || preg_match( '/^' . preg_quote( $desired_slug, '/' ) . '-\d+$/', $target->post_name ) ) ) {
+		$behavior = Site_Settings::get();
+		$desired_slug = 'source' === $behavior['slug_mode'] ? $source->post_name : sanitize_title( $translated_title );
+		if ( 'manual' !== $behavior['slug_mode'] && $desired_slug && ( ! $target->post_name || 'draft' === $target->post_status || sanitize_title( $source->post_title ) === $target->post_name || preg_match( '/^' . preg_quote( $desired_slug, '/' ) . '-\d+$/', $target->post_name ) ) ) {
 			$update['post_name'] = wp_unique_post_slug( $desired_slug, $target->ID, $target->post_status, $target->post_type, $target->post_parent );
 		}
 		$updated = wp_update_post( wp_slash( $update ), true );
@@ -176,9 +186,14 @@ final class Jobs implements Module {
 		}
 		Commerce::save_translation_fields( $source->ID, $target->ID, $commerce_translation );
 		Translation_Memory::learn_post( $source->ID, $target->ID, 'automatic', false );
-		update_post_meta( $job->target_id, Workflow::STATUS_META, 'in-progress' );
+		$result_mode = $behavior['automatic_result'];
+		update_post_meta( $job->target_id, Workflow::STATUS_META, 'publish' === $result_mode ? 'complete' : 'in-progress' );
 		$payload = json_decode( (string) $job->payload, true );
 		$payload = is_array( $payload ) ? $payload : array();
+		$requester = absint( $payload['requested_by'] ?? 0 );
+		$post_type = get_post_type_object( $target->post_type );
+		$publish_cap = $post_type && ! empty( $post_type->cap->publish_posts ) ? $post_type->cap->publish_posts : 'publish_posts';
+		if ( 'publish' === $result_mode && 'publish' === $source->post_status && $requester && user_can( $requester, $publish_cap ) ) { wp_update_post( array( 'ID' => $target->ID, 'post_status' => 'publish' ) ); }
 		$payload['segments'] = array_keys( $segments );
 		$wpdb->update( $table, array( 'status' => 'complete', 'payload' => wp_json_encode( $payload ), 'error' => '', 'started_at' => null, 'updated_at' => current_time( 'mysql' ) ), array( 'id' => $job_id ) );
 		do_action( 'openlingua_translation_job_completed', $job_id, $job );

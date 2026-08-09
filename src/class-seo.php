@@ -152,6 +152,7 @@ final class SEO {
 	}
 
 	public static function hooks() {
+		add_filter( 'wp_robots', array( __CLASS__, 'translation_robots' ) );
 		add_action( 'wp_head', array( __CLASS__, 'hreflang' ), 2 );
 		add_filter( 'get_canonical_url', array( __CLASS__, 'post_canonical' ), 10, 2 );
 		add_filter( 'wpseo_canonical', array( __CLASS__, 'canonical' ) );
@@ -168,6 +169,14 @@ final class SEO {
 		add_filter( 'seopress_sitemaps_term_single_url', array( __CLASS__, 'seopress_term_sitemap_url' ), 10, 2 );
 		add_filter( 'aioseo_sitemap_exclude_posts', array( __CLASS__, 'aioseo_excluded_posts' ), 10, 2 );
 		add_filter( 'aioseo_sitemap_exclude_terms', array( __CLASS__, 'aioseo_excluded_terms' ), 10, 2 );
+	}
+
+	public static function translation_robots( $robots ) {
+		if ( ! is_singular() ) { return $robots; }
+		$settings = \OpenLingua\Modules\Site_Settings::get();
+		$status = get_post_meta( get_queried_object_id(), \OpenLingua\Modules\Workflow::STATUS_META, true );
+		if ( ! empty( $settings['noindex_incomplete'] ) && in_array( $status, array( 'draft', 'in-progress', 'outdated' ), true ) ) { $robots['noindex'] = true; unset( $robots['index'] ); }
+		return $robots;
 	}
 
 	public static function core_post_sitemap_args( $args, $post_type ) {

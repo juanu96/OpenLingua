@@ -84,7 +84,7 @@ final class Content {
 		$language = isset( $_GET['language'] ) ? sanitize_key( wp_unslash( $_GET['language'] ) ) : '';
 		$return_to = isset( $_GET['redirect_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ), '' ) : '';
 		check_admin_referer( 'openlingua_duplicate_' . $post_id );
-		if ( ! $post_id || ! Languages::is_valid( $language ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post_id || ! Languages::is_valid( $language ) || ! current_user_can( 'openlingua_translate' ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( esc_html__( 'You cannot create this translation.', 'openlingua' ) );
 		}
 		$source = get_post( $post_id );
@@ -101,15 +101,26 @@ final class Content {
 		if ( $existing ) {
 			wp_safe_redirect( Translation_Editor::url( $post_id, $existing, $return_to ) ); exit;
 		}
-		$new_id = wp_insert_post( array(
-			'post_type' => $source->post_type, 'post_status' => 'draft', 'post_title' => $source->post_title,
+		$behavior = \OpenLingua\Modules\Site_Settings::get();
+		$requested_status = $behavior['new_translation_status'];
+		$post_type_object = get_post_type_object( $source->post_type );
+		$publish_capability = $post_type_object && ! empty( $post_type_object->cap->publish_posts ) ? $post_type_object->cap->publish_posts : 'publish_posts';
+		$post_status = 'pending' === $requested_status ? 'pending' : ( 'publish' === $requested_status && current_user_can( $publish_capability ) ? 'publish' : 'draft' );
+		$new_post = array(
+			'post_type' => $source->post_type, 'post_status' => $post_status, 'post_title' => $source->post_title,
 			'post_content' => $source->post_content, 'post_excerpt' => $source->post_excerpt,
 			'post_mime_type' => $source->post_mime_type,
 			'post_parent' => $source->post_parent ? ( Translations::translated_id( 'post', $source->post_parent, $language ) ?: $source->post_parent ) : 0,
 			'menu_order' => $source->menu_order,
-		) );
+		);
+		if ( ! empty( $behavior['copy_author'] ) ) { $new_post['post_author'] = $source->post_author; }
+		if ( ! empty( $behavior['copy_date'] ) ) { $new_post['post_date'] = $source->post_date; $new_post['post_date_gmt'] = $source->post_date_gmt; }
+		if ( 'source' === $behavior['slug_mode'] ) { $new_post['post_name'] = $source->post_name; }
+		$new_id = wp_insert_post( $new_post );
 		if ( is_wp_error( $new_id ) ) { wp_die( esc_html( $new_id->get_error_message() ) ); }
 		\OpenLingua\Modules\Metadata::copy( $post_id, $new_id, $source->post_type );
+		if ( empty( $behavior['copy_thumbnail'] ) ) { delete_post_thumbnail( $new_id ); }
+		if ( empty( $behavior['copy_template'] ) ) { delete_post_meta( $new_id, '_wp_page_template' ); }
 		if ( 'product' === $source->post_type ) { \OpenLingua\Modules\Commerce::initialize_translation( $post_id, $new_id ); }
 		foreach ( get_object_taxonomies( $source->post_type ) as $taxonomy ) {
 			$term_ids = wp_get_object_terms( $post_id, $taxonomy, array( 'fields' => 'ids' ) );
@@ -125,6 +136,10 @@ final class Content {
 		}
 		Translations::assign( 'post', $new_id, $language, $group, $row ? $row->language : Languages::default_code() );
 		\OpenLingua\Modules\Workflow::mark_created( $new_id, $post_id );
+		if ( ! empty( $behavior['automatic_on_create'] ) ) {
+			$provider = \OpenLingua\Modules\Providers::active();
+			if ( $provider && $provider->is_configured() ) { \OpenLingua\Modules\Jobs::enqueue( $post_id, $new_id, $language, $provider->id() ); }
+		}
 		wp_safe_redirect( Translation_Editor::url( $post_id, $new_id, $return_to ) ); exit;
 	}
 
@@ -159,7 +174,7 @@ final class Content {
 		$row = Translations::row( 'post', $post_id );
 		if ( ! $row || ! Languages::is_valid( $row->language ) ) { return $slug; }
 		global $wpdb;
-		$conflicts = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = %s AND ID != %d AND post_status != 'trash'", $original_slug, $post_type, $post_id ) );
+		$conflicts = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM %i WHERE post_name = %s AND post_type = %s AND ID != %d AND post_status != 'trash'", $wpdb->posts, $original_slug, $post_type, $post_id ) );
 		foreach ( $conflicts as $conflict_id ) {
 			$conflict = Translations::row( 'post', $conflict_id );
 			$conflict_language = $conflict ? $conflict->language : Languages::default_code();

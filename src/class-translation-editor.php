@@ -17,7 +17,7 @@ final class Translation_Editor {
 		$row = $target_id ? Translations::row( 'post', $target_id ) : null;
 		if ( ! $row || ! $row->source_language ) { return; }
 		$source_id = Translations::translated_id( 'post', $target_id, $row->source_language );
-		if ( ! $source_id || absint( $source_id ) === absint( $target_id ) || ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { return; }
+		if ( ! $source_id || absint( $source_id ) === absint( $target_id ) || ! current_user_can( 'openlingua_translate' ) || ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { return; }
 		$admin_bar->add_node( array(
 			'id'     => 'openlingua-edit-translation',
 			'parent' => false,
@@ -49,7 +49,7 @@ final class Translation_Editor {
 	public static function page() {
 		list( $source, $target ) = self::posts_from_request();
 		if ( ! $source || ! $target || ! self::is_translation_pair( $source->ID, $target->ID ) ) { wp_die( esc_html__( 'The translation could not be loaded.', 'openlingua' ) ); }
-		if ( ! current_user_can( 'edit_post', $source->ID ) || ! current_user_can( 'edit_post', $target->ID ) ) { wp_die( esc_html__( 'You cannot edit this translation.', 'openlingua' ) ); }
+		if ( ! current_user_can( 'openlingua_translate' ) || ! current_user_can( 'edit_post', $source->ID ) || ! current_user_can( 'edit_post', $target->ID ) ) { wp_die( esc_html__( 'You cannot edit this translation.', 'openlingua' ) ); }
 		$source_row = Translations::row( 'post', $source->ID );
 		$target_row = Translations::row( 'post', $target->ID );
 		$source_code = $source_row ? $source_row->language : Languages::default_code();
@@ -212,7 +212,7 @@ final class Translation_Editor {
 		$target_id = isset( $_POST['target_id'] ) ? absint( $_POST['target_id'] ) : 0;
 		$return_to = isset( $_POST['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['return_to'] ) ), '' ) : '';
 		check_admin_referer( 'openlingua_save_translation_' . $target_id );
-		if ( ! $source_id || ! $target_id || ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { wp_die( esc_html__( 'You cannot save this translation.', 'openlingua' ) ); }
+		if ( ! $source_id || ! $target_id || ! current_user_can( 'openlingua_translate' ) || ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { wp_die( esc_html__( 'You cannot save this translation.', 'openlingua' ) ); }
 		$translation = self::posted_array( 'translation' );
 		$source = get_post( $source_id );
 		$target = get_post( $target_id );
@@ -251,7 +251,8 @@ final class Translation_Editor {
 		$post_status = $target->post_status;
 		if ( 'complete' === $status && 'publish' === $source->post_status && self::can_publish( $target ) ) { $post_status = 'publish'; }
 		$update = array( 'ID' => $target_id, 'post_title' => $title, 'post_excerpt' => $excerpt, 'post_content' => $content, 'post_status' => $post_status );
-		$desired_slug = sanitize_title( $title );
+		$slug_mode = \OpenLingua\Modules\Site_Settings::get()['slug_mode'];
+		$desired_slug = 'source' === $slug_mode ? $source->post_name : sanitize_title( $title );
 		if ( $desired_slug && self::should_refresh_slug( $target, $source, $desired_slug ) ) {
 			$update['post_name'] = wp_unique_post_slug( $desired_slug, $target_id, $post_status, $target->post_type, $target->post_parent );
 		}
@@ -304,6 +305,9 @@ final class Translation_Editor {
 	}
 
 	private static function should_refresh_slug( $target, $source, $desired_slug ) {
+		$mode = \OpenLingua\Modules\Site_Settings::get()['slug_mode'];
+		if ( 'manual' === $mode ) { return false; }
+		if ( 'source' === $mode ) { return $source->post_name !== $target->post_name; }
 		return ! $target->post_name || 'draft' === $target->post_status || sanitize_title( $source->post_title ) === $target->post_name || preg_match( '/^' . preg_quote( $desired_slug, '/' ) . '-\d+$/', $target->post_name );
 	}
 

@@ -1,8 +1,10 @@
 <?php
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
-// Data is intentionally preserved. Define OPENLINGUA_REMOVE_DATA before uninstalling to delete it.
-if ( ! defined( 'OPENLINGUA_REMOVE_DATA' ) || ! OPENLINGUA_REMOVE_DATA ) { return; }
+// Data is preserved unless removal is explicitly configured and confirmed, or forced by a constant.
+$openlingua_settings = (array) get_option( 'openlingua_site_settings', array() );
+$openlingua_remove_by_setting = 'remove' === ( $openlingua_settings['uninstall_mode'] ?? 'preserve' ) && get_option( 'openlingua_remove_data_confirmed' );
+if ( ( ! defined( 'OPENLINGUA_REMOVE_DATA' ) || ! OPENLINGUA_REMOVE_DATA ) && ! $openlingua_remove_by_setting ) { return; }
 global $wpdb;
 
 $openlingua_remove_site_data = static function () use ( $wpdb ) {
@@ -17,6 +19,7 @@ $openlingua_remove_site_data = static function () use ( $wpdb ) {
 		'openlingua_flush_rewrite_rules', 'openlingua_active_translation_provider',
 		'openlingua_openai_settings', 'openlingua_anthropic_settings', 'openlingua_gemini_settings',
 		'openlingua_google_translate_settings',
+		'openlingua_site_settings', 'openlingua_setup_complete', 'openlingua_remove_data_confirmed', 'openlingua_string_discovery_until',
 	) as $openlingua_option ) {
 		delete_option( $openlingua_option );
 	}

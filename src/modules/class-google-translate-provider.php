@@ -49,7 +49,8 @@ final class Google_Translate_Provider implements Module, Translation_Provider {
 
 	public function translate( array $segments, $source_language, $target_language, array $context = array() ) {
 		$key = self::api_key(); if ( ! $key ) { return new \WP_Error( 'openlingua_google_translate_key', __( 'The Google Cloud Translation API key is not configured.', 'openlingua' ) ); } $segments = array_filter( array_map( 'strval', $segments ), static function( $value ) { return '' !== trim( $value ); } ); if ( ! $segments ) { return array(); } $translated = array();
-		foreach ( array_chunk( $segments, 100, true ) as $batch ) {
+		$batch_size = min( 100, max( 5, absint( Site_Settings::get()['batch_size'] ) ) );
+		foreach ( array_chunk( $segments, $batch_size, true ) as $batch ) {
 			$payload = array( 'q' => array_values( $batch ), 'source' => str_replace( '_', '-', sanitize_text_field( $source_language ) ), 'target' => str_replace( '_', '-', sanitize_text_field( $target_language ) ), 'format' => 'html', 'model' => 'nmt' );
 			$response = wp_remote_post( 'https://translation.googleapis.com/language/translate/v2', array( 'timeout' => 120, 'headers' => array( 'X-Goog-Api-Key' => $key, 'Content-Type' => 'application/json' ), 'body' => wp_json_encode( $payload ) ) ); if ( is_wp_error( $response ) ) { return $response; } $status = wp_remote_retrieve_response_code( $response ); $body = json_decode( wp_remote_retrieve_body( $response ), true );
 			/* translators: %d: HTTP response status code. */

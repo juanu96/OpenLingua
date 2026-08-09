@@ -155,7 +155,11 @@ final class Language_Settings implements Module {
 			if ( $fallback && $fallback !== $code && isset( $enabled[ $fallback ] ) ) { $fallbacks[ $code ] = $fallback; }
 		}
 		update_option( 'openlingua_language_settings', array( 'url_mode' => $url_mode, 'domains' => $domains, 'admin_language' => $admin_language, 'hidden_languages' => $hidden, 'browser_redirect' => $browser, 'media_mode' => $media_mode, 'language_order' => array_keys( $order_values ), 'fallbacks' => $fallbacks, 'switcher' => $clean_switcher ) );
-		update_option( 'openlingua_string_discovery', ! empty( $_POST['string_discovery'] ) ); update_option( 'openlingua_flush_rewrite_rules', 1 );
+		$discovery = ! empty( $_POST['string_discovery'] );
+		update_option( 'openlingua_string_discovery', $discovery );
+		if ( $discovery ) { update_option( 'openlingua_string_discovery_until', time() + max( 1, absint( Site_Settings::get()['discovery_minutes'] ) ) * MINUTE_IN_SECONDS, false ); }
+		else { delete_option( 'openlingua_string_discovery_until' ); }
+		update_option( 'openlingua_flush_rewrite_rules', 1 );
 		wp_safe_redirect( add_query_arg( array( 'page' => 'openlingua', 'updated' => 1 ), admin_url( 'admin.php' ) ) ); exit;
 	}
 

@@ -42,7 +42,19 @@ final class String_Discovery implements Module {
 		$key = self::key( $domain, $original, $context );
 		$seen_key = $domain . ':' . $key;
 		self::$running = true;
-		if ( get_option( 'openlingua_string_discovery', false ) && ! isset( self::$seen[ $seen_key ] ) ) {
+		$discovering = (bool) get_option( 'openlingua_string_discovery', false );
+		$until = absint( get_option( 'openlingua_string_discovery_until', 0 ) );
+		$minutes = class_exists( __NAMESPACE__ . '\\Site_Settings' ) ? absint( Site_Settings::get()['discovery_minutes'] ) : 10;
+		if ( $discovering && ! $until ) {
+			$until = time() + max( 1, $minutes ) * 60;
+			if ( function_exists( 'update_option' ) ) { update_option( 'openlingua_string_discovery_until', $until, false ); }
+		}
+		if ( $discovering && $until < time() ) {
+			if ( function_exists( 'update_option' ) ) { update_option( 'openlingua_string_discovery', false ); }
+			if ( function_exists( 'delete_option' ) ) { delete_option( 'openlingua_string_discovery_until' ); }
+			$discovering = false;
+		}
+		if ( $discovering && ! isset( self::$seen[ $seen_key ] ) ) {
 			self::$seen[ $seen_key ] = true;
 			Strings::register( $key, $original, $domain, Languages::default_code() );
 		}

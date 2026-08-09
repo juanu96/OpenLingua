@@ -40,15 +40,36 @@ final class Workflow implements Module {
 			return;
 		}
 		$hash = self::content_hash( $post );
+		$behavior = Site_Settings::get();
 		foreach ( Translations::group( 'post', $post_id ) as $translation_id ) {
 			if ( absint( $translation_id ) === absint( $post_id ) ) { continue; }
 			$translation_row = Translations::row( 'post', $translation_id );
 			if ( ! $translation_row || $translation_row->source_language !== $row->language ) { continue; }
 			$known_hash = get_post_meta( $translation_id, self::HASH_META, true );
-			if ( $known_hash && ! hash_equals( $known_hash, $hash ) ) {
+			$current_status = get_post_meta( $translation_id, self::STATUS_META, true );
+			if ( $known_hash && ! hash_equals( $known_hash, $hash ) && 'outdated' !== $current_status ) {
 				update_post_meta( $translation_id, self::STATUS_META, 'outdated' );
+				if ( 'automatic' === $behavior['source_change'] ) {
+					$provider = Providers::active();
+					if ( $provider && $provider->is_configured() ) { Jobs::enqueue( $post_id, $translation_id, $translation_row->language, $provider->id() ); }
+				}
+				if ( 'notify' === $behavior['source_change'] || ! empty( $behavior['notify_source_changes'] ) ) {
+					/* translators: %s: source content title. */
+					self::notify_source_change( $post );
+				}
 			}
 		}
+	}
+
+	private static function notify_source_change( $post ) {
+		$settings = Site_Settings::get();
+		$emails = array( get_option( 'admin_email' ) );
+		if ( function_exists( 'get_users' ) ) {
+			$users = get_users( array( 'role__in' => (array) $settings['notify_roles'], 'fields' => array( 'user_email' ) ) );
+			foreach ( $users as $user ) { $emails[] = $user->user_email; }
+		}
+		$emails = array_values( array_unique( array_filter( array_map( 'sanitize_email', $emails ) ) ) );
+		if ( $emails ) { wp_mail( $emails, sprintf( __( 'Translation update needed: %s', 'openlingua' ), $post->post_title ), __( 'Source content changed and one or more translations are now marked as outdated.', 'openlingua' ) ); }
 	}
 
 	public static function mark_created( $translation_id, $source_id ) {

@@ -54,7 +54,8 @@ final class Anthropic_Provider implements Module, Translation_Provider {
 	public function translate( array $segments, $source_language, $target_language, array $context = array() ) {
 		$key = self::api_key(); if ( ! $key ) { return new \WP_Error( 'openlingua_anthropic_key', __( 'The Anthropic API key is not configured.', 'openlingua' ) ); }
 		$segments = array_filter( array_map( 'strval', $segments ), static function( $v ) { return '' !== trim( $v ); } ); $translated = array();
-		foreach ( array_chunk( $segments, 30, true ) as $batch ) {
+		$batch_size = max( 5, absint( Site_Settings::get()['batch_size'] ) );
+		foreach ( array_chunk( $segments, $batch_size, true ) as $batch ) {
 			$payload = array( 'model' => self::settings()['model'], 'max_tokens' => 16384, 'system' => 'You are a professional website translator. Output valid JSON only.', 'messages' => array( array( 'role' => 'user', 'content' => self::translation_prompt( $batch, $source_language, $target_language ) ) ) );
 			$r = wp_remote_post( 'https://api.anthropic.com/v1/messages', array( 'timeout' => 120, 'headers' => array( 'x-api-key' => $key, 'anthropic-version' => '2023-06-01', 'content-type' => 'application/json' ), 'body' => wp_json_encode( $payload ) ) ); if ( is_wp_error( $r ) ) { return $r; }
 			$body = json_decode( wp_remote_retrieve_body( $r ), true ); $status = wp_remote_retrieve_response_code( $r ); if ( $status < 200 || $status >= 300 ) { return new \WP_Error( 'openlingua_anthropic_api', sanitize_text_field( $body['error']['message'] ?? 'Anthropic API error ' . $status ) ); }

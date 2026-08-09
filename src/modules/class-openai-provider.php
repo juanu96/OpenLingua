@@ -149,7 +149,8 @@ final class OpenAI_Provider implements Module, Translation_Provider {
 		$segments = array_filter( array_map( 'strval', $segments ), static function( $value ) { return '' !== trim( $value ); } );
 		if ( ! $segments ) { return array(); }
 		$translated = array();
-		foreach ( array_chunk( $segments, 40, true ) as $batch ) {
+		$batch_size = max( 5, absint( Site_Settings::get()['batch_size'] ) );
+		foreach ( array_chunk( $segments, $batch_size, true ) as $batch ) {
 			$result = self::translate_batch( $batch, $source_language, $target_language, $key );
 			if ( is_wp_error( $result ) ) { return $result; }
 			$translated = array_merge( $translated, $result );

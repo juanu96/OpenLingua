@@ -92,7 +92,14 @@ final class Plugin {
 	private static function switcher_language_url( array $context, $language ) {
 		if ( empty( $context['type'] ) ) { return home_url( '/' ); }
 		$target_id = Languages::current() === $language ? absint( $context['id'] ?? 0 ) : absint( $context['group'][ $language ] ?? 0 );
-		if ( ! $target_id ) { return ''; }
+		if ( ! $target_id ) {
+			$behavior = class_exists( '\OpenLingua\Modules\Site_Settings' ) ? \OpenLingua\Modules\Site_Settings::get() : array( 'missing_translation' => 'hide' );
+			if ( 'home' === $behavior['missing_translation'] ) { return home_url( '/' ); }
+			if ( 'fallback' === $behavior['missing_translation'] ) {
+				foreach ( Languages::fallback_chain( $language ) as $fallback ) { if ( ! empty( $context['group'][ $fallback ] ) ) { $target_id = absint( $context['group'][ $fallback ] ); break; } }
+			}
+			if ( ! $target_id ) { return ''; }
+		}
 		if ( 'post' === $context['type'] ) {
 			if ( 'publish' !== get_post_status( $target_id ) ) { return ''; }
 			$url = get_permalink( $target_id );

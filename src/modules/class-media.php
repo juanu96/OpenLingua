@@ -14,6 +14,7 @@ final class Media implements Module {
 	const MODE_UNIFIED = 'unified';
 	const MODE_SEPARATE = 'separate';
 	const TEXT_META = '_openlingua_media_texts';
+	const SHARED_META = '_openlingua_media_shared';
 
 	public static function hooks() {
 		add_action( 'add_attachment', array( __CLASS__, 'assign_uploaded_attachment' ) );
@@ -61,6 +62,9 @@ final class Media implements Module {
 				'helps' => __( 'Stored for this language without duplicating the media file.', 'openlingua' ),
 			);
 		}
+		if ( self::MODE_SEPARATE === self::mode() ) {
+			$fields['openlingua_shared'] = array( 'label' => __( 'Language availability', 'openlingua' ), 'input' => 'html', 'html' => '<label><input type="checkbox" name="attachments[' . absint( $attachment->ID ) . '][openlingua_shared]" value="1" ' . checked( (bool) get_post_meta( $attachment->ID, self::SHARED_META, true ), true, false ) . '> ' . esc_html__( 'Available in every language', 'openlingua' ) . '</label>', 'helps' => __( 'Keep this file visible in all language-specific media libraries.', 'openlingua' ) );
+		}
 		return $fields;
 	}
 
@@ -76,6 +80,8 @@ final class Media implements Module {
 			$texts[ $language ][ $key ] = 'description' === $key ? wp_kses_post( $attachment[ $field ] ) : sanitize_textarea_field( $attachment[ $field ] );
 		}
 		update_post_meta( $attachment_id, self::TEXT_META, $texts );
+		if ( ! empty( $attachment['openlingua_shared'] ) ) { update_post_meta( $attachment_id, self::SHARED_META, 1 ); }
+		else { delete_post_meta( $attachment_id, self::SHARED_META ); }
 		return $post;
 	}
 
@@ -137,15 +143,17 @@ final class Media implements Module {
 			$wpdb->posts,
 			$language
 		);
+		$postmeta_table = isset( $wpdb->postmeta ) ? $wpdb->postmeta : preg_replace( '/posts$/', 'postmeta', $wpdb->posts );
+		$shared = $wpdb->prepare( "EXISTS (SELECT 1 FROM %i ol_media_meta WHERE ol_media_meta.post_id = %i.ID AND ol_media_meta.meta_key = %s AND ol_media_meta.meta_value = '1')", $postmeta_table, $wpdb->posts, self::SHARED_META );
 		if ( Languages::default_code() === $language ) {
 			$unassigned = $wpdb->prepare(
 				"NOT EXISTS (SELECT 1 FROM %i ol_media_unassigned WHERE ol_media_unassigned.element_type = 'post' AND ol_media_unassigned.element_id = %i.ID)",
 				$table,
 				$wpdb->posts
 			);
-			$clauses['where'] .= ' AND (' . $unassigned . ' OR ' . $matching . ')';
+			$clauses['where'] .= ' AND (' . $shared . ' OR ' . $unassigned . ' OR ' . $matching . ')';
 		} else {
-			$clauses['where'] .= ' AND ' . $matching;
+			$clauses['where'] .= ' AND (' . $shared . ' OR ' . $matching . ')';
 		}
 		return $clauses;
 	}
