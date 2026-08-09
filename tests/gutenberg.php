@@ -1,5 +1,6 @@
 <?php
-define( 'ABSPATH', dirname( __DIR__, 4 ) . '/' );
+$wordpress_root = getenv( 'OPENLINGUA_WP_ROOT' ) ?: dirname( __DIR__, 4 );
+define( 'ABSPATH', rtrim( $wordpress_root, '/\\' ) . '/' );
 
 function __( $text ) { return $text; }
 function absint( $value ) { return abs( (int) $value ); }

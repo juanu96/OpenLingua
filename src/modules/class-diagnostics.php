@@ -87,7 +87,12 @@ final class Diagnostics implements Module {
 					'opaque-object'           => __( 'Object data cannot be edited safely', 'openlingua' ),
 					'not-a-builder-document'  => __( 'Not recognized as builder content', 'openlingua' ),
 				);
-				echo '<h3>' . esc_html( get_the_title( $post ) ?: sprintf( __( 'Content #%d', 'openlingua' ), $post_id ) ) . '</h3><table class="widefat striped"><thead><tr><th>' . esc_html__( 'Custom field', 'openlingua' ) . '</th><th>' . esc_html__( 'Result', 'openlingua' ) . '</th></tr></thead><tbody>';
+				$title = get_the_title( $post );
+				if ( ! $title ) {
+					/* translators: %d: WordPress content ID. */
+					$title = sprintf( __( 'Content #%d', 'openlingua' ), $post_id );
+				}
+				echo '<h3>' . esc_html( $title ) . '</h3><table class="widefat striped"><thead><tr><th>' . esc_html__( 'Custom field', 'openlingua' ) . '</th><th>' . esc_html__( 'Result', 'openlingua' ) . '</th></tr></thead><tbody>';
 				foreach ( \OpenLingua\Structured_Meta_Content::inspect( $post ) as $key => $reason ) { echo '<tr><td><code>' . esc_html( $key ) . '</code></td><td>' . esc_html( $labels[ $reason ] ?? $reason ) . '</td></tr>'; }
 				echo '</tbody></table>';
 			}

@@ -31,8 +31,14 @@ jobs:
         shell: bash
         run: find src -name '*.php' -print0 | xargs -0 -n1 php -l && php -l openlingua.php && php -l uninstall.php
 
+      - name: Download WordPress parser fixture
+        shell: bash
+        run: curl --fail --silent --show-error https://wordpress.org/latest.tar.gz | tar -xz -C /tmp
+
       - name: Run regression tests
         run: php tools/run-tests.php
+        env:
+          OPENLINGUA_WP_ROOT: /tmp/wordpress
 
   distributable:
     name: Build and Plugin Check
