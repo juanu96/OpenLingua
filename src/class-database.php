@@ -108,7 +108,7 @@ final class Database {
 			add_option( 'openlingua_default_language', 'en' );
 		}
 		if ( ! get_option( 'openlingua_language_settings' ) ) {
-			add_option( 'openlingua_language_settings', array( 'url_mode' => 'directory', 'domains' => array(), 'admin_language' => 'site-default', 'hidden_languages' => array(), 'browser_redirect' => 'off', 'switcher' => array( 'show_flag' => true, 'show_name' => true, 'show_native_name' => false, 'show_current' => true, 'dropdown' => false, 'missing' => 'home', 'footer' => false, 'menu_locations' => array(), 'menu_position' => 'last' ) ) );
+			add_option( 'openlingua_language_settings', array( 'url_mode' => 'directory', 'domains' => array(), 'admin_language' => 'site-default', 'hidden_languages' => array(), 'browser_redirect' => 'off', 'media_mode' => 'unified', 'switcher' => array( 'show_flag' => true, 'show_name' => true, 'show_native_name' => false, 'show_current' => true, 'dropdown' => false, 'missing' => 'home', 'footer' => false, 'menu_locations' => array(), 'menu_position' => 'last' ) ) );
 		}
 		update_option( 'openlingua_db_version', OPENLINGUA_VERSION );
 		foreach ( array( 'administrator', 'editor' ) as $role_name ) {

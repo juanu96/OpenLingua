@@ -23,6 +23,7 @@ final class Plugin {
 			\OpenLingua\Modules\Language_Settings::class,
 			\OpenLingua\Modules\Workflow::class,
 			\OpenLingua\Modules\Menus::class,
+			\OpenLingua\Modules\Media::class,
 			\OpenLingua\Modules\Metadata::class,
 			\OpenLingua\Modules\Commerce::class,
 			\OpenLingua\Modules\Providers::class,

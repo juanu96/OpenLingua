@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.12.0
+
+- Stop exposing translation actions for attachments and reject legacy direct attachment-duplication requests.
+- Reuse the same WordPress media IDs and URLs across translated pages in unified mode.
+- Hide existing translated attachment copies without deleting their physical files or database records.
+- Add an optional separated mode that classifies new uploads by the current administrative content language.
+- Filter both the Media Library and AJAX media selectors used by editors and visual builders.
+- Preserve an All languages view and make switching media modes reversible.
+
 ## 1.11.0
 
 - Store a per-field source snapshot for Divi translations instead of trusting mutable occurrence numbers.

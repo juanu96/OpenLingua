@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.11.0
+Stable tag: 1.12.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,7 +20,8 @@ Stable supported features:
 * A catalog of more than 60 languages plus custom languages, native names, locales, flags or symbols, and RTL direction.
 * Directory, query-parameter, or per-language domain URL modes.
 * Configurable public visibility, administration locale, browser redirect, footer switcher, and missing-translation behavior.
-* Pages, posts, public custom post types, attachments, categories, tags, and custom taxonomies.
+* Pages, posts, public custom post types, categories, tags, and custom taxonomies.
+* A unified Media Library without translated attachment copies, plus an optional media-per-language mode for editors and visual builders.
 * One-click translation drafts with translated hierarchy and taxonomy mapping.
 * Block-level Gutenberg translation for native, nested, reusable, dynamic, and third-party block content.
 * Translation workflow statuses and outdated-source detection.
@@ -113,6 +114,12 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.12.0 =
+* Stop creating attachment translations and reuse WordPress media across translated content by default.
+* Add unified and language-separated Media Library modes under OpenLingua settings.
+* Filter the Media Library and media selectors by the current content language in separate mode.
+* Hide legacy translated attachment copies reversibly in unified mode without deleting files or records.
 
 = 1.11.0 =
 * Track source fingerprints for Divi fields so deleted or inserted modules do not shift existing translations.

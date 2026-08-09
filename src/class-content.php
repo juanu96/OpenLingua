@@ -20,8 +20,6 @@ final class Content {
 		add_filter( 'manage_pages_columns', array( __CLASS__, 'translation_column' ) );
 		add_action( 'manage_posts_custom_column', array( __CLASS__, 'translation_column_value' ), 10, 2 );
 		add_action( 'manage_pages_custom_column', array( __CLASS__, 'translation_column_value' ), 10, 2 );
-		add_filter( 'manage_media_columns', array( __CLASS__, 'translation_column' ) );
-		add_action( 'manage_media_custom_column', array( __CLASS__, 'translation_column_value' ), 10, 2 );
 		add_action( 'init', array( __CLASS__, 'register_cpt_list_table_hooks' ), 99 );
 	}
 
@@ -34,6 +32,7 @@ final class Content {
 
 	public static function meta_box() {
 		foreach ( get_post_types( array( 'show_ui' => true ), 'names' ) as $post_type ) {
+			if ( 'attachment' === $post_type ) { continue; }
 			add_meta_box( 'openlingua-language', __( 'Languages', 'openlingua' ), array( __CLASS__, 'render_meta_box' ), $post_type, 'side', 'high' );
 		}
 	}
@@ -89,6 +88,9 @@ final class Content {
 			wp_die( esc_html__( 'You cannot create this translation.', 'openlingua' ) );
 		}
 		$source = get_post( $post_id );
+		if ( ! $source || 'attachment' === $source->post_type ) {
+			wp_die( esc_html__( 'Media files are shared or separated by language from the OpenLingua media settings and are not duplicated as translations.', 'openlingua' ) );
+		}
 		$row    = Translations::row( 'post', $post_id );
 		if ( ! $row ) {
 			$group = Translations::assign( 'post', $post_id, Languages::default_code() );

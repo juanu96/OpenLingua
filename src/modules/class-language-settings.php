@@ -18,7 +18,7 @@ final class Language_Settings implements Module {
 	public static function defaults() {
 		return array(
 			'url_mode' => 'directory', 'domains' => array(), 'admin_language' => 'site-default',
-			'hidden_languages' => array(), 'browser_redirect' => 'off',
+			'hidden_languages' => array(), 'browser_redirect' => 'off', 'media_mode' => 'unified',
 			'switcher' => array( 'show_flag' => true, 'show_name' => true, 'show_native_name' => false, 'show_current' => true, 'dropdown' => false, 'missing' => 'hide', 'footer' => false, 'menu_locations' => array(), 'menu_position' => 'last' ),
 		);
 	}
@@ -43,6 +43,7 @@ final class Language_Settings implements Module {
 		self::section_urls( $enabled, $settings );
 		self::section_switcher( $settings );
 		self::section_visibility( $enabled, $settings );
+		self::section_media( $settings );
 		self::section_advanced( $enabled, $settings );
 		submit_button( __( 'Save language settings', 'openlingua' ), 'primary large' );
 		echo '</form></div>';
@@ -79,6 +80,15 @@ final class Language_Settings implements Module {
 		echo '</section>';
 	}
 
+	private static function section_media( $settings ) {
+		$mode = 'separate' === ( $settings['media_mode'] ?? '' ) ? 'separate' : 'unified';
+		echo '<section class="openlingua-card"><h2>' . esc_html__( 'Media library by language', 'openlingua' ) . '</h2>';
+		echo '<p>' . esc_html__( 'Choose which WordPress media files are available while editing content. OpenLingua never needs to duplicate an attachment merely to translate a page.', 'openlingua' ) . '</p>';
+		echo '<label class="openlingua-radio"><input type="radio" name="media_mode" value="unified" ' . checked( 'unified', $mode, false ) . '> <strong>' . esc_html__( 'Unified media library', 'openlingua' ) . '</strong><br><span class="description">' . esc_html__( 'Recommended. Every language reuses the same images and files. Legacy translated attachment records are hidden without deleting their files.', 'openlingua' ) . '</span></label>';
+		echo '<label class="openlingua-radio"><input type="radio" name="media_mode" value="separate" ' . checked( 'separate', $mode, false ) . '> <strong>' . esc_html__( 'Separate media by language', 'openlingua' ) . '</strong><br><span class="description">' . esc_html__( 'Uploads are assigned to the current content language. The Media Library and media selectors only show files available for that language.', 'openlingua' ) . '</span></label>';
+		echo '<p class="description">' . esc_html__( 'Changing this option is reversible and does not delete physical files or attachment records.', 'openlingua' ) . '</p></section>';
+	}
+
 	private static function section_advanced( $enabled, $settings ) {
 		echo '<section class="openlingua-card"><h2>' . esc_html__( 'Administration and browser behavior', 'openlingua' ) . '</h2><label class="openlingua-select">' . esc_html__( 'WordPress administration language', 'openlingua' ) . '<select name="admin_language"><option value="site-default">' . esc_html__( 'Use the site default language', 'openlingua' ) . '</option><option value="user">' . esc_html__( 'Use each user profile language', 'openlingua' ) . '</option>';
 		foreach ( $enabled as $code => $language ) { echo '<option value="' . esc_attr( $code ) . '" ' . selected( $settings['admin_language'], $code, false ) . '>' . esc_html( $language['name'] ) . '</option>'; }
@@ -110,12 +120,13 @@ final class Language_Settings implements Module {
 		$domains = array(); foreach ( $submitted_domains as $code => $url ) { if ( isset( $enabled[ $code ] ) && $url ) { $domains[ sanitize_key( $code ) ] = untrailingslashit( esc_url_raw( $url ) ); } }
 		$admin_language = sanitize_key( wp_unslash( $_POST['admin_language'] ?? 'site-default' ) ); if ( ! in_array( $admin_language, array_merge( array( 'site-default', 'user' ), array_keys( $enabled ) ), true ) ) { $admin_language = 'site-default'; }
 		$browser = sanitize_key( wp_unslash( $_POST['browser_redirect'] ?? 'off' ) ); if ( ! in_array( $browser, array( 'off', 'once', 'always' ), true ) ) { $browser = 'off'; }
+		$media_mode = sanitize_key( wp_unslash( $_POST['media_mode'] ?? 'unified' ) ); if ( ! in_array( $media_mode, array( 'unified', 'separate' ), true ) ) { $media_mode = 'unified'; }
 		$switcher = isset( $_POST['switcher'] ) ? map_deep( (array) wp_unslash( $_POST['switcher'] ), 'sanitize_text_field' ) : array();
 		$registered_locations = array_keys( get_registered_nav_menus() );
 		$menu_locations = array_values( array_intersect( $registered_locations, array_map( 'sanitize_key', (array) ( $switcher['menu_locations'] ?? array() ) ) ) );
 		$clean_switcher = array( 'show_flag' => ! empty( $switcher['show_flag'] ), 'show_name' => ! empty( $switcher['show_name'] ), 'show_native_name' => ! empty( $switcher['show_native_name'] ), 'show_current' => ! empty( $switcher['show_current'] ), 'dropdown' => ! empty( $switcher['dropdown'] ), 'footer' => ! empty( $switcher['footer'] ), 'missing' => 'hide', 'menu_locations' => $menu_locations, 'menu_position' => 'first' === ( $switcher['menu_position'] ?? '' ) ? 'first' : 'last' );
 		$hidden = array_values( array_intersect( array_keys( $enabled ), array_map( 'sanitize_key', isset( $_POST['hidden_languages'] ) ? (array) wp_unslash( $_POST['hidden_languages'] ) : array() ) ) );
-		update_option( 'openlingua_language_settings', array( 'url_mode' => $url_mode, 'domains' => $domains, 'admin_language' => $admin_language, 'hidden_languages' => $hidden, 'browser_redirect' => $browser, 'switcher' => $clean_switcher ) );
+		update_option( 'openlingua_language_settings', array( 'url_mode' => $url_mode, 'domains' => $domains, 'admin_language' => $admin_language, 'hidden_languages' => $hidden, 'browser_redirect' => $browser, 'media_mode' => $media_mode, 'switcher' => $clean_switcher ) );
 		update_option( 'openlingua_string_discovery', ! empty( $_POST['string_discovery'] ) ); update_option( 'openlingua_flush_rewrite_rules', 1 );
 		wp_safe_redirect( add_query_arg( array( 'page' => 'openlingua', 'updated' => 1 ), admin_url( 'admin.php' ) ) ); exit;
 	}
