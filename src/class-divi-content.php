@@ -120,9 +120,15 @@ final class Divi_Content {
 	}
 
 	public static function source_snapshot( $content ) {
-		$snapshot = array();
-		foreach ( self::extract( $content ) as $segment ) { $snapshot[ $segment['id'] ] = self::segment_hash( $segment ); }
-		return $snapshot;
+		$segments = array();
+		foreach ( self::extract( $content ) as $segment ) {
+			$segments[ $segment['id'] ] = array(
+				'hash'          => self::segment_hash( $segment ),
+				'compatibility' => self::compatibility_key( $segment ),
+				'value'         => self::normalized_value( $segment['value'], $segment['kind'] ),
+			);
+		}
+		return array( 'version' => 2, 'segments' => $segments );
 	}
 
 	/** Aligns existing target values without assuming module occurrence numbers stayed stable. */
@@ -130,6 +136,13 @@ final class Divi_Content {
 		$source_segments = self::extract( $source_content );
 		$target_segments = self::extract( $target_content );
 		$values = array();
+		$snapshot_segments = self::snapshot_segments( $snapshot );
+		$legacy_snapshot = $snapshot && ! isset( $snapshot['version'] );
+		$previous_pools = array();
+		foreach ( $snapshot_segments as $old_id => $old_segment ) {
+			if ( ! isset( $old_segment['compatibility'], $old_segment['value'] ) ) { continue; }
+			$previous_pools[ $old_segment['compatibility'] . ':' . $old_segment['value'] ][] = (string) $old_id;
+		}
 		$pools = array();
 		$source_owners = array();
 		foreach ( $source_segments as $segment ) {
@@ -141,10 +154,28 @@ final class Divi_Content {
 			$key = self::compatibility_key( $segment ) . ':' . self::normalized_value( $segment['value'], $segment['kind'] );
 			$pools[ $key ][] = $segment;
 		}
+		$original_target_values = $values;
 		$used = array();
 		foreach ( $source_segments as $segment ) {
 			$id = $segment['id'];
-			if ( $snapshot && ( ! isset( $snapshot[ $id ] ) || ! hash_equals( (string) $snapshot[ $id ], self::segment_hash( $segment ) ) ) ) { $values[ $id ] = ''; }
+			$current_key = self::compatibility_key( $segment ) . ':' . self::normalized_value( $segment['value'], $segment['kind'] );
+			if ( $snapshot_segments ) {
+				$old_id = '';
+				foreach ( $previous_pools[ $current_key ] ?? array() as $candidate_id ) {
+					if ( isset( $used[ 'snapshot:' . $candidate_id ] ) ) { continue; }
+					$old_id = $candidate_id;
+					$used[ 'snapshot:' . $candidate_id ] = true;
+					break;
+				}
+				if ( $old_id && array_key_exists( $old_id, $original_target_values ) ) {
+					$values[ $id ] = $original_target_values[ $old_id ];
+					$used[ $old_id ] = true;
+					continue;
+				}
+				$values[ $id ] = '';
+			} elseif ( $legacy_snapshot && ( ! isset( $snapshot[ $id ] ) || ! hash_equals( (string) $snapshot[ $id ], self::segment_hash( $segment ) ) ) ) {
+				$values[ $id ] = '';
+			}
 			$key = self::compatibility_key( $segment ) . ':' . self::normalized_value( $segment['value'], $segment['kind'] );
 			$matched = false;
 			foreach ( $pools[ $key ] ?? array() as $candidate ) {
@@ -159,6 +190,11 @@ final class Divi_Content {
 			if ( ! empty( $source_owners[ $target_key ] ) && $source_owners[ $target_key ] !== $id ) { $values[ $id ] = ''; }
 		}
 		return $values;
+	}
+
+	private static function snapshot_segments( array $snapshot ) {
+		if ( 2 !== (int) ( $snapshot['version'] ?? 0 ) || ! is_array( $snapshot['segments'] ?? null ) ) { return array(); }
+		return $snapshot['segments'];
 	}
 
 	public static function apply( $content, array $translations ) {
