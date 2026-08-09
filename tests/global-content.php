@@ -19,6 +19,7 @@ namespace OpenLingua {
 			if ( 'post' !== $type || 'es' !== $language ) { return 0; }
 			return 10 === (int) $id ? 20 : ( 11 === (int) $id ? 30 : 0 );
 		}
+		public static function translated_id_with_fallback( $type, $id, $language ) { return self::translated_id( $type, $id, $language ); }
 	}
 
 	require dirname( __DIR__ ) . '/src/class-global-content.php';

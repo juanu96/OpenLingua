@@ -14,6 +14,7 @@ namespace OpenLingua {
 		public static function translated_id( $type, $id, $language ) {
 			return 'post' === $type && 10 === (int) $id && 'es' === $language ? self::$target : 0;
 		}
+		public static function translated_id_with_fallback( $type, $id, $language ) { return self::translated_id( $type, $id, $language ); }
 	}
 
 	require dirname( __DIR__ ) . '/src/class-gutenberg-content.php';
