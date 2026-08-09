@@ -80,6 +80,7 @@ final class Translation_Editor {
 		$acf_snapshot = is_array( $acf_snapshot ) ? $acf_snapshot : array();
 		$target_acf = ACF_Content::aligned_values( $source->ID, $target->ID, $acf_snapshot );
 		$seo_groups = SEO::translation_fields( $source->ID, $target->ID );
+		$commerce_fields = \OpenLingua\Modules\Commerce::translation_fields( $source->ID, $target->ID );
 		$memory_fields = array();
 		foreach ( $fields as $name => &$field ) {
 			self::apply_memory( 'openlingua-' . $name, $field['source'], $field['target'], $source_code, $target_code, 'post_title' === $name ? 'text' : 'html', $memory_fields );
@@ -102,6 +103,8 @@ final class Translation_Editor {
 			$target_acf[ $segment['id'] ] = $target_acf[ $segment['id'] ] ?? '';
 			self::apply_memory( 'openlingua-' . $segment['id'], $segment['value'], $target_acf[ $segment['id'] ], $source_code, $target_code, $segment['format'], $memory_fields );
 		}
+		foreach ( $commerce_fields as &$field ) { self::apply_memory( 'openlingua-commerce-' . $field['id'], $field['source'], $field['target'], $source_code, $target_code, 'html', $memory_fields ); }
+		unset( $field );
 		foreach ( $seo_groups as &$group ) {
 			foreach ( $group['fields'] as &$field ) { self::apply_memory( 'openlingua-seo-' . $field['id'], $field['source'], $field['target'], $source_code, $target_code, 'text', $memory_fields ); }
 			unset( $field );
@@ -175,6 +178,10 @@ final class Translation_Editor {
 			} else {
 				echo '<section class="openlingua-editor__segment openlingua-editor__segment--acf" data-openlingua-segment><div class="openlingua-editor__source"><label><span class="dashicons dashicons-forms"></span> ' . esc_html( $segment['label'] ) . '</label><div class="openlingua-editor__original">' . nl2br( esc_html( $segment['value'] ) ) . '</div></div><div class="openlingua-editor__target"><label for="openlingua-' . esc_attr( $segment['id'] ) . '">' . esc_html( $segment['label'] ) . '</label><textarea id="openlingua-' . esc_attr( $segment['id'] ) . '" name="acf_translation[' . esc_attr( $segment['id'] ) . ']" rows="' . absint( $rows ) . '" data-openlingua-translation>' . esc_textarea( $target_value ) . '</textarea></div></section>';
 			}
+		}
+		if ( $commerce_fields ) { echo '<h2>' . esc_html__( 'Product variations', 'openlingua' ) . '</h2>'; }
+		foreach ( $commerce_fields as $field ) {
+			echo '<section class="openlingua-editor__segment openlingua-editor__segment--commerce openlingua-editor__segment--rich" data-openlingua-segment data-openlingua-rich-segment><div class="openlingua-editor__source"><label><span class="dashicons dashicons-cart"></span> ' . esc_html( $field['label'] ) . '</label><div class="openlingua-editor__original openlingua-editor__visual" data-openlingua-source-visual>' . wp_kses_post( $field['source'] ) . '</div><pre class="openlingua-editor__source-code" data-openlingua-source-code hidden>' . esc_html( $field['source'] ) . '</pre></div><div class="openlingua-editor__target"><div class="openlingua-editor__field-heading"><label for="openlingua-commerce-' . esc_attr( $field['id'] ) . '">' . esc_html( $field['label'] ) . '</label><button type="button" class="button button-small" data-openlingua-html-toggle data-show-html="' . esc_attr__( 'Show HTML', 'openlingua' ) . '" data-hide-html="' . esc_attr__( 'Visual view', 'openlingua' ) . '" aria-pressed="false"><span class="dashicons dashicons-editor-code"></span><span data-openlingua-toggle-label>' . esc_html__( 'Show HTML', 'openlingua' ) . '</span></button></div><div class="openlingua-editor__visual openlingua-editor__visual--editable" contenteditable="true" role="textbox" aria-multiline="true" data-openlingua-target-visual>' . wp_kses_post( $field['target'] ) . '</div><textarea id="openlingua-commerce-' . esc_attr( $field['id'] ) . '" class="openlingua-editor__code" name="commerce_translation[' . esc_attr( $field['id'] ) . ']" rows="4" data-openlingua-translation data-openlingua-target-code hidden>' . esc_textarea( $field['target'] ) . '</textarea></div></section>';
 		}
 		foreach ( $seo_groups as $group ) {
 			/* translators: %s: SEO integration name. */
@@ -258,6 +265,7 @@ final class Translation_Editor {
 		update_post_meta( $target_id, ACF_Content::SOURCE_SNAPSHOT_META, ACF_Content::source_snapshot( $source_id ) );
 		$seo_translation = self::posted_array( 'seo_translation' );
 		SEO::save_translation_fields( $source_id, $target_id, $seo_translation );
+		\OpenLingua\Modules\Commerce::save_translation_fields( $source_id, $target_id, self::posted_array( 'commerce_translation' ) );
 		Translation_Memory::learn_post( $source_id, $target_id );
 		update_post_meta( $target_id, \OpenLingua\Modules\Workflow::STATUS_META, $status );
 		\OpenLingua\Modules\Workflow::mark_created( $target_id, $source_id );

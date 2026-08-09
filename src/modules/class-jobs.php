@@ -97,6 +97,7 @@ final class Jobs implements Module {
 		$extractor_segments = $content_extractor ? $content_extractor->extract( $source ) : array();
 		$acf_segments = ACF_Content::extract( $source->ID );
 		$seo_groups = SEO::translation_fields( $source->ID, $target->ID );
+		$commerce_fields = Commerce::translation_fields( $source->ID, $target->ID );
 		$segments = array( 'title' => $source->post_title, 'excerpt' => $source->post_excerpt );
 		if ( $is_divi ) {
 			foreach ( $divi_segments as $segment ) { $segments[ $segment['id'] ] = $segment['value']; }
@@ -108,6 +109,7 @@ final class Jobs implements Module {
 			$segments['content'] = $source->post_content;
 		}
 		foreach ( $acf_segments as $segment ) { $segments[ 'acf__' . $segment['id'] ] = $segment['value']; }
+		foreach ( $commerce_fields as $field ) { $segments[ 'commerce__' . $field['id'] ] = $field['source']; }
 		foreach ( $seo_groups as $group ) {
 			foreach ( $group['fields'] as $field ) { if ( '' !== trim( $field['source'] ) ) { $segments[ 'seo__' . $field['id'] ] = $field['source']; } }
 		}
@@ -167,6 +169,12 @@ final class Jobs implements Module {
 			}
 		}
 		SEO::save_translation_fields( $source->ID, $target->ID, $seo_translation );
+		$commerce_translation = array();
+		foreach ( $commerce_fields as $field ) {
+			$key = 'commerce__' . $field['id'];
+			if ( array_key_exists( $key, $result ) ) { $commerce_translation[ $field['id'] ] = $result[ $key ]; }
+		}
+		Commerce::save_translation_fields( $source->ID, $target->ID, $commerce_translation );
 		Translation_Memory::learn_post( $source->ID, $target->ID, 'automatic', false );
 		update_post_meta( $job->target_id, Workflow::STATUS_META, 'in-progress' );
 		$payload = json_decode( (string) $job->payload, true );
