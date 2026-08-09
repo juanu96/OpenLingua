@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.18.0
+Stable tag: 1.18.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -119,6 +119,10 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit cleanup options.
 
 == Changelog ==
+
+= 1.18.1 =
+* Added lightweight local SVG flags to make setup consistent across browsers and operating systems.
+* Corrected language-preview spacing and button icon alignment.
 
 = 1.18.0 =
 * Redesigned the initial setup as an interactive five-step assistant.

@@ -40,7 +40,12 @@
 		if (dropdown) menu.className = 'openlingua-setup__preview-menu';
 		languages.forEach(function (input, index) {
 			var item = document.createElement('span');
-			if (showFlags) { var flag = document.createElement('b'); flag.textContent = input.dataset.flag; item.appendChild(flag); }
+			if (showFlags) {
+				var flag = input.dataset.flagUrl ? document.createElement('img') : document.createElement('b');
+				if (input.dataset.flagUrl) { flag.src = input.dataset.flagUrl; flag.alt = ''; }
+				else flag.textContent = input.dataset.flag;
+				item.appendChild(flag);
+			}
 			if (showNames) item.appendChild(document.createTextNode(nativeNames ? input.dataset.native : input.dataset.english));
 			if (!showFlags && !showNames) item.appendChild(document.createTextNode(input.value.toUpperCase()));
 			if (dropdown && index === 0) { var arrow = document.createElement('i'); arrow.textContent = '⌄'; item.appendChild(arrow); }
@@ -51,7 +56,7 @@
 	}
 	function updateSummary() {
 		var nativeNames = form.elements.show_native_name.checked;
-		var languages = checkedLanguages().map(function (input) { return input.dataset.flag + ' ' + (nativeNames ? input.dataset.native : input.dataset.english); });
+		var languages = checkedLanguages().map(function (input) { return nativeNames ? input.dataset.native : input.dataset.english; });
 		var url = selectedRadio('url_mode');
 		var status = selectedRadio('new_translation_status');
 		form.querySelector('[data-summary-languages]').textContent = languages.join(', ') || text.empty;

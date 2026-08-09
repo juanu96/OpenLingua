@@ -22,10 +22,37 @@
 }
 
 .openlingua-setup__preview-menu > span {
+	align-items: center;
 	border-radius: 6px;
+	display: flex;
+	gap: 7px;
 	padding: 7px 8px;
 }
 
 .openlingua-setup__preview-menu > span:hover {
 	background: var(--ol-soft);
+}
+
+.openlingua-setup__languages label > img,
+[data-switcher-preview] img {
+	border-radius: 2px;
+	display: block;
+	height: 14px;
+	object-fit: cover;
+	width: 19px;
+}
+
+.openlingua-setup__languages label > img {
+	grid-row: 1;
+}
+
+.openlingua-setup__actions .button .dashicons {
+	align-items: center;
+	display: inline-flex;
+	font-size: 18px;
+	height: 18px;
+	justify-content: center;
+	line-height: 1;
+	margin: 0;
+	width: 18px;
 }

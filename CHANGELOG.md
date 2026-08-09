@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.18.1
+
+- Replaced platform-dependent emoji flags in setup with a lightweight local SVG subset from the MIT-licensed flag-icons project.
+- Aligned preview flags, language labels, and navigation arrows consistently.
+
 ## 1.18.0
 
 - Redesigned first-run setup as a spacious, interactive five-step assistant with OpenLingua's own visual language.

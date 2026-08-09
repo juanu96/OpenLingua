@@ -2,7 +2,7 @@
 
 OpenLingua is a free, GPL-licensed multilingual foundation for WordPress. It provides language-aware content, URLs, menus, taxonomies, custom fields, SEO metadata, interface strings, shortcodes, Divi layouts, and optional automatic translation without locking a site into a proprietary translation service.
 
-Current plugin version: **1.18.0**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
+Current plugin version: **1.18.1**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
 
 The guided first-install wizard configures languages, URL format, selector appearance, media behavior, and editorial workflow in five interactive steps. New sites open it automatically on their first OpenLingua visit, while upgrades remain uninterrupted. The central settings screen then controls how translations are created, reviewed, published, indexed, rediscovered, retained, and removed. Translation permissions and notification recipients are configured independently.
 
@@ -188,6 +188,8 @@ Automatic translation jobs:
 6. Show clear queued, translating, ready, and failed states under **OpenLingua → Jobs**.
 
 API usage is billed or limited by the selected provider. A ChatGPT or Claude subscription is separate from API usage.
+
+Bundled country flag SVGs are a small, locally served subset of the MIT-licensed [flag-icons](https://github.com/lipis/flag-icons) project. Its license is included with the assets.
 
 ## Administration screens
 
