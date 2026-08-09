@@ -93,7 +93,7 @@ final class Global_Content {
 
 	private static function translated_template_object( $template ) {
 		if ( ! is_object( $template ) || empty( $template->wp_id ) || Languages::current() === Languages::default_code() ) { return $template; }
-		$translated_id = Translations::translated_id( 'post', absint( $template->wp_id ), Languages::current() );
+		$translated_id = Translations::translated_id_with_fallback( 'post', absint( $template->wp_id ), Languages::current() );
 		if ( ! $translated_id || 'publish' !== get_post_status( $translated_id ) || ! function_exists( '_build_block_template_result_from_post' ) ) { return $template; }
 		$post = get_post( $translated_id );
 		return $post ? _build_block_template_result_from_post( $post ) : $template;

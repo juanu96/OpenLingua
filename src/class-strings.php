@@ -41,7 +41,10 @@ final class Strings {
 		if ( ! $row ) { return $register_missing ? self::register( $key, $fallback, $domain ) : $fallback; }
 		$translations = json_decode( $row->translations, true );
 		$language = $language ?: Languages::current();
-		return ! empty( $translations[ $language ] ) ? $translations[ $language ] : $row->source_text;
+		foreach ( Languages::fallback_chain( $language ) as $candidate ) {
+			if ( ! empty( $translations[ $candidate ] ) ) { return $translations[ $candidate ]; }
+		}
+		return $row->source_text;
 	}
 
 	public static function translate_plural( $singular_key, $plural_key, $number, $singular, $plural, $domain = 'default', $language = '' ) {

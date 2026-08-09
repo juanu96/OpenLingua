@@ -114,12 +114,12 @@ final class Gutenberg_Content {
 
 	private static function map_block_references( $name, array &$attributes, $target_language ) {
 		if ( in_array( $name, array( 'core/block', 'core/navigation' ), true ) && ! empty( $attributes['ref'] ) ) {
-			$translated = Translations::translated_id( 'post', absint( $attributes['ref'] ), $target_language );
+			$translated = Translations::translated_id_with_fallback( 'post', absint( $attributes['ref'] ), $target_language );
 			if ( $translated && 'publish' === get_post_status( $translated ) ) { $attributes['ref'] = absint( $translated ); }
 		}
 		if ( 'core/navigation-link' === $name && ! empty( $attributes['id'] ) ) {
 			$element_type = 'taxonomy' === ( $attributes['kind'] ?? '' ) ? 'term' : 'post';
-			$translated = Translations::translated_id( $element_type, absint( $attributes['id'] ), $target_language );
+			$translated = Translations::translated_id_with_fallback( $element_type, absint( $attributes['id'] ), $target_language );
 			if ( $translated ) {
 				$attributes['id'] = absint( $translated );
 				if ( 'term' === $element_type && function_exists( 'get_term_link' ) ) {
@@ -156,7 +156,7 @@ final class Gutenberg_Content {
 		if ( $url_host && $home_host && strtolower( $url_host ) !== strtolower( $home_host ) ) { return $url; }
 		$post_id = url_to_postid( $url );
 		if ( ! $post_id ) { return $url; }
-		$translated_id = Translations::translated_id( 'post', $post_id, $target_language );
+		$translated_id = Translations::translated_id_with_fallback( 'post', $post_id, $target_language );
 		if ( ! $translated_id || 'publish' !== get_post_status( $translated_id ) ) { return $url; }
 		$translated_url = get_permalink( $translated_id );
 		if ( ! $translated_url ) { return $url; }

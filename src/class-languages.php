@@ -13,6 +13,16 @@ final class Languages {
 			$catalog = \OpenLingua\Modules\Language_Catalog::merged();
 			foreach ( $languages as $code => $language ) { $languages[ $code ] = array_replace( $catalog[ $code ] ?? array(), $language ); }
 		}
+		$settings = (array) get_option( 'openlingua_language_settings', array() );
+		$order = array_values( array_filter( array_map( 'sanitize_key', (array) ( $settings['language_order'] ?? array() ) ) ) );
+		if ( $order ) {
+			$positions = array_flip( $order );
+			uksort( $languages, static function ( $left, $right ) use ( $positions ) {
+				$left_position = $positions[ $left ] ?? PHP_INT_MAX;
+				$right_position = $positions[ $right ] ?? PHP_INT_MAX;
+				return $left_position === $right_position ? strcmp( $left, $right ) : $left_position <=> $right_position;
+			} );
+		}
 		return $languages;
 	}
 
@@ -47,6 +57,20 @@ final class Languages {
 
 	public static function is_valid( $code ) {
 		return isset( self::all()[ sanitize_key( $code ) ] );
+	}
+
+	/** Returns the requested language followed by its configured, loop-safe fallbacks. */
+	public static function fallback_chain( $code ) {
+		$code = sanitize_key( $code );
+		if ( ! self::is_valid( $code ) ) { $code = self::default_code(); }
+		$settings = (array) get_option( 'openlingua_language_settings', array() );
+		$fallbacks = (array) ( $settings['fallbacks'] ?? array() );
+		$chain = array();
+		while ( $code && self::is_valid( $code ) && ! in_array( $code, $chain, true ) ) {
+			$chain[] = $code;
+			$code = sanitize_key( $fallbacks[ $code ] ?? '' );
+		}
+		return $chain;
 	}
 
 	public static function url( $url, $code ) {

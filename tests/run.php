@@ -94,4 +94,13 @@ $_SERVER['REQUEST_URI'] = '/news/';
 \OpenLingua\Routing::detect_prefix( true, null, array() );
 openlingua_assert_same( 'en', \OpenLingua\Languages::current(), 'detects the language from a configured domain' );
 
+$openlingua_test_options['openlingua_languages']['fr'] = array( 'name' => 'Français', 'locale' => 'fr_FR' );
+$openlingua_test_options['openlingua_language_settings'] = array(
+	'url_mode' => 'directory',
+	'language_order' => array( 'fr', 'es', 'en' ),
+	'fallbacks' => array( 'fr' => 'es', 'es' => 'en', 'en' => 'fr' ),
+);
+openlingua_assert_same( 'fr,es,en', implode( ',', array_keys( \OpenLingua\Languages::all() ) ), 'uses the configured language order' );
+openlingua_assert_same( 'fr,es,en', implode( ',', \OpenLingua\Languages::fallback_chain( 'fr' ) ), 'builds a fallback chain and stops safely when configuration loops' );
+
 echo "All OpenLingua routing tests passed.\n";

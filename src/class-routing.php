@@ -88,7 +88,7 @@ final class Routing {
 		$resolved_id = absint( $query->get( 'page_id' ) ?: $query->get( 'p' ) );
 		if ( $resolved_id ) {
 			$row = Translations::row( 'post', $resolved_id );
-			$translated_id = $row && $row->language !== Languages::current() ? Translations::translated_id( 'post', $resolved_id, Languages::current() ) : 0;
+			$translated_id = $row && $row->language !== Languages::current() ? Translations::translated_id_with_fallback( 'post', $resolved_id, Languages::current() ) : 0;
 			if ( $translated_id ) {
 				self::set_resolved_post( $query, $translated_id, get_post_type( $translated_id ) );
 			}
@@ -199,7 +199,7 @@ final class Routing {
 		}
 		$row = Translations::row( $element_type, $element_id );
 		if ( ! $row || $row->language === Languages::current() ) { return; }
-		$translated_id = Translations::translated_id( $element_type, $element_id, Languages::current() );
+		$translated_id = Translations::translated_id_with_fallback( $element_type, $element_id, Languages::current() );
 		if ( 'post' === $element_type ) {
 			$target = get_permalink( $translated_id ?: $element_id );
 		} else {

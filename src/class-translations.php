@@ -69,6 +69,14 @@ final class Translations {
 		return isset( $group[ $language ] ) ? absint( $group[ $language ] ) : 0;
 	}
 
+	public static function translated_id_with_fallback( $element_type, $element_id, $language ) {
+		foreach ( Languages::fallback_chain( $language ) as $candidate ) {
+			$translated_id = self::translated_id( $element_type, $element_id, $candidate );
+			if ( $translated_id ) { return $translated_id; }
+		}
+		return 0;
+	}
+
 	public static function delete( $element_type, $element_id ) {
 		global $wpdb;
 		$row = self::row( $element_type, $element_id );

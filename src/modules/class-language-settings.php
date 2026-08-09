@@ -19,6 +19,7 @@ final class Language_Settings implements Module {
 		return array(
 			'url_mode' => 'directory', 'domains' => array(), 'admin_language' => 'site-default',
 			'hidden_languages' => array(), 'browser_redirect' => 'off', 'media_mode' => 'unified',
+			'language_order' => array(), 'fallbacks' => array(),
 			'switcher' => array( 'show_flag' => true, 'show_name' => true, 'show_native_name' => false, 'show_current' => true, 'dropdown' => false, 'missing' => 'hide', 'footer' => false, 'menu_locations' => array(), 'menu_position' => 'last' ),
 		);
 	}
@@ -40,6 +41,7 @@ final class Language_Settings implements Module {
 		echo '<div class="wrap openlingua-settings"><h1>' . esc_html__( 'OpenLingua language settings', 'openlingua' ) . '</h1><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_save_language_settings">';
 		wp_nonce_field( 'openlingua_save_language_settings' );
 		self::section_languages( $catalog, $enabled, $default );
+		self::section_fallbacks( $enabled, $settings );
 		self::section_urls( $enabled, $settings );
 		self::section_switcher( $settings );
 		self::section_visibility( $enabled, $settings );
@@ -56,6 +58,22 @@ final class Language_Settings implements Module {
 			echo '<label class="openlingua-language-option' . ( $active ? ' is-enabled' : '' ) . '"><input type="checkbox" name="enabled_languages[]" value="' . esc_attr( $code ) . '" ' . checked( $active, true, false ) . ( $code === $default ? ' data-default="1"' : '' ) . '><span class="openlingua-flag">' . esc_html( $language['flag'] ?? '🌐' ) . '</span><span><strong>' . esc_html( $language['name'] ) . '</strong><small>' . esc_html( $language['native_name'] ?? $language['name'] ) . ' · ' . esc_html( $code ) . '</small></span><input type="radio" name="default_language" value="' . esc_attr( $code ) . '" ' . checked( $default, $code, false ) . ' aria-label="' . esc_attr__( 'Default language', 'openlingua' ) . '"></label>';
 		}
 		echo '</div><details><summary>' . esc_html__( 'Add a custom language', 'openlingua' ) . '</summary><div class="openlingua-custom-grid"><label>' . esc_html__( 'Code', 'openlingua' ) . '<input name="custom[code]" placeholder="es-ni"></label><label>' . esc_html__( 'English name', 'openlingua' ) . '<input name="custom[name]"></label><label>' . esc_html__( 'Native name', 'openlingua' ) . '<input name="custom[native_name]"></label><label>' . esc_html__( 'WordPress locale', 'openlingua' ) . '<input name="custom[locale]" placeholder="es_NI"></label><label>' . esc_html__( 'Flag or symbol', 'openlingua' ) . '<input name="custom[flag]" placeholder="🇳🇮"></label><label>' . esc_html__( 'Text direction', 'openlingua' ) . '<select name="custom[direction]"><option value="ltr">LTR</option><option value="rtl">RTL</option></select></label></div></details></section>';
+	}
+
+	private static function section_fallbacks( $enabled, $settings ) {
+		$order = array_flip( array_values( (array) ( $settings['language_order'] ?? array_keys( $enabled ) ) ) );
+		echo '<section class="openlingua-card"><h2>' . esc_html__( 'Language order and fallback', 'openlingua' ) . '</h2>';
+		echo '<p>' . esc_html__( 'Lower order numbers appear first. A fallback is used only when translated content or a registered string is unavailable; leave it disabled to keep missing translations hidden.', 'openlingua' ) . '</p>';
+		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Language', 'openlingua' ) . '</th><th>' . esc_html__( 'Order', 'openlingua' ) . '</th><th>' . esc_html__( 'Fallback language', 'openlingua' ) . '</th></tr></thead><tbody>';
+		foreach ( $enabled as $code => $language ) {
+			echo '<tr><th><span aria-hidden="true">' . esc_html( $language['flag'] ?? '🌐' ) . '</span> ' . esc_html( $language['name'] ) . '</th><td><input type="number" min="0" step="1" name="language_order[' . esc_attr( $code ) . ']" value="' . absint( $order[ $code ] ?? count( $order ) ) . '" class="small-text"></td><td><select name="fallbacks[' . esc_attr( $code ) . ']"><option value="">' . esc_html__( 'No fallback', 'openlingua' ) . '</option>';
+			foreach ( $enabled as $fallback_code => $fallback_language ) {
+				if ( $fallback_code === $code ) { continue; }
+				echo '<option value="' . esc_attr( $fallback_code ) . '" ' . selected( $settings['fallbacks'][ $code ] ?? '', $fallback_code, false ) . '>' . esc_html( $fallback_language['name'] ) . '</option>';
+			}
+			echo '</select></td></tr>';
+		}
+		echo '</tbody></table></section>';
 	}
 
 	private static function section_urls( $enabled, $settings ) {
@@ -126,7 +144,17 @@ final class Language_Settings implements Module {
 		$menu_locations = array_values( array_intersect( $registered_locations, array_map( 'sanitize_key', (array) ( $switcher['menu_locations'] ?? array() ) ) ) );
 		$clean_switcher = array( 'show_flag' => ! empty( $switcher['show_flag'] ), 'show_name' => ! empty( $switcher['show_name'] ), 'show_native_name' => ! empty( $switcher['show_native_name'] ), 'show_current' => ! empty( $switcher['show_current'] ), 'dropdown' => ! empty( $switcher['dropdown'] ), 'footer' => ! empty( $switcher['footer'] ), 'missing' => 'hide', 'menu_locations' => $menu_locations, 'menu_position' => 'first' === ( $switcher['menu_position'] ?? '' ) ? 'first' : 'last' );
 		$hidden = array_values( array_intersect( array_keys( $enabled ), array_map( 'sanitize_key', isset( $_POST['hidden_languages'] ) ? (array) wp_unslash( $_POST['hidden_languages'] ) : array() ) ) );
-		update_option( 'openlingua_language_settings', array( 'url_mode' => $url_mode, 'domains' => $domains, 'admin_language' => $admin_language, 'hidden_languages' => $hidden, 'browser_redirect' => $browser, 'media_mode' => $media_mode, 'switcher' => $clean_switcher ) );
+		$submitted_order = isset( $_POST['language_order'] ) ? (array) wp_unslash( $_POST['language_order'] ) : array();
+		$order_values = array();
+		foreach ( array_keys( $enabled ) as $code ) { $order_values[ $code ] = absint( $submitted_order[ $code ] ?? count( $order_values ) ); }
+		uksort( $order_values, static function ( $left, $right ) use ( $order_values ) { return $order_values[ $left ] === $order_values[ $right ] ? strcmp( $left, $right ) : $order_values[ $left ] <=> $order_values[ $right ]; } );
+		$submitted_fallbacks = isset( $_POST['fallbacks'] ) ? (array) wp_unslash( $_POST['fallbacks'] ) : array();
+		$fallbacks = array();
+		foreach ( array_keys( $enabled ) as $code ) {
+			$fallback = sanitize_key( $submitted_fallbacks[ $code ] ?? '' );
+			if ( $fallback && $fallback !== $code && isset( $enabled[ $fallback ] ) ) { $fallbacks[ $code ] = $fallback; }
+		}
+		update_option( 'openlingua_language_settings', array( 'url_mode' => $url_mode, 'domains' => $domains, 'admin_language' => $admin_language, 'hidden_languages' => $hidden, 'browser_redirect' => $browser, 'media_mode' => $media_mode, 'language_order' => array_keys( $order_values ), 'fallbacks' => $fallbacks, 'switcher' => $clean_switcher ) );
 		update_option( 'openlingua_string_discovery', ! empty( $_POST['string_discovery'] ) ); update_option( 'openlingua_flush_rewrite_rules', 1 );
 		wp_safe_redirect( add_query_arg( array( 'page' => 'openlingua', 'updated' => 1 ), admin_url( 'admin.php' ) ) ); exit;
 	}
