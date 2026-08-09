@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.14.0
+
+- Create or safely adopt translated WooCommerce variations through a stable source-variation relationship.
+- Map global product attribute terms, default attributes, and variation slugs to target-language taxonomy translations.
+- Synchronize variation pricing, stock, downloads, dimensions, images, status, and ordering while leaving unique SKUs and global identifiers untouched.
+- Add variation descriptions to the manual editor, translation memory, and automatic translation jobs.
+
 ## 1.13.0
 
 - Preserve Divi, Gutenberg, and nested ACF translations across deleted, inserted, and reordered source structures.

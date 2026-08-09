@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.13.0
+Stable tag: 1.14.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,7 +30,7 @@ Stable supported features:
 * Language-aware public archives, searches, canonical URLs, `hreflang`, `x-default`, and sitemap entries.
 * String registration, plural helper, editing, and optional gettext discovery.
 * Pluggable machine-translation providers and a consent-based background job queue.
-* Safe baseline WooCommerce product metadata synchronization without duplicating SKUs or sales statistics.
+* WooCommerce product, variation, attribute-term, inventory, download, dimension, and related-product synchronization without duplicating SKUs.
 * Portable JSON backup/merge import, REST endpoints, WP-CLI commands, diagnostics, object caching, privacy text, and multisite-safe per-site tables.
 * Data preservation on uninstall unless `OPENLINGUA_REMOVE_DATA` is explicitly enabled.
 
@@ -81,7 +81,7 @@ WP-CLI:
 
 ACF and builders are supported through metadata policies. Complex components that store remote data or proprietary serialized structures may require a small adapter using the documented filters.
 
-WooCommerce 1.0 support covers translated product content and synchronized operational product metadata. Full multilingual checkout text, variation duplication, order localization, subscriptions, and third-party WooCommerce extensions require dedicated adapters and are not claimed as supported by this release.
+WooCommerce support covers translated product content, stable linked variations, translated global attribute terms, variation descriptions, and synchronized operational product metadata. Order localization, subscriptions, and third-party WooCommerce extensions require dedicated adapters and are not claimed as supported by this release.
 
 == External services ==
 
@@ -117,6 +117,13 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.14.0 =
+
+* Create or safely adopt translated WooCommerce variations using stable source-variation relationships.
+* Map global attribute terms and variation slugs to their target-language taxonomy translations.
+* Synchronize variation prices, inventory, downloads, dimensions, images, status, and ordering without duplicating SKUs or global identifiers.
+* Expose variation descriptions in the manual translation editor, translation memory, and automatic provider jobs.
 
 = 1.13.0 =
 
