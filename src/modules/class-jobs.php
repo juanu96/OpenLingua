@@ -151,7 +151,7 @@ final class Jobs implements Module {
 			}
 		}
 		SEO::save_translation_fields( $source->ID, $target->ID, $seo_translation );
-		Translation_Memory::learn_post( $source->ID, $target->ID );
+		Translation_Memory::learn_post( $source->ID, $target->ID, 'automatic', false );
 		update_post_meta( $job->target_id, Workflow::STATUS_META, 'in-progress' );
 		$payload = json_decode( (string) $job->payload, true );
 		$payload = is_array( $payload ) ? $payload : array();

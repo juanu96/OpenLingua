@@ -4,7 +4,7 @@ namespace OpenLingua;
 defined( 'ABSPATH' ) || exit;
 
 final class Database {
-	const SCHEMA_VERSION = '2';
+	const SCHEMA_VERSION = '3';
 
 	public static function maybe_upgrade() {
 		if ( self::SCHEMA_VERSION !== (string) get_option( 'openlingua_db_version', '' ) ) {
@@ -102,6 +102,9 @@ final class Database {
 			source_text longtext NOT NULL,
 			translation longtext NOT NULL,
 			format varchar(10) NOT NULL DEFAULT 'text',
+			context varchar(191) NOT NULL DEFAULT '',
+			origin varchar(20) NOT NULL DEFAULT 'manual',
+			approved tinyint(1) unsigned NOT NULL DEFAULT 1,
 			updated_at datetime NOT NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY memory_identity (source_language,target_language,source_hash,format),
@@ -131,6 +134,7 @@ final class Database {
 		$completed = (array) get_option( 'openlingua_completed_migrations', array() );
 		$migrations = array(
 			'2-normalize-schema-version' => static function ( $from ) { unset( $from ); },
+			'3-contextual-translation-memory' => static function ( $from ) { unset( $from ); },
 		);
 		foreach ( $migrations as $migration => $callback ) {
 			if ( in_array( $migration, $completed, true ) ) { continue; }

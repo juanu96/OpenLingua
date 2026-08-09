@@ -35,3 +35,8 @@ if ( \OpenLingua\Translation_Memory::key( '<strong>Text</strong>', 'html' ) === 
 	exit( 1 );
 }
 echo "PASS: keeps HTML and plain-text memory keys separate\n";
+if ( \OpenLingua\Translation_Memory::key( 'Home', 'text', 'page-title' ) === \OpenLingua\Translation_Memory::key( 'Home', 'text', 'button-label' ) ) {
+	fwrite( STDERR, "FAIL: separates identical source text used in different contexts\n" );
+	exit( 1 );
+}
+echo "PASS: separates identical source text used in different contexts\n";

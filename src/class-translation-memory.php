@@ -18,17 +18,21 @@ final class Translation_Memory {
 		return is_string( $text ) ? $text : '';
 	}
 
-	public static function key( $source, $format = 'text' ) {
-		return hash( 'sha256', self::normalize( $source, $format ) );
+	public static function key( $source, $format = 'text', $context = '' ) {
+		$normalized = self::normalize( $source, $format );
+		$context = sanitize_key( $context );
+		return hash( 'sha256', $context ? $normalized . "\ncontext:" . $context : $normalized );
 	}
 
-	public static function find( $source, $source_language, $target_language, $format = 'text' ) {
+	public static function find( $source, $source_language, $target_language, $format = 'text', $context = '' ) {
 		$index = self::pair_index( $source_language, $target_language );
-		$key = $format . ':' . self::key( $source, $format );
-		return isset( $index[ $key ] ) ? $index[ $key ] : '';
+		$context_key = $format . ':' . self::key( $source, $format, $context );
+		if ( $context && isset( $index[ $context_key ] ) ) { return $index[ $context_key ]; }
+		$generic_key = $format . ':' . self::key( $source, $format );
+		return isset( $index[ $generic_key ] ) ? $index[ $generic_key ] : '';
 	}
 
-	public static function remember( $source, $translation, $source_language, $target_language, $format = 'text' ) {
+	public static function remember( $source, $translation, $source_language, $target_language, $format = 'text', $context = '', $origin = 'manual', $approved = true ) {
 		global $wpdb;
 		$source = self::normalize( $source, $format );
 		$translation = trim( (string) $translation );
@@ -37,9 +41,11 @@ final class Translation_Memory {
 		$format = 'html' === $format ? 'html' : 'text';
 		if ( ! self::is_eligible( $source, $translation ) || ! $source_language || ! $target_language || $source_language === $target_language ) { return false; }
 		$table = Database::table( 'memory' );
-		$hash = self::key( $source, $format );
+		$context = sanitize_key( $context );
+		$origin = in_array( $origin, array( 'manual', 'automatic', 'imported' ), true ) ? $origin : 'manual';
+		$hash = self::key( $source, $format, $context );
 		$existing = $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE source_language = %s AND target_language = %s AND source_hash = %s AND format = %s', $table, $source_language, $target_language, $hash, $format ) );
-		$data = array( 'source_text' => $source, 'translation' => $translation, 'updated_at' => current_time( 'mysql' ) );
+		$data = array( 'source_text' => $source, 'translation' => $translation, 'context' => $context, 'origin' => $origin, 'approved' => $approved ? 1 : 0, 'updated_at' => current_time( 'mysql' ) );
 		if ( $existing ) {
 			$result = $wpdb->update( $table, $data, array( 'id' => absint( $existing ) ) );
 		} else {
@@ -47,20 +53,21 @@ final class Translation_Memory {
 			$result = $wpdb->insert( $table, $data );
 		}
 		unset( self::$pairs[ $source_language . ':' . $target_language ] );
+		if ( $context ) { self::remember( $source, $translation, $source_language, $target_language, $format, '', $origin, $approved ); }
 		return false !== $result;
 	}
 
-	public static function learn_post( $source_id, $target_id ) {
+	public static function learn_post( $source_id, $target_id, $origin = 'manual', $approved = true ) {
 		$source = get_post( $source_id );
 		$target = get_post( $target_id );
 		$source_row = Translations::row( 'post', $source_id );
 		$target_row = Translations::row( 'post', $target_id );
 		if ( ! $source || ! $target || ! $source_row || ! $target_row ) { return; }
-		$remember = function ( $original, $translated, $format = 'text' ) use ( $source_row, $target_row ) {
-			self::remember( $original, $translated, $source_row->language, $target_row->language, $format );
+		$remember = function ( $original, $translated, $format = 'text', $context = '' ) use ( $source_row, $target_row, $origin, $approved ) {
+			self::remember( $original, $translated, $source_row->language, $target_row->language, $format, $context, $origin, $approved );
 		};
-		$remember( $source->post_title, $target->post_title );
-		$remember( $source->post_excerpt, $target->post_excerpt, 'html' );
+		$remember( $source->post_title, $target->post_title, 'text', 'post-title' );
+		$remember( $source->post_excerpt, $target->post_excerpt, 'html', 'post-excerpt' );
 		$is_divi = Divi_Content::is_divi( $source->post_content );
 		$is_gutenberg = ! $is_divi && Gutenberg_Content::is_gutenberg( $source->post_content );
 		if ( $is_divi ) {
@@ -68,11 +75,11 @@ final class Translation_Memory {
 		} elseif ( $is_gutenberg ) {
 			self::learn_segments( Gutenberg_Content::extract( $source->post_content ), Gutenberg_Content::values( $target->post_content ), $remember, 'format' );
 		} else {
-			$remember( $source->post_content, $target->post_content, 'html' );
+			$remember( $source->post_content, $target->post_content, 'html', 'post-content' );
 		}
 		self::learn_segments( ACF_Content::extract( $source_id ), ACF_Content::values( $target_id ), $remember, 'format' );
 		foreach ( SEO::translation_fields( $source_id, $target_id ) as $group ) {
-			foreach ( $group['fields'] as $field ) { $remember( $field['source'], $field['target'] ); }
+			foreach ( $group['fields'] as $field ) { $remember( $field['source'], $field['target'], 'text', 'seo-' . $field['key'] ); }
 		}
 	}
 
@@ -100,7 +107,7 @@ final class Translation_Memory {
 		foreach ( $segments as $segment ) {
 			if ( ! array_key_exists( $segment['id'], $values ) ) { continue; }
 			$is_html = 'html' === ( $segment[ $format_key ] ?? '' ) || 'content' === ( $segment[ $format_key ] ?? '' );
-			$remember( $segment['value'], $values[ $segment['id'] ], $is_html ? 'html' : 'text' );
+			$remember( $segment['value'], $values[ $segment['id'] ], $is_html ? 'html' : 'text', $segment['label'] ?? $segment['id'] );
 		}
 	}
 
