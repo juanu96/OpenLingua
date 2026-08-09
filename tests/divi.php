@@ -72,4 +72,35 @@ divi_assert( false !== strpos( $translated, 'title="Paula Traducida"' ) && false
 divi_assert( false !== strpos( $translated, 'card_heading="Módulo independiente"' ), 'replaces text from an unknown metadata-identified module' );
 divi_assert( substr_count( $content, '[et_pb_' ) === substr_count( $translated, '[et_pb_' ), 'preserves the Divi module structure' );
 
+$old_carousel = '[et_pb_section][dica_divi_carousel]'
+	. '[dica_divi_carouselitem title="Bernal"]<p>Helpful experience</p>[/dica_divi_carouselitem]'
+	. '[dica_divi_carouselitem title="Faith Bellini"]<p>In the best hands</p>[/dica_divi_carouselitem]'
+	. '[dica_divi_carouselitem title="Sudip B."]<p>They are awesome</p>[/dica_divi_carouselitem]'
+	. '[/dica_divi_carousel][/et_pb_section]';
+$old_translation = '[et_pb_section][dica_divi_carousel]'
+	. '[dica_divi_carouselitem title="Bernal"]<p>Una experiencia excelente</p>[/dica_divi_carouselitem]'
+	. '[dica_divi_carouselitem title="Faith Bellini"]<p>En las mejores manos</p>[/dica_divi_carouselitem]'
+	. '[dica_divi_carouselitem title="Sudip B."]<p>Son increíbles</p>[/dica_divi_carouselitem]'
+	. '[/dica_divi_carousel][/et_pb_section]';
+$updated_carousel = '[et_pb_section][dica_divi_carousel]'
+	. '[dica_divi_carouselitem title="Faith Bellini"]<p>In the best hands</p>[/dica_divi_carouselitem]'
+	. '[dica_divi_carouselitem title="Sudip B."]<p>They are awesome</p>[/dica_divi_carouselitem]'
+	. '[dica_divi_carouselitem title="Marco Jaén" image_url="marco.jpg"]<p>Excellent service</p>[/dica_divi_carouselitem]'
+	. '[/dica_divi_carousel][/et_pb_section]';
+$aligned = \OpenLingua\Divi_Content::aligned_values( $updated_carousel, $old_translation, \OpenLingua\Divi_Content::source_snapshot( $old_carousel ) );
+divi_assert( 'Faith Bellini' === $aligned['divi_dica_divi_carouselitem_1_title'], 'realigns unchanged names after a carousel item is deleted' );
+divi_assert( '' === $aligned['divi_dica_divi_carouselitem_1_content'], 'does not attach the previous item translation to shifted content' );
+divi_assert( 'Sudip B.' === $aligned['divi_dica_divi_carouselitem_2_title'], 'keeps the next unchanged carousel name aligned' );
+divi_assert( '' === $aligned['divi_dica_divi_carouselitem_3_title'], 'leaves newly added carousel fields empty for translation' );
+$legacy_aligned = \OpenLingua\Divi_Content::aligned_values( $updated_carousel, $old_translation );
+divi_assert( 'Faith Bellini' === $legacy_aligned['divi_dica_divi_carouselitem_1_title'] && 'Sudip B.' === $legacy_aligned['divi_dica_divi_carouselitem_2_title'], 'realigns unchanged legacy fields before a source snapshot exists' );
+divi_assert( '' === $legacy_aligned['divi_dica_divi_carouselitem_3_title'], 'does not assign another item name to a new legacy field' );
+$updated_translation = \OpenLingua\Divi_Content::apply( $updated_carousel, array(
+	'divi_dica_divi_carouselitem_1_content' => '<p>En las mejores manos</p>',
+	'divi_dica_divi_carouselitem_2_content' => '<p>Son increíbles</p>',
+	'divi_dica_divi_carouselitem_3_title' => 'Marco Jaén',
+	'divi_dica_divi_carouselitem_3_content' => '<p>Servicio excelente</p>',
+) );
+divi_assert( false === strpos( $updated_translation, 'Helpful experience' ) && false !== strpos( $updated_translation, 'image_url="marco.jpg"' ), 'builds the translation on the updated source layout with new media and deleted modules synchronized' );
+
 echo "All OpenLingua Divi extractor tests passed.\n";

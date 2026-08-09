@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.11.0
+
+- Store a per-field source snapshot for Divi translations instead of trusting mutable occurrence numbers.
+- Detect deleted, inserted, and reordered modules and prevent adjacent target values from shifting upward.
+- Recover legacy shifted values through exact unchanged fields and translation-memory ownership.
+- Rebuild saved translations on the latest source layout so new sections, carousel images, and technical settings are synchronized automatically.
+- Add a regression scenario covering a deleted carousel item, shifted testimonials, and a newly added image.
+
 ## 1.10.1
 
 - Never hide an entire shortcode, React widget, slider, or dynamic plugin while unknown strings use the REST fallback.

@@ -65,7 +65,9 @@ final class Translation_Editor {
 		);
 		if ( ! $is_divi && ! $is_gutenberg ) { $fields['post_content'] = array( 'label' => __( 'Main content', 'openlingua' ), 'source' => $source->post_content, 'target' => $target->post_content, 'rows' => 18 ); }
 		$divi_segments = $is_divi ? Divi_Content::extract( $source->post_content ) : array();
-		$target_divi = $is_divi ? Divi_Content::values( $target->post_content ) : array();
+		$divi_snapshot = $is_divi ? get_post_meta( $target->ID, Divi_Content::SOURCE_SNAPSHOT_META, true ) : array();
+		$divi_snapshot = is_array( $divi_snapshot ) ? $divi_snapshot : array();
+		$target_divi = $is_divi ? Divi_Content::aligned_values( $source->post_content, $target->post_content, $divi_snapshot ) : array();
 		$gutenberg_segments = $is_gutenberg ? Gutenberg_Content::extract( $source->post_content ) : array();
 		$target_gutenberg = $is_gutenberg ? Gutenberg_Content::values( $target->post_content ) : array();
 		$acf_segments = ACF_Content::extract( $source->ID );
@@ -80,6 +82,7 @@ final class Translation_Editor {
 			$target_divi[ $segment['id'] ] = $target_divi[ $segment['id'] ] ?? '';
 			self::apply_memory( 'openlingua-' . $segment['id'], $segment['value'], $target_divi[ $segment['id'] ], $source_code, $target_code, 'content' === $segment['kind'] ? 'html' : 'text', $memory_fields );
 		}
+		self::repair_shifted_divi_values( $divi_segments, $target_divi, $memory_fields );
 		foreach ( $gutenberg_segments as $segment ) {
 			$target_gutenberg[ $segment['id'] ] = $target_gutenberg[ $segment['id'] ] ?? '';
 			self::apply_memory( 'openlingua-' . $segment['id'], $segment['value'], $target_gutenberg[ $segment['id'] ], $source_code, $target_code, $segment['format'], $memory_fields );
@@ -189,8 +192,7 @@ final class Translation_Editor {
 				$value = $submitted[ $segment['id'] ];
 				$allowed[ $segment['id'] ] = 'attribute' === $segment['kind'] ? sanitize_text_field( $value ) : ( current_user_can( 'unfiltered_html' ) ? $value : wp_kses_post( $value ) );
 			}
-			$base_content = $target && Divi_Content::is_divi( $target->post_content ) ? $target->post_content : $source->post_content;
-			$content = Divi_Content::apply( $base_content, $allowed );
+			$content = Divi_Content::apply( $source->post_content, $allowed );
 			$content = Divi_Content::restore_embedded_shortcodes( $source->post_content, $content );
 		} elseif ( $is_gutenberg ) {
 			$submitted = self::posted_array( 'gutenberg_translation' );
@@ -218,6 +220,7 @@ final class Translation_Editor {
 		}
 		$result = wp_update_post( wp_slash( $update ), true );
 		if ( is_wp_error( $result ) ) { wp_die( esc_html( $result->get_error_message() ) ); }
+		if ( $is_divi ) { update_post_meta( $target_id, Divi_Content::SOURCE_SNAPSHOT_META, Divi_Content::source_snapshot( $source->post_content ) ); }
 		$acf_translation = self::posted_array( 'acf_translation' );
 		ACF_Content::save( $source_id, $target_id, $acf_translation, current_user_can( 'unfiltered_html' ) );
 		$seo_translation = self::posted_array( 'seo_translation' );
@@ -261,6 +264,28 @@ final class Translation_Editor {
 		$replaceable = '' === trim( (string) $target ) || Translation_Memory::normalize( $source, $format ) === Translation_Memory::normalize( $target, $format );
 		$applied = $replaceable && '' !== $suggestion;
 		if ( $applied ) { $target = $suggestion; }
-		$fields[ $id ] = array( 'key' => $format . ':' . Translation_Memory::key( $source, $format ), 'applied' => $applied, 'replaceable' => $replaceable );
+		$fields[ $id ] = array( 'key' => $format . ':' . Translation_Memory::key( $source, $format ), 'applied' => $applied, 'replaceable' => $replaceable, 'suggestion' => $suggestion, 'format' => $format );
+	}
+
+	private static function repair_shifted_divi_values( array $segments, array &$values, array &$memory_fields ) {
+		$owners = array();
+		foreach ( $segments as $segment ) {
+			$config = $memory_fields[ 'openlingua-' . $segment['id'] ] ?? array();
+			if ( '' === ( $config['suggestion'] ?? '' ) ) { continue; }
+			$owners[ Translation_Memory::normalize( $config['suggestion'], $config['format'] ) ] = $segment['id'];
+		}
+		foreach ( $segments as $segment ) {
+			$id = $segment['id'];
+			$field_id = 'openlingua-' . $id;
+			$config = $memory_fields[ $field_id ] ?? array();
+			$suggestion = $config['suggestion'] ?? '';
+			if ( '' === trim( (string) ( $values[ $id ] ?? '' ) ) ) { continue; }
+			$current = Translation_Memory::normalize( $values[ $id ], $config['format'] );
+			$expected = '' === $suggestion ? '' : Translation_Memory::normalize( $suggestion, $config['format'] );
+			if ( $current === $expected || empty( $owners[ $current ] ) || $owners[ $current ] === $id ) { continue; }
+			$values[ $id ] = $suggestion;
+			$memory_fields[ $field_id ]['applied'] = '' !== $suggestion;
+			$memory_fields[ $field_id ]['replaceable'] = '' === $suggestion;
+		}
 	}
 }

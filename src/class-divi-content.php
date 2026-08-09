@@ -5,6 +5,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** Extracts translatable Divi shortcode values while preserving layout markup. */
 final class Divi_Content {
+	const SOURCE_SNAPSHOT_META = '_openlingua_divi_source_snapshot';
 	private static $content_modules = array(
 		'et_pb_text', 'et_pb_blurb', 'et_pb_cta', 'et_pb_toggle', 'et_pb_accordion_item',
 		'et_pb_slide', 'et_pb_testimonial', 'et_pb_pricing_table',
@@ -46,7 +47,7 @@ final class Divi_Content {
 						'id' => self::segment_id( $module, $occurrence, $attribute ),
 						'label' => $label . ' — ' . self::field_label( $attribute ),
 						'value' => html_entity_decode( $data['value'], ENT_QUOTES, 'UTF-8' ),
-						'start' => $data['start'], 'length' => $data['length'], 'kind' => 'attribute',
+						'start' => $data['start'], 'length' => $data['length'], 'kind' => 'attribute', 'module' => $module, 'field' => $attribute,
 					);
 				}
 				$dynamic = isset( $attributes['_dynamic_attributes'] ) && false !== strpos( $attributes['_dynamic_attributes']['value'], 'content' );
@@ -65,7 +66,7 @@ final class Divi_Content {
 				$segments[] = array(
 					'id' => self::segment_id( $module, $opening['occurrence'], 'content' ),
 					'label' => $opening['label'] . ' — ' . __( 'Content', 'openlingua' ),
-					'value' => $value, 'start' => $opening['content_start'], 'length' => strlen( $value ), 'kind' => 'content',
+					'value' => $value, 'start' => $opening['content_start'], 'length' => strlen( $value ), 'kind' => 'content', 'module' => $module, 'field' => 'content',
 				);
 				break;
 			}
@@ -115,6 +116,48 @@ final class Divi_Content {
 	public static function values( $content ) {
 		$values = array();
 		foreach ( self::extract( $content ) as $segment ) { $values[ $segment['id'] ] = $segment['value']; }
+		return $values;
+	}
+
+	public static function source_snapshot( $content ) {
+		$snapshot = array();
+		foreach ( self::extract( $content ) as $segment ) { $snapshot[ $segment['id'] ] = self::segment_hash( $segment ); }
+		return $snapshot;
+	}
+
+	/** Aligns existing target values without assuming module occurrence numbers stayed stable. */
+	public static function aligned_values( $source_content, $target_content, array $snapshot = array() ) {
+		$source_segments = self::extract( $source_content );
+		$target_segments = self::extract( $target_content );
+		$values = array();
+		$pools = array();
+		$source_owners = array();
+		foreach ( $source_segments as $segment ) {
+			$key = self::compatibility_key( $segment ) . ':' . self::normalized_value( $segment['value'], $segment['kind'] );
+			$source_owners[ $key ] = $segment['id'];
+		}
+		foreach ( $target_segments as $segment ) {
+			$values[ $segment['id'] ] = $segment['value'];
+			$key = self::compatibility_key( $segment ) . ':' . self::normalized_value( $segment['value'], $segment['kind'] );
+			$pools[ $key ][] = $segment;
+		}
+		$used = array();
+		foreach ( $source_segments as $segment ) {
+			$id = $segment['id'];
+			if ( $snapshot && ( ! isset( $snapshot[ $id ] ) || ! hash_equals( (string) $snapshot[ $id ], self::segment_hash( $segment ) ) ) ) { $values[ $id ] = ''; }
+			$key = self::compatibility_key( $segment ) . ':' . self::normalized_value( $segment['value'], $segment['kind'] );
+			$matched = false;
+			foreach ( $pools[ $key ] ?? array() as $candidate ) {
+				if ( isset( $used[ $candidate['id'] ] ) ) { continue; }
+				$values[ $id ] = $candidate['value'];
+				$used[ $candidate['id'] ] = true;
+				$matched = true;
+				break;
+			}
+			if ( $matched || $snapshot || '' === trim( (string) ( $values[ $id ] ?? '' ) ) ) { continue; }
+			$target_key = self::compatibility_key( $segment ) . ':' . self::normalized_value( $values[ $id ], $segment['kind'] );
+			if ( ! empty( $source_owners[ $target_key ] ) && $source_owners[ $target_key ] !== $id ) { $values[ $id ] = ''; }
+		}
 		return $values;
 	}
 
@@ -190,5 +233,19 @@ final class Divi_Content {
 	private static function has_text( $value ) {
 		$value = preg_replace( '/@ET-DC@.*?@/s', '', $value );
 		return '' !== trim( html_entity_decode( wp_strip_all_tags( $value ), ENT_QUOTES, 'UTF-8' ) );
+	}
+
+	private static function segment_hash( array $segment ) {
+		return hash( 'sha256', self::compatibility_key( $segment ) . "\n" . self::normalized_value( $segment['value'], $segment['kind'] ) );
+	}
+
+	private static function compatibility_key( array $segment ) {
+		return ( $segment['module'] ?? '' ) . ':' . ( $segment['field'] ?? $segment['kind'] );
+	}
+
+	private static function normalized_value( $value, $kind ) {
+		$value = html_entity_decode( (string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		$value = str_replace( array( "\r\n", "\r", "\xC2\xA0" ), array( "\n", "\n", ' ' ), $value );
+		return 'content' === $kind ? trim( preg_replace( '/>\s+</u', '><', $value ) ) : trim( preg_replace( '/\s+/u', ' ', $value ) );
 	}
 }

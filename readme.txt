@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.10.1
+Stable tag: 1.11.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,11 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.11.0 =
+* Track source fingerprints for Divi fields so deleted or inserted modules do not shift existing translations.
+* Realign legacy translated values using exact identities and translation memory.
+* Synchronize new Divi sections, images, and technical settings from the current source layout when saving.
 
 = 1.10.1 =
 * Keep dynamic plugins and widgets visible while previously unseen strings are discovered.

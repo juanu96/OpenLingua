@@ -102,8 +102,7 @@ final class Jobs implements Module {
 				if ( ! array_key_exists( $segment['id'], $result ) ) { continue; }
 				$translated_divi[ $segment['id'] ] = 'attribute' === $segment['kind'] ? sanitize_text_field( $result[ $segment['id'] ] ) : wp_kses_post( $result[ $segment['id'] ] );
 			}
-			$base_content = Divi_Content::is_divi( $target->post_content ) ? $target->post_content : $source->post_content;
-			$content = Divi_Content::apply( $base_content, $translated_divi );
+			$content = Divi_Content::apply( $source->post_content, $translated_divi );
 			$content = Divi_Content::restore_embedded_shortcodes( $source->post_content, $content );
 		} elseif ( $is_gutenberg ) {
 			$translated_blocks = array();
@@ -124,6 +123,7 @@ final class Jobs implements Module {
 		}
 		$updated = wp_update_post( wp_slash( $update ), true );
 		if ( is_wp_error( $updated ) ) { return self::fail( $job_id, $updated->get_error_message() ); }
+		if ( $is_divi ) { update_post_meta( $target->ID, Divi_Content::SOURCE_SNAPSHOT_META, Divi_Content::source_snapshot( $source->post_content ) ); }
 		$acf_translation = array();
 		foreach ( $acf_segments as $segment ) {
 			$key = 'acf__' . $segment['id'];
