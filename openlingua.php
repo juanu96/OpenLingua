@@ -63,6 +63,7 @@ require_once OPENLINGUA_DIR . 'src/class-plugin.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-workflow.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-language-catalog.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-language-settings.php';
+require_once OPENLINGUA_DIR . 'src/modules/class-site-settings.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-menus.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-media.php';
 require_once OPENLINGUA_DIR . 'src/modules/class-metadata.php';

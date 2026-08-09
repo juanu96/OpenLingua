@@ -22,6 +22,7 @@ final class Plugin {
 		Admin::hooks();
 		Module_Registry::boot( apply_filters( 'openlingua_modules', array(
 			\OpenLingua\Modules\Language_Settings::class,
+			\OpenLingua\Modules\Site_Settings::class,
 			\OpenLingua\Modules\Workflow::class,
 			\OpenLingua\Modules\Menus::class,
 			\OpenLingua\Modules\Media::class,
