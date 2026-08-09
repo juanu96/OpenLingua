@@ -69,7 +69,9 @@ final class Translation_Editor {
 		$divi_snapshot = is_array( $divi_snapshot ) ? $divi_snapshot : array();
 		$target_divi = $is_divi ? Divi_Content::aligned_values( $source->post_content, $target->post_content, $divi_snapshot ) : array();
 		$gutenberg_segments = $is_gutenberg ? Gutenberg_Content::extract( $source->post_content ) : array();
-		$target_gutenberg = $is_gutenberg ? Gutenberg_Content::values( $target->post_content ) : array();
+		$gutenberg_snapshot = $is_gutenberg ? get_post_meta( $target->ID, Gutenberg_Content::SOURCE_SNAPSHOT_META, true ) : array();
+		$gutenberg_snapshot = is_array( $gutenberg_snapshot ) ? $gutenberg_snapshot : array();
+		$target_gutenberg = $is_gutenberg ? Gutenberg_Content::aligned_values( $source->post_content, $target->post_content, $gutenberg_snapshot ) : array();
 		$acf_segments = ACF_Content::extract( $source->ID );
 		$target_acf = ACF_Content::values( $target->ID );
 		$seo_groups = SEO::translation_fields( $source->ID, $target->ID );
@@ -221,6 +223,7 @@ final class Translation_Editor {
 		$result = wp_update_post( wp_slash( $update ), true );
 		if ( is_wp_error( $result ) ) { wp_die( esc_html( $result->get_error_message() ) ); }
 		if ( $is_divi ) { update_post_meta( $target_id, Divi_Content::SOURCE_SNAPSHOT_META, Divi_Content::source_snapshot( $source->post_content ) ); }
+		if ( $is_gutenberg ) { update_post_meta( $target_id, Gutenberg_Content::SOURCE_SNAPSHOT_META, Gutenberg_Content::source_snapshot( $source->post_content ) ); }
 		$acf_translation = self::posted_array( 'acf_translation' );
 		ACF_Content::save( $source_id, $target_id, $acf_translation, current_user_can( 'unfiltered_html' ) );
 		$seo_translation = self::posted_array( 'seo_translation' );

@@ -137,6 +137,7 @@ final class Jobs implements Module {
 		$updated = wp_update_post( wp_slash( $update ), true );
 		if ( is_wp_error( $updated ) ) { return self::fail( $job_id, $updated->get_error_message() ); }
 		if ( $is_divi ) { update_post_meta( $target->ID, Divi_Content::SOURCE_SNAPSHOT_META, Divi_Content::source_snapshot( $source->post_content ) ); }
+		if ( $is_gutenberg ) { update_post_meta( $target->ID, Gutenberg_Content::SOURCE_SNAPSHOT_META, Gutenberg_Content::source_snapshot( $source->post_content ) ); }
 		$acf_translation = array();
 		foreach ( $acf_segments as $segment ) {
 			$key = 'acf__' . $segment['id'];

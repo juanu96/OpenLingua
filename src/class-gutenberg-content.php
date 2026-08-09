@@ -5,6 +5,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** Extracts translatable Gutenberg block values without exposing block markup. */
 final class Gutenberg_Content {
+	const SOURCE_SNAPSHOT_META = '_openlingua_gutenberg_source_snapshot';
 	private static $excluded_attributes = array(
 		'id', 'ids', 'ref', 'url', 'href', 'src', 'link', 'anchor', 'class', 'classname',
 		'style', 'styles', 'css', 'color', 'backgroundcolor', 'textcolor', 'gradient',
@@ -42,6 +43,42 @@ final class Gutenberg_Content {
 		return $values;
 	}
 
+	public static function source_snapshot( $content ) {
+		$segments = array();
+		foreach ( self::extract( $content ) as $segment ) {
+			$segments[ $segment['id'] ] = array(
+				'hash' => self::segment_hash( $segment ),
+				'compatibility' => self::compatibility_key( $segment ),
+				'value' => self::normalized_value( $segment['value'], $segment['format'] ),
+			);
+		}
+		return array( 'version' => 1, 'segments' => $segments );
+	}
+
+	public static function aligned_values( $source_content, $target_content, array $snapshot = array() ) {
+		$source_segments = self::extract( $source_content );
+		$target_values = self::values( $target_content );
+		$previous = 1 === (int) ( $snapshot['version'] ?? 0 ) && is_array( $snapshot['segments'] ?? null ) ? $snapshot['segments'] : array();
+		if ( ! $previous ) { return $target_values; }
+		$pools = array();
+		foreach ( $previous as $old_id => $descriptor ) {
+			if ( isset( $descriptor['compatibility'], $descriptor['value'] ) ) { $pools[ $descriptor['compatibility'] . ':' . $descriptor['value'] ][] = (string) $old_id; }
+		}
+		$aligned = array();
+		$used = array();
+		foreach ( $source_segments as $segment ) {
+			$key = self::compatibility_key( $segment ) . ':' . self::normalized_value( $segment['value'], $segment['format'] );
+			foreach ( $pools[ $key ] ?? array() as $old_id ) {
+				if ( isset( $used[ $old_id ] ) || ! array_key_exists( $old_id, $target_values ) ) { continue; }
+				$aligned[ $segment['id'] ] = $target_values[ $old_id ];
+				$used[ $old_id ] = true;
+				continue 2;
+			}
+			$aligned[ $segment['id'] ] = '';
+		}
+		return $aligned;
+	}
+
 	public static function apply( $content, array $translations, $target_language = '' ) {
 		if ( ! self::is_gutenberg( $content ) || ! function_exists( 'parse_blocks' ) || ! function_exists( 'serialize_blocks' ) ) { return (string) $content; }
 		$blocks = parse_blocks( (string) $content );
@@ -55,7 +92,7 @@ final class Gutenberg_Content {
 			$name = (string) ( $block['blockName'] ?? '' );
 			$name = $name ?: 'core/freeform';
 			$label = self::block_label( $name, $path );
-			self::extract_attributes( (array) ( $block['attrs'] ?? array() ), array(), $path, $label, $segments );
+			self::extract_attributes( (array) ( $block['attrs'] ?? array() ), array(), $path, $name, $label, $segments );
 			foreach ( (array) ( $block['innerContent'] ?? array() ) as $fragment_index => $fragment ) {
 				if ( ! is_string( $fragment ) ) { continue; }
 				$segments = array_merge( $segments, self::content_segments( $fragment, $name, $path, $fragment_index, $label ) );
@@ -64,11 +101,11 @@ final class Gutenberg_Content {
 		}
 	}
 
-	private static function extract_attributes( array $attributes, array $attribute_path, array $block_path, $label, array &$segments ) {
+	private static function extract_attributes( array $attributes, array $attribute_path, array $block_path, $block_name, $label, array &$segments ) {
 		foreach ( $attributes as $key => $value ) {
 			$path = array_merge( $attribute_path, array( $key ) );
 			if ( is_array( $value ) ) {
-				self::extract_attributes( $value, $path, $block_path, $label, $segments );
+				self::extract_attributes( $value, $path, $block_path, $block_name, $label, $segments );
 				continue;
 			}
 			if ( ! is_string( $value ) || ! self::is_translatable_attribute( $key, $value ) ) { continue; }
@@ -78,6 +115,7 @@ final class Gutenberg_Content {
 				'value' => $value,
 				'format' => self::looks_like_html( $value ) ? 'html' : 'text',
 				'kind' => 'attribute',
+				'block_name' => $block_name,
 				'block_path' => $block_path,
 				'value_path' => $path,
 			);
@@ -198,6 +236,7 @@ final class Gutenberg_Content {
 				'id' => self::segment_id( $block_path, 'content', array( $fragment_index ) ),
 				'label' => $label . ' — ' . __( 'Content', 'openlingua' ),
 				'value' => $fragment, 'format' => 'html', 'kind' => 'content',
+				'block_name' => $block_name,
 				'block_path' => $block_path, 'value_path' => array( $fragment_index ),
 				'offset' => 0, 'length' => strlen( $fragment ),
 			) );
@@ -218,6 +257,7 @@ final class Gutenberg_Content {
 				'value' => $value,
 				'format' => self::looks_like_html( $value ) ? 'html' : 'text',
 				'kind' => 'content', 'block_path' => $block_path,
+				'block_name' => $block_name,
 				'value_path' => array( $fragment_index, $tag, $counts[ $tag ] ),
 				'offset' => $match[2][1], 'length' => strlen( $value ),
 			);
@@ -227,6 +267,22 @@ final class Gutenberg_Content {
 
 	private static function looks_like_html( $value ) {
 		return (bool) preg_match( '/<\/?[a-z][^>]*>/i', (string) $value );
+	}
+
+	private static function compatibility_key( array $segment ) {
+		$path = (array) ( $segment['value_path'] ?? array() );
+		$field = $path ? (string) end( $path ) : (string) ( $segment['kind'] ?? '' );
+		return (string) ( $segment['block_name'] ?? '' ) . ':' . (string) ( $segment['kind'] ?? '' ) . ':' . sanitize_key( $field );
+	}
+
+	private static function normalized_value( $value, $format ) {
+		$value = html_entity_decode( (string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		$value = str_replace( array( "\r\n", "\r", "\xC2\xA0" ), array( "\n", "\n", ' ' ), $value );
+		return 'html' === $format ? trim( preg_replace( '/>\s+</u', '><', $value ) ) : trim( preg_replace( '/\s+/u', ' ', $value ) );
+	}
+
+	private static function segment_hash( array $segment ) {
+		return hash( 'sha256', self::compatibility_key( $segment ) . "\n" . self::normalized_value( $segment['value'], $segment['format'] ) );
 	}
 
 	private static function segment_id( array $block_path, $kind, array $value_path ) {

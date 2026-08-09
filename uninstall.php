@@ -24,7 +24,7 @@ $openlingua_remove_site_data = static function () use ( $wpdb ) {
 		delete_transient( $openlingua_transient );
 	}
 	$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE option_name LIKE %s', $wpdb->options, $wpdb->esc_like( '_openlingua_memory_imported_' ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-	foreach ( array( '_openlingua_translation_status', '_openlingua_source_hash', '_openlingua_divi_source_snapshot', '_openlingua_media_texts' ) as $openlingua_meta_key ) {
+	foreach ( array( '_openlingua_translation_status', '_openlingua_source_hash', '_openlingua_divi_source_snapshot', '_openlingua_gutenberg_source_snapshot', '_openlingua_media_texts' ) as $openlingua_meta_key ) {
 		delete_post_meta_by_key( $openlingua_meta_key );
 	}
 	$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE meta_key IN (%s,%s,%s)', $wpdb->usermeta, '_openlingua_admin_content_language', '_openlingua_nav_menu_language', '_openlingua_completed_jobs' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery

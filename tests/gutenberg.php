@@ -85,4 +85,13 @@ gutenberg_assert( false !== strpos( $translated, '<caption>Planes disponibles</c
 gutenberg_assert( substr_count( $translated, '<tr>' ) === substr_count( $content, '<tr>' ) && substr_count( $translated, '<td>' ) === substr_count( $content, '<td>' ), 'preserves table rows and cells' );
 gutenberg_assert( count( parse_blocks( $translated ) ) === count( parse_blocks( $content ) ), 'preserves the top-level block structure' );
 
+$old_blocks = '<!-- wp:paragraph --><p>First message</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Second message</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Third message</p><!-- /wp:paragraph -->';
+$old_block_translation = '<!-- wp:paragraph --><p>Primer mensaje</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Segundo mensaje</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Tercer mensaje</p><!-- /wp:paragraph -->';
+$reordered_blocks = '<!-- wp:paragraph --><p>Third message</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>First message</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>New message</p><!-- /wp:paragraph -->';
+$aligned_blocks = \OpenLingua\Gutenberg_Content::aligned_values( $reordered_blocks, $old_block_translation, \OpenLingua\Gutenberg_Content::source_snapshot( $old_blocks ) );
+$reordered_segments = \OpenLingua\Gutenberg_Content::extract( $reordered_blocks );
+gutenberg_assert( '<p>Tercer mensaje</p>' === $aligned_blocks[ $reordered_segments[0]['id'] ], 'keeps a translated block attached after reordering' );
+gutenberg_assert( '<p>Primer mensaje</p>' === $aligned_blocks[ $reordered_segments[1]['id'] ], 'reconciles another translated block independently of position' );
+gutenberg_assert( '' === $aligned_blocks[ $reordered_segments[2]['id'] ], 'leaves newly inserted blocks empty for translation' );
+
 echo "All OpenLingua Gutenberg extractor tests passed.\n";
