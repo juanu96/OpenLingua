@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.13.0
+
+- Preserve Divi, Gutenberg, and nested ACF translations across deleted, inserted, and reordered source structures.
+- Add ordered language fallback chains and contextual translation-memory provenance.
+- Translate attachment metadata while continuing to reuse the original media file.
+- Add a public content-extractor contract and Elementor JSON extractor, integrated with the manual editor, automatic jobs, and translation memory.
+- Make WordPress core, Yoast SEO, Rank Math, and SEOPress sitemap output use translated URLs and exclude hidden languages.
+- Recover interrupted automatic translation jobs and expose clearer retry states.
+- Expand safe WooCommerce synchronization to operational download, dimension, and related-product data.
+- Add deterministic schema migrations and opt-in uninstall cleanup.
+
 ## 1.12.0
 
 - Stop exposing translation actions for attachments and reject legacy direct attachment-duplication requests.

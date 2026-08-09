@@ -54,6 +54,7 @@ final class Media implements Module {
 		);
 		foreach ( $defaults as $key => $fallback ) {
 			$fields[ 'openlingua_' . $key ] = array(
+				/* translators: 1: media field name, 2: language name. */
 				'label' => sprintf( __( '%1$s (%2$s)', 'openlingua' ), ucfirst( $key ), $language_name ),
 				'input' => in_array( $key, array( 'caption', 'description' ), true ) ? 'textarea' : 'text',
 				'value' => self::translated_text( $attachment->ID, $key, $language, $fallback ),

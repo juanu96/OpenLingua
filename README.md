@@ -2,7 +2,7 @@
 
 OpenLingua is a free, GPL-licensed multilingual foundation for WordPress. It provides language-aware content, URLs, menus, taxonomies, custom fields, SEO metadata, interface strings, shortcodes, Divi layouts, and optional automatic translation without locking a site into a proprietary translation service.
 
-Current plugin version: **1.12.0**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
+Current plugin version: **1.13.0**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
 
 OpenLingua includes a local translation memory. Exact translations that you save manually or generate with an automatic provider can fill matching empty fields, including fields that still contain an untouched copy of the original text, on the same page and on other translated content. Existing translations are never overwritten, historical translations are imported automatically, and plain text is kept separate from HTML-compatible content.
 
@@ -68,6 +68,13 @@ OpenLingua is independently developed and distributed under the GPL-2.0-or-later
 - Keeps mixed classic and block content translatable through a generic freeform block segment.
 - Maps Gutenberg table headers, cells, and captions individually while preserving rows, sections, formatting, and table attributes.
 - Initializes the WordPress locale from the requested language before calendars and other locale-dependent core output are rendered.
+
+### Elementor and builder integrations
+
+- Extracts human-readable Elementor widget and repeater text from `_elementor_data` while preserving design controls, URLs, media references, IDs, and layout settings.
+- Uses Elementor element and repeater IDs so translations remain attached when widgets are reordered.
+- Supports manual translation, configured automatic providers, and local translation memory through the same editor.
+- Exposes `OpenLingua\Contracts\Content_Extractor`, `OpenLingua\Content_Extractors::register()`, and the `openlingua_register_content_extractors` action for independent builder adapters.
 
 ### Interface strings
 

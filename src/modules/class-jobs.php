@@ -294,6 +294,7 @@ final class Jobs implements Module {
 			elseif ( in_array( $job->status, array( 'pending', 'retrying' ), true ) ) { $action = '<span class="description">' . esc_html__( 'Starts automatically', 'openlingua' ) . '</span>'; }
 			elseif ( 'processing' === $job->status ) { $action = '<span class="description">' . esc_html__( 'Please wait', 'openlingua' ) . '</span>'; }
 			$attempts = absint( $job->attempts ?? 0 ) . '/' . max( 1, absint( $job->max_attempts ?? 3 ) );
+			/* translators: %s: current attempt and maximum attempts, for example 1/3. */
 			echo '<tr><td>' . absint( $job->id ) . '</td><td>' . esc_html( $source_label ) . '</td><td>' . esc_html( $target_label ) . '</td><td>' . esc_html( $job->provider ) . '</td><td><span class="openlingua-job-status openlingua-job-status--' . esc_attr( $job->status ) . '">' . esc_html( self::status_label( $job->status ) ) . '</span><div class="description">' . esc_html( sprintf( __( 'Attempts: %s', 'openlingua' ), $attempts ) ) . '</div>' . ( $job->error ? '<div class="openlingua-job-error">' . esc_html( $job->error ) . '</div>' : '' ) . '</td><td>' . wp_kses( $action, $allowed_action_html ) . '</td></tr>';
 		}
 		echo '</tbody></table></div>';

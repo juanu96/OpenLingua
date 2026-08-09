@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.12.0
+Stable tag: 1.13.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,9 +24,10 @@ Stable supported features:
 * A unified Media Library without translated attachment copies, plus an optional media-per-language mode for editors and visual builders.
 * One-click translation drafts with translated hierarchy and taxonomy mapping.
 * Block-level Gutenberg translation for native, nested, reusable, dynamic, and third-party block content.
+* Elementor text extraction through a public builder-extractor API.
 * Translation workflow statuses and outdated-source detection.
 * Per-language menu assignment for registered theme locations.
-* Language-aware public archives, searches, canonical URLs, `hreflang`, and `x-default`.
+* Language-aware public archives, searches, canonical URLs, `hreflang`, `x-default`, and sitemap entries.
 * String registration, plural helper, editing, and optional gettext discovery.
 * Pluggable machine-translation providers and a consent-based background job queue.
 * Safe baseline WooCommerce product metadata synchronization without duplicating SKUs or sales statistics.
@@ -58,6 +59,8 @@ OpenLingua does not send content to a translation service unless an administrato
 `OpenLingua\set_menu_translation( 'primary', 'es', $menu_id );`
 
 Provider integrations implement `OpenLingua\Contracts\Translation_Provider` and register through `OpenLingua\register_provider()` or the `openlingua_translation_providers` filter.
+
+Builder integrations implement `OpenLingua\Contracts\Content_Extractor` and register on `openlingua_register_content_extractors` with `OpenLingua\Content_Extractors::register()`.
 
 REST endpoints:
 
@@ -114,6 +117,15 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.13.0 =
+
+* Preserve Divi, Gutenberg, and nested ACF translations when source structures are deleted, inserted, or reordered.
+* Add ordered language fallbacks, contextual translation-memory provenance, and translated media metadata without duplicating files.
+* Add an extensible content-extractor API and native Elementor JSON extraction for manual and automatic translation.
+* Make core, Yoast SEO, Rank Math, and SEOPress sitemap output aware of translated URLs and hidden languages.
+* Improve background-job recovery and safe WooCommerce synchronization for operational product data and translated related products.
+* Add deterministic database migrations and configurable uninstall cleanup.
 
 = 1.12.0 =
 * Stop creating attachment translations and reuse WordPress media across translated content by default.
