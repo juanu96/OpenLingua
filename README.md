@@ -2,7 +2,9 @@
 
 OpenLingua is a free, GPL-licensed multilingual foundation for WordPress. It provides language-aware content, URLs, menus, taxonomies, custom fields, SEO metadata, interface strings, shortcodes, Divi layouts, and optional automatic translation without locking a site into a proprietary translation service.
 
-Current plugin version: **1.15.0**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
+Current plugin version: **1.16.0**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
+
+The first-run assistant configures the primary language, URL format, and selector essentials. The central settings screen then controls how translations are created, reviewed, published, indexed, rediscovered, retained, and removed. Translation permissions and notification recipients are configured independently.
 
 OpenLingua includes a local translation memory. Exact translations that you save manually or generate with an automatic provider can fill matching empty fields, including fields that still contain an untouched copy of the original text, on the same page and on other translated content. Existing translations are never overwritten, historical translations are imported automatically, and plain text is kept separate from HTML-compatible content.
 
@@ -190,6 +192,8 @@ API usage is billed or limited by the selected provider. A ChatGPT or Claude sub
 ## Administration screens
 
 - **OpenLingua**: languages, URL format, selector basics, visibility, and browser behavior.
+- **Setup assistant**: initial primary-language, URL, and language-selector configuration.
+- **Settings**: translation defaults, slug rules, source-change workflow, automatic-job limits, SEO, permissions, notifications, discovery, and maintenance.
 - **Strings**: interface strings registered by WordPress themes and plugins.
 - **Menus**: language-specific menu assignments and selector appearance.
 - **Advanced settings**: translation providers and exceptional metadata policies.
@@ -245,7 +249,7 @@ OpenLingua stores translation relationships, strings, and automatic-translation 
 
 No content is sent to an external translation service unless an administrator configures that provider and explicitly starts an automatic translation job. The exact provider receives only the segments included in that job.
 
-Uninstall preserves multilingual data by default. Define `OPENLINGUA_REMOVE_DATA` as `true` before uninstalling only when permanent removal is intended.
+Uninstall preserves multilingual data by default. Permanent cleanup requires an explicit choice plus confirmation in **OpenLingua → Settings**, or the `OPENLINGUA_REMOVE_DATA` constant for managed installations.
 
 ## Quality checks
 

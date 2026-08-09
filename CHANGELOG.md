@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.16.0
+
+- Add a guided setup assistant and a centralized behavior settings screen.
+- Configure missing translations, initial status, slug generation, copied metadata, and source-change handling.
+- Control automatic job batching, retries, monthly limits, result status, and duplicate queue protection.
+- Separate translation permissions from notification recipients and honor the configured capability in editing actions.
+- Add incomplete-translation indexing controls, timed string discovery, shared attachments in separated media mode, and maintenance actions.
+- Preserve data on uninstall by default and require a second explicit confirmation before settings-driven cleanup.
+
 ## 1.15.0
 
 - Discover structured visual-builder documents stored in JSON or nested post metadata without hardcoding plugin names.

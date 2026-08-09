@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.15.0
+Stable tag: 1.16.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,7 +33,8 @@ Stable supported features:
 * Pluggable machine-translation providers and a consent-based background job queue.
 * WooCommerce product, variation, attribute-term, inventory, download, dimension, and related-product synchronization without duplicating SKUs.
 * Portable JSON import with validation, conflict preview, automatic backup, and rollback, plus REST endpoints, WP-CLI commands, diagnostics, object caching, privacy text, and multisite-safe per-site tables.
-* Data preservation on uninstall unless `OPENLINGUA_REMOVE_DATA` is explicitly enabled.
+* A first-run assistant plus centralized controls for translation creation, review, automatic jobs, permissions, notices, SEO, discovery, maintenance, and uninstall behavior.
+* Data preservation on uninstall unless permanent cleanup is explicitly authorized.
 
 OpenLingua does not send content to a translation service unless an administrator configures a provider and explicitly starts an automatic translation job. See External services below before enabling a provider.
 
@@ -101,7 +102,7 @@ API credentials are stored encrypted in the WordPress options table when OpenSSL
 
 Without an enabled automatic-translation provider, OpenLingua keeps language relationships, translated strings, settings, workflow status, and jobs in the local WordPress database. It does not include analytics or usage tracking. Administrators can copy the suggested disclosure added by OpenLingua to WordPress's Privacy Policy Guide and adapt it to the site's actual configuration.
 
-Removing the plugin preserves data by default to prevent accidental loss. To request permanent removal during uninstall, define `OPENLINGUA_REMOVE_DATA` as `true` before uninstalling and make a backup first.
+Removing the plugin preserves data by default to prevent accidental loss. Permanent cleanup can be authorized in OpenLingua settings with an additional confirmation, or by defining `OPENLINGUA_REMOVE_DATA` as `true`. Make a backup first.
 
 == Frequently Asked Questions ==
 
@@ -115,9 +116,17 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 
 = What happens to my translations when I uninstall the plugin? =
 
-They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
+They are preserved by default. See the Privacy section for the explicit cleanup options.
 
 == Changelog ==
+
+= 1.16.0 =
+
+* Added a guided first-run assistant and a centralized settings screen.
+* Added configurable missing-translation, creation status, slug, metadata-copy, and source-change behavior.
+* Added automatic-translation batch, retry, monthly-limit, result-status, duplicate-job, and permission controls.
+* Added role-based translation access and independently configurable source-change recipients.
+* Added incomplete-translation indexing controls, timed string discovery, shared-media exceptions, cache cleanup, job retention, translation-memory cleanup, and confirmed uninstall cleanup.
 
 = 1.15.0 =
 
