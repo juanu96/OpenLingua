@@ -105,6 +105,84 @@ final class SEO {
 		add_filter( 'wpseo_canonical', array( __CLASS__, 'canonical' ) );
 		add_filter( 'rank_math/frontend/canonical', array( __CLASS__, 'canonical' ) );
 		add_filter( 'seopress_titles_canonical', array( __CLASS__, 'canonical' ) );
+		add_filter( 'wp_sitemaps_posts_query_args', array( __CLASS__, 'core_post_sitemap_args' ), 10, 2 );
+		add_filter( 'wp_sitemaps_taxonomies_query_args', array( __CLASS__, 'core_term_sitemap_args' ), 10, 2 );
+		add_filter( 'wp_sitemaps_posts_entry', array( __CLASS__, 'core_sitemap_post_entry' ), 10, 3 );
+		add_filter( 'wpseo_exclude_from_sitemap_by_post_ids', array( __CLASS__, 'yoast_excluded_posts' ) );
+		add_filter( 'wpseo_exclude_from_sitemap_by_term_ids', array( __CLASS__, 'yoast_excluded_terms' ) );
+		add_filter( 'wpseo_xml_sitemap_post_url', array( __CLASS__, 'sitemap_post_url' ), 10, 2 );
+		add_filter( 'rank_math/sitemap/entry', array( __CLASS__, 'rank_math_sitemap_entry' ), 10, 3 );
+		add_filter( 'seopress_sitemaps_single_url', array( __CLASS__, 'seopress_post_sitemap_url' ), 10, 2 );
+		add_filter( 'seopress_sitemaps_term_single_url', array( __CLASS__, 'seopress_term_sitemap_url' ), 10, 2 );
+	}
+
+	public static function core_post_sitemap_args( $args, $post_type ) {
+		unset( $post_type );
+		$args['post__not_in'] = array_values( array_unique( array_merge( (array) ( $args['post__not_in'] ?? array() ), self::hidden_element_ids( 'post' ) ) ) );
+		return $args;
+	}
+
+	public static function core_term_sitemap_args( $args, $taxonomy ) {
+		unset( $taxonomy );
+		$args['exclude'] = array_values( array_unique( array_merge( (array) ( $args['exclude'] ?? array() ), self::hidden_element_ids( 'term' ) ) ) );
+		return $args;
+	}
+
+	public static function core_sitemap_post_entry( $entry, $post, $post_type ) {
+		unset( $post_type );
+		if ( $post instanceof \WP_Post ) { $entry['loc'] = self::sitemap_post_url( $entry['loc'] ?? '', $post ); }
+		return $entry;
+	}
+
+	public static function yoast_excluded_posts( $ids ) {
+		return array_values( array_unique( array_merge( (array) $ids, self::hidden_element_ids( 'post' ) ) ) );
+	}
+
+	public static function yoast_excluded_terms( $ids ) {
+		return array_values( array_unique( array_merge( (array) $ids, self::hidden_element_ids( 'term' ) ) ) );
+	}
+
+	public static function sitemap_post_url( $url, $post ) {
+		$post = get_post( $post );
+		if ( ! $post ) { return $url; }
+		$row = Translations::row( 'post', $post->ID );
+		if ( $row && ! isset( Languages::public_all()[ $row->language ] ) ) { return ''; }
+		$permalink = get_permalink( $post );
+		return $permalink ?: $url;
+	}
+
+	public static function rank_math_sitemap_entry( $entry, $type, $object ) {
+		if ( 'post' === $type && $object instanceof \WP_Post ) {
+			$url = self::sitemap_post_url( $entry['loc'] ?? '', $object );
+			if ( ! $url ) { return false; }
+			$entry['loc'] = $url;
+		}
+		if ( 'term' === $type && $object instanceof \WP_Term && in_array( $object->term_id, self::hidden_element_ids( 'term' ), true ) ) { return false; }
+		return $entry;
+	}
+
+	public static function seopress_post_sitemap_url( $url, $post = null ) {
+		return self::sitemap_post_url( $url, $post );
+	}
+
+	public static function seopress_term_sitemap_url( $url, $term = null ) {
+		$term_id = $term instanceof \WP_Term ? $term->term_id : absint( $term );
+		return $term_id && in_array( $term_id, self::hidden_element_ids( 'term' ), true ) ? '' : $url;
+	}
+
+	private static function hidden_element_ids( $element_type ) {
+		static $cache = array();
+		$element_type = 'term' === $element_type ? 'term' : 'post';
+		if ( isset( $cache[ $element_type ] ) ) { return $cache[ $element_type ]; }
+		$hidden = array_values( array_diff( array_keys( Languages::all() ), array_keys( Languages::public_all() ) ) );
+		if ( ! $hidden ) { return $cache[ $element_type ] = array(); }
+		global $wpdb;
+		$ids = array();
+		foreach ( $hidden as $language ) {
+			$query = $wpdb->prepare( 'SELECT element_id FROM %i WHERE element_type = %s AND language = %s', Database::table( 'translations' ), $element_type, $language );
+			$ids = array_merge( $ids, (array) $wpdb->get_col( $query ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery -- Prepared custom-table lookup cached per request.
+		}
+		return $cache[ $element_type ] = array_map( 'absint', (array) $ids );
 	}
 
 	public static function hreflang() {
