@@ -113,6 +113,12 @@ final class Translation_Editor {
 		wp_localize_script( 'openlingua-translation-editor', 'OpenLinguaTranslationMemory', array(
 			'fields' => $memory_fields,
 			'label'  => __( 'Applied from translation memory', 'openlingua' ),
+			'filters' => array(
+				'all'          => __( 'All fields', 'openlingua' ),
+				'untranslated' => __( 'Needs translation', 'openlingua' ),
+				'translated'   => __( 'Translated', 'openlingua' ),
+				'visible'      => __( 'Visible fields', 'openlingua' ),
+			),
 		) );
 		$return_to = isset( $_GET['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['return_to'] ) ), '' ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only editor navigation parameter.
 		$back = $return_to ?: ( get_edit_post_link( $source->ID, 'url' ) ?: admin_url( 'edit.php' ) );
@@ -192,9 +198,11 @@ final class Translation_Editor {
 			}
 		}
 		$delete_url = Content::delete_translation_url( $source->ID, $target->ID, $back );
+		$revisions = wp_get_post_revisions( $target->ID, array( 'posts_per_page' => 1 ) );
 		/* translators: %s: language name. */
 		$delete_confirmation = sprintf( __( 'Move the %s translation to Trash? The original content will not be deleted.', 'openlingua' ), $target_language['name'] );
 		echo '</main><footer class="openlingua-editor__footer"><div class="openlingua-editor__footer-actions"><a class="button" href="' . esc_url( get_edit_post_link( $target->ID, 'url' ) ) . '">' . esc_html__( 'Open WordPress editor', 'openlingua' ) . '</a>';
+		if ( $revisions ) { $revision = reset( $revisions ); echo ' <a class="button" href="' . esc_url( admin_url( 'revision.php?revision=' . absint( $revision->ID ) ) ) . '"><span class="dashicons dashicons-backup" aria-hidden="true"></span>' . esc_html__( 'WordPress revisions', 'openlingua' ) . '</a>'; }
 		if ( current_user_can( 'delete_post', $target->ID ) ) { echo ' <a class="button openlingua-editor__delete" href="' . esc_url( $delete_url ) . '" data-openlingua-confirm="' . esc_attr( $delete_confirmation ) . '"><span class="dashicons dashicons-trash" aria-hidden="true"></span>' . esc_html__( 'Move translation to Trash', 'openlingua' ) . '</a>'; }
 		echo '</div><div class="openlingua-editor__progress"><strong data-openlingua-progress>0%</strong><span><i data-openlingua-progress-bar></i></span></div><div><button class="button" type="submit" name="translation_status" value="in-progress">' . esc_html__( 'Save draft', 'openlingua' ) . '</button> <button class="button button-primary" type="submit" name="translation_status" value="complete">' . esc_html__( 'Save and complete', 'openlingua' ) . '</button></div></footer></form></div>';
 	}

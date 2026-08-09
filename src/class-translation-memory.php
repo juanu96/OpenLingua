@@ -53,6 +53,7 @@ final class Translation_Memory {
 			$result = $wpdb->insert( $table, $data );
 		}
 		unset( self::$pairs[ $source_language . ':' . $target_language ] );
+		if ( function_exists( 'wp_cache_delete' ) ) { wp_cache_delete( md5( $source_language . ':' . $target_language ), 'openlingua_memory' ); }
 		if ( $context ) { self::remember( $source, $translation, $source_language, $target_language, $format, '', $origin, $approved ); }
 		return false !== $result;
 	}
@@ -127,10 +128,17 @@ final class Translation_Memory {
 		$target_language = sanitize_key( $target_language );
 		$cache_key = $source_language . ':' . $target_language;
 		if ( isset( self::$pairs[ $cache_key ] ) ) { return self::$pairs[ $cache_key ]; }
+		$persistent_key = md5( $cache_key );
+		if ( function_exists( 'wp_cache_get' ) ) {
+			$found = false;
+			$cached = wp_cache_get( $persistent_key, 'openlingua_memory', false, $found );
+			if ( $found && is_array( $cached ) ) { self::$pairs[ $cache_key ] = $cached; return $cached; }
+		}
 		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT source_hash, format, translation FROM %i WHERE source_language = %s AND target_language = %s', Database::table( 'memory' ), $source_language, $target_language ) );
 		$index = array();
 		foreach ( (array) $rows as $row ) { $index[ $row->format . ':' . $row->source_hash ] = $row->translation; }
 		self::$pairs[ $cache_key ] = $index;
+		if ( function_exists( 'wp_cache_set' ) ) { wp_cache_set( $persistent_key, $index, 'openlingua_memory', HOUR_IN_SECONDS ); }
 		return $index;
 	}
 }

@@ -13,6 +13,9 @@ document.addEventListener('DOMContentLoaded', function () {
 	var richSegments = Array.prototype.slice.call(document.querySelectorAll('[data-openlingua-rich-segment]'));
 	var memory = window.OpenLinguaTranslationMemory || { fields: {}, label: '' };
 	var memoryGroups = {};
+	var activeFilter = 'all';
+	var segments = Array.prototype.slice.call(document.querySelectorAll('[data-openlingua-segment]'));
+	var filters = memory.filters || { all: 'All fields', untranslated: 'Needs translation', translated: 'Translated', visible: 'Visible fields' };
 
 	function richVisual(field) {
 		var segment = field.closest('[data-openlingua-rich-segment]');
@@ -69,6 +72,55 @@ document.addEventListener('DOMContentLoaded', function () {
 		var percent = fields.length ? Math.round((complete / fields.length) * 100) : 0;
 		progress.textContent = percent + '%';
 		bar.style.width = percent + '%';
+		applyFilters();
+	}
+
+	function segmentIsTranslated(segment) {
+		var field = segment.querySelector('[data-openlingua-translation]');
+		return !!field && field.value.trim() !== '';
+	}
+
+	function applyFilters() {
+		var query = search ? search.value.toLowerCase().trim() : '';
+		var visible = 0;
+		segments.forEach(function (segment) {
+			var translated = segmentIsTranslated(segment);
+			var matchesSearch = query === '' || segment.textContent.toLowerCase().indexOf(query) !== -1;
+			var matchesStatus = activeFilter === 'all' || (activeFilter === 'translated' && translated) || (activeFilter === 'untranslated' && !translated);
+			segment.hidden = !(matchesSearch && matchesStatus);
+			if (!segment.hidden) { visible++; }
+		});
+		var count = document.querySelector('[data-openlingua-visible-count]');
+		if (count) { count.textContent = filters.visible + ': ' + visible + '/' + segments.length; }
+	}
+
+	function addFilterToolbar() {
+		var main = document.querySelector('.openlingua-editor__segments');
+		if (!main || !segments.length) { return; }
+		var toolbar = document.createElement('div');
+		toolbar.className = 'openlingua-editor__filters';
+		toolbar.setAttribute('role', 'group');
+		['all', 'untranslated', 'translated'].forEach(function (status) {
+			var button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'button' + (status === 'all' ? ' is-active' : '');
+			button.textContent = filters[status];
+			button.setAttribute('aria-pressed', status === 'all' ? 'true' : 'false');
+			button.addEventListener('click', function () {
+				activeFilter = status;
+				toolbar.querySelectorAll('button').forEach(function (item) {
+					var selected = item === button;
+					item.classList.toggle('is-active', selected);
+					item.setAttribute('aria-pressed', selected ? 'true' : 'false');
+				});
+				applyFilters();
+			});
+			toolbar.appendChild(button);
+		});
+		var count = document.createElement('span');
+		count.dataset.openlinguaVisibleCount = '';
+		toolbar.appendChild(count);
+		main.parentNode.insertBefore(toolbar, main);
 	}
 
 	fields.forEach(function (field) {
@@ -125,12 +177,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 	if (search) {
-		search.addEventListener('input', function () {
-			var query = search.value.toLowerCase().trim();
-			document.querySelectorAll('[data-openlingua-segment]').forEach(function (segment) {
-				segment.hidden = query !== '' && segment.textContent.toLowerCase().indexOf(query) === -1;
-			});
-		});
+		search.addEventListener('input', applyFilters);
 	}
+	addFilterToolbar();
 	updateProgress();
 });
