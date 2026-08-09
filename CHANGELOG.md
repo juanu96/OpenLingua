@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.18.0
+
+- Redesigned first-run setup as a spacious, interactive five-step assistant with OpenLingua's own visual language.
+- Added searchable language cards, primary-language synchronization, URL structure choices, and translation workflow defaults.
+- Added a live selector designer supporting flags, names, native names, inline or dropdown layouts, and footer placement.
+- Added a final review screen and clearer progress, navigation, responsive behavior, and completion states.
+
 ## 1.17.0
 
 - Add a polished three-step first-install wizard for selecting languages, URL structure, and language-selector appearance.

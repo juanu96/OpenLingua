@@ -1,0 +1,31 @@
+.openlingua-setup [hidden] {
+	display: none !important;
+}
+
+[data-switcher-preview].is-dropdown {
+	position: relative;
+}
+
+.openlingua-setup__preview-menu {
+	background: #fff;
+	border: 1px solid var(--ol-line);
+	border-radius: 8px;
+	box-shadow: 0 12px 28px rgba(23, 32, 51, 0.14);
+	display: grid;
+	gap: 2px;
+	min-width: 150px;
+	padding: 6px;
+	position: absolute;
+	right: 0;
+	top: calc(100% + 7px);
+	z-index: 2;
+}
+
+.openlingua-setup__preview-menu > span {
+	border-radius: 6px;
+	padding: 7px 8px;
+}
+
+.openlingua-setup__preview-menu > span:hover {
+	background: var(--ol-soft);
+}
