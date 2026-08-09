@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.14.0
+Stable tag: 1.15.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,13 +25,14 @@ Stable supported features:
 * One-click translation drafts with translated hierarchy and taxonomy mapping.
 * Block-level Gutenberg translation for native, nested, reusable, dynamic, and third-party block content.
 * Elementor text extraction through a public builder-extractor API.
+* Safe automatic discovery of structured visual-builder metadata with stable element identities and a read-only field inspector.
 * Translation workflow statuses and outdated-source detection.
 * Per-language menu assignment for registered theme locations.
 * Language-aware public archives, searches, canonical URLs, `hreflang`, `x-default`, and sitemap entries.
 * String registration, plural helper, editing, and optional gettext discovery.
 * Pluggable machine-translation providers and a consent-based background job queue.
 * WooCommerce product, variation, attribute-term, inventory, download, dimension, and related-product synchronization without duplicating SKUs.
-* Portable JSON backup/merge import, REST endpoints, WP-CLI commands, diagnostics, object caching, privacy text, and multisite-safe per-site tables.
+* Portable JSON import with validation, conflict preview, automatic backup, and rollback, plus REST endpoints, WP-CLI commands, diagnostics, object caching, privacy text, and multisite-safe per-site tables.
 * Data preservation on uninstall unless `OPENLINGUA_REMOVE_DATA` is explicitly enabled.
 
 OpenLingua does not send content to a translation service unless an administrator configures a provider and explicitly starts an automatic translation job. See External services below before enabling a provider.
@@ -117,6 +118,16 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.15.0 =
+
+* Add safe generic discovery for structured visual-builder metadata without exposing technical design fields.
+* Add a read-only builder-field inspector to diagnostics and stable element IDs that survive reordering.
+* Add taxonomy SEO translation for supported providers and language-aware AIOSEO sitemap exclusions.
+* Add import validation, conflict preview, automatic backups, and one-click rollback.
+* Add translation-editor status filters, visible-field counts, WordPress revision access, and persistent translation-memory caching.
+* Add PHP 7.4 through 8.3 CI coverage, distributable ZIP validation, and the official Plugin Check action.
+* Add WordPress.org banner and icon artwork, refreshed localization template, and a compatibility guide.
 
 = 1.14.0 =
 

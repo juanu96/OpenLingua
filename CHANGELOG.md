@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.15.0
+
+- Discover structured visual-builder documents stored in JSON or nested post metadata without hardcoding plugin names.
+- Keep translated fields attached to stable builder element IDs when components are reordered.
+- Exclude ACF-managed data, URLs, media, styling controls, caches, code, and opaque objects from generic discovery.
+- Add a read-only visual-builder field inspector to OpenLingua diagnostics.
+- Translate taxonomy SEO fields for supported SEO integrations and filter AIOSEO sitemap entries by language visibility.
+- Preview portable imports, report invalid records and conflicts, create a database backup, and offer exact rollback.
+- Filter the translation workspace by pending or translated fields, show visible counts, link to WordPress revisions, and cache translation-memory indexes persistently.
+- Test PHP 7.4 through 8.3 in CI, build the installable archive, and run the official Plugin Check action against the packaged plugin.
+- Add WordPress.org artwork, a refreshed POT catalog, and explicit compatibility documentation.
+
 ## 1.14.0
 
 - Create or safely adopt translated WooCommerce variations through a stable source-variation relationship.
