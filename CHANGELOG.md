@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.10.0
+
+- Preload known shortcode translations in the page response for immediate client-side application.
+- Protect target-language dynamic roots until their first translation pass completes, preventing source-language flashes.
+- Apply translations synchronously from the server dictionary or short-lived browser cache as JavaScript nodes appear.
+- Batch REST fallback requests for new text and avoid observer loops on already translated nodes.
+
 ## 1.9.1
 
 - Exclude Divi alignment, orientation, placement, direction, and common visual-control enum values from translation fields.

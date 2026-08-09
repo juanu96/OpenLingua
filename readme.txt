@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.9.1
+Stable tag: 1.10.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,12 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit opt-in removal constant.
 
 == Changelog ==
+
+= 1.10.0 =
+* Preload known dynamic shortcode translations in the initial page response.
+* Apply cached translations immediately when JavaScript creates content.
+* Prevent source-language flashes while new dynamic content is being translated.
+* Keep REST requests as a fallback for newly discovered strings and cache recent results in the browser.
 
 = 1.9.1 =
 * Exclude Divi alignment, orientation, placement, direction, and other visual control values from translation fields.
