@@ -25,7 +25,8 @@ final class Commerce implements Module {
 	public static function shared_keys() {
 		return apply_filters( 'openlingua_woocommerce_shared_meta', array(
 			'_regular_price', '_sale_price', '_price', '_stock', '_stock_status', '_manage_stock',
-			'_backorders', '_tax_status', '_tax_class', '_virtual', '_downloadable',
+			'_backorders', '_tax_status', '_tax_class', '_virtual', '_downloadable', '_downloadable_files',
+			'_download_limit', '_download_expiry', '_sold_individually', '_weight', '_length', '_width', '_height',
 		) );
 	}
 
@@ -54,13 +55,29 @@ final class Commerce implements Module {
 		if ( ! $source || ! $target ) { return; }
 		$setters = array(
 			'regular_price', 'sale_price', 'manage_stock', 'stock_quantity', 'stock_status',
-			'backorders', 'tax_status', 'tax_class', 'virtual', 'downloadable',
+			'backorders', 'tax_status', 'tax_class', 'virtual', 'downloadable', 'downloads',
+			'download_limit', 'download_expiry', 'sold_individually', 'weight', 'length', 'width', 'height',
 		);
 		foreach ( $setters as $property ) {
 			$getter = 'get_' . $property;
 			$setter = 'set_' . $property;
 			if ( is_callable( array( $source, $getter ) ) && is_callable( array( $target, $setter ) ) ) { $target->{$setter}( $source->{$getter}() ); }
 		}
+		$target_row = Translations::row( 'post', $target_id );
+		$target_language = $target_row ? $target_row->language : '';
+		if ( $target_language ) {
+			if ( is_callable( array( $source, 'get_upsell_ids' ) ) && is_callable( array( $target, 'set_upsell_ids' ) ) ) { $target->set_upsell_ids( self::translated_product_ids( $source->get_upsell_ids(), $target_language ) ); }
+			if ( is_callable( array( $source, 'get_cross_sell_ids' ) ) && is_callable( array( $target, 'set_cross_sell_ids' ) ) ) { $target->set_cross_sell_ids( self::translated_product_ids( $source->get_cross_sell_ids(), $target_language ) ); }
+		}
 		$target->save();
+	}
+
+	public static function translated_product_ids( array $product_ids, $target_language ) {
+		$mapped = array();
+		foreach ( $product_ids as $product_id ) {
+			$translated_id = Translations::translated_id( 'post', absint( $product_id ), $target_language );
+			if ( $translated_id && 'product' === get_post_type( $translated_id ) ) { $mapped[] = absint( $translated_id ); }
+		}
+		return array_values( array_unique( $mapped ) );
 	}
 }
