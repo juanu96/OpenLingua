@@ -144,6 +144,7 @@ final class Jobs implements Module {
 			if ( array_key_exists( $key, $result ) ) { $acf_translation[ $segment['id'] ] = $result[ $key ]; }
 		}
 		ACF_Content::save( $source->ID, $target->ID, $acf_translation, true );
+		update_post_meta( $target->ID, ACF_Content::SOURCE_SNAPSHOT_META, ACF_Content::source_snapshot( $source->ID ) );
 		$seo_translation = array();
 		foreach ( $seo_groups as $group ) {
 			foreach ( $group['fields'] as $field ) {

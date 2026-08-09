@@ -73,7 +73,9 @@ final class Translation_Editor {
 		$gutenberg_snapshot = is_array( $gutenberg_snapshot ) ? $gutenberg_snapshot : array();
 		$target_gutenberg = $is_gutenberg ? Gutenberg_Content::aligned_values( $source->post_content, $target->post_content, $gutenberg_snapshot ) : array();
 		$acf_segments = ACF_Content::extract( $source->ID );
-		$target_acf = ACF_Content::values( $target->ID );
+		$acf_snapshot = get_post_meta( $target->ID, ACF_Content::SOURCE_SNAPSHOT_META, true );
+		$acf_snapshot = is_array( $acf_snapshot ) ? $acf_snapshot : array();
+		$target_acf = ACF_Content::aligned_values( $source->ID, $target->ID, $acf_snapshot );
 		$seo_groups = SEO::translation_fields( $source->ID, $target->ID );
 		$memory_fields = array();
 		foreach ( $fields as $name => &$field ) {
@@ -226,6 +228,7 @@ final class Translation_Editor {
 		if ( $is_gutenberg ) { update_post_meta( $target_id, Gutenberg_Content::SOURCE_SNAPSHOT_META, Gutenberg_Content::source_snapshot( $source->post_content ) ); }
 		$acf_translation = self::posted_array( 'acf_translation' );
 		ACF_Content::save( $source_id, $target_id, $acf_translation, current_user_can( 'unfiltered_html' ) );
+		update_post_meta( $target_id, ACF_Content::SOURCE_SNAPSHOT_META, ACF_Content::source_snapshot( $source_id ) );
 		$seo_translation = self::posted_array( 'seo_translation' );
 		SEO::save_translation_fields( $source_id, $target_id, $seo_translation );
 		Translation_Memory::learn_post( $source_id, $target_id );

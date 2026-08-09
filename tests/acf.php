@@ -5,6 +5,9 @@ namespace {
 	}
 	define( 'ABSPATH', __DIR__ . '/' );
 	$acf_test_updates = array();
+	$acf_test_meta = array();
+	$acf_source_cards = array( array( 'field_card_title' => 'First card' ), array( 'field_card_title' => 'Second card' ) );
+	$acf_target_cards = array( array( 'field_card_title' => 'Old first' ), array( 'field_card_title' => 'Old second' ) );
 
 	function __( $text ) { return $text; }
 	function sanitize_key( $value ) { return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( $value ) ); }
@@ -12,12 +15,14 @@ namespace {
 	function wp_kses_post( $value ) { return strip_tags( $value, '<p><strong><em><a>' ); }
 	function get_post_type() { return 'page'; }
 	function update_field( $key, $value, $post_id ) { global $acf_test_updates; $acf_test_updates[ $post_id ][ $key ] = $value; }
+	function get_post_meta( $post_id, $key ) { global $acf_test_meta; return $acf_test_meta[ $post_id ][ $key ] ?? array(); }
 
 	function get_field_objects( $post_id ) {
 		$headline = 1 === $post_id ? 'Original headline' : 'Old headline';
 		$body = 1 === $post_id ? '<p>Original <strong>body</strong></p>' : '<p>Old body</p>';
 		$tagline = 1 === $post_id ? 'Original tagline' : 'Old tagline';
-		$cards = 1 === $post_id ? array( array( 'field_card_title' => 'First card' ), array( 'field_card_title' => 'Second card' ) ) : array( array( 'field_card_title' => 'Old first' ), array( 'field_card_title' => 'Old second' ) );
+		global $acf_source_cards, $acf_target_cards;
+		$cards = 1 === $post_id ? $acf_source_cards : $acf_target_cards;
 		return array(
 			'headline' => array( 'key' => 'field_headline', 'name' => 'headline', 'label' => 'Headline', 'type' => 'text', 'value' => $headline ),
 			'body' => array( 'key' => 'field_body', 'name' => 'body', 'label' => 'Body', 'type' => 'wysiwyg', 'value' => $body ),
@@ -68,6 +73,16 @@ namespace {
 	acf_assert( 'Descripción traducida' === $acf_test_updates[2]['field_settings']['field_tagline'], 'preserves and updates group values' );
 	acf_assert( 'Primera tarjeta' === $acf_test_updates[2]['field_cards'][0]['field_card_title'], 'updates a repeater row' );
 	acf_assert( 'Old second' === $acf_test_updates[2]['field_cards'][1]['field_card_title'], 'preserves untouched repeater rows' );
+
+	$old_snapshot = \OpenLingua\ACF_Content::source_snapshot( 1 );
+	$acf_test_meta[2][\OpenLingua\ACF_Content::SOURCE_SNAPSHOT_META] = $old_snapshot;
+	$acf_source_cards = array( array( 'field_card_title' => 'Second card' ), array( 'field_card_title' => 'New card' ) );
+	$aligned = \OpenLingua\ACF_Content::aligned_values( 1, 2, $old_snapshot );
+	acf_assert( 'Old second' === $aligned['acf_field_cards_0_field_card_title'], 'keeps a repeater translation attached after deleting the preceding row' );
+	acf_assert( '' === $aligned['acf_field_cards_1_field_card_title'], 'leaves a newly inserted repeater row empty' );
+	\OpenLingua\ACF_Content::save( 1, 2, array( 'acf_field_cards_1_field_card_title' => 'Tarjeta nueva' ) );
+	acf_assert( 'Old second' === $acf_test_updates[2]['field_cards'][0]['field_card_title'], 'rebuilds the repeater with the correctly aligned existing translation' );
+	acf_assert( 'Tarjeta nueva' === $acf_test_updates[2]['field_cards'][1]['field_card_title'] && 2 === count( $acf_test_updates[2]['field_cards'] ), 'adds the new translated row and removes deleted source rows' );
 
 	echo "All OpenLingua ACF tests passed.\n";
 }

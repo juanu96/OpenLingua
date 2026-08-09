@@ -5,6 +5,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** Discovers and updates independently translatable ACF values. */
 final class ACF_Content {
+	const SOURCE_SNAPSHOT_META = '_openlingua_acf_source_snapshot';
 	private static $text_types = array( 'text', 'textarea', 'wysiwyg' );
 
 	public static function available() {
@@ -30,20 +31,63 @@ final class ACF_Content {
 		return $values;
 	}
 
+	public static function source_snapshot( $post_id ) {
+		$segments = array();
+		foreach ( self::extract( $post_id ) as $segment ) {
+			$segments[ $segment['id'] ] = array(
+				'compatibility' => self::compatibility_key( $segment ),
+				'value' => self::normalized_value( $segment['value'], $segment['format'] ),
+			);
+		}
+		return array( 'version' => 1, 'segments' => $segments );
+	}
+
+	public static function aligned_values( $source_id, $target_id, array $snapshot = array() ) {
+		$target_values = self::values( $target_id );
+		$previous = 1 === (int) ( $snapshot['version'] ?? 0 ) && is_array( $snapshot['segments'] ?? null ) ? $snapshot['segments'] : array();
+		if ( ! $previous ) { return $target_values; }
+		$pools = array();
+		foreach ( $previous as $old_id => $descriptor ) {
+			if ( isset( $descriptor['compatibility'], $descriptor['value'] ) ) { $pools[ $descriptor['compatibility'] . ':' . $descriptor['value'] ][] = (string) $old_id; }
+		}
+		$aligned = array();
+		$used = array();
+		foreach ( self::extract( $source_id ) as $segment ) {
+			$key = self::compatibility_key( $segment ) . ':' . self::normalized_value( $segment['value'], $segment['format'] );
+			foreach ( $pools[ $key ] ?? array() as $old_id ) {
+				if ( isset( $used[ $old_id ] ) || ! array_key_exists( $old_id, $target_values ) ) { continue; }
+				$aligned[ $segment['id'] ] = $target_values[ $old_id ];
+				$used[ $old_id ] = true;
+				continue 2;
+			}
+			$aligned[ $segment['id'] ] = '';
+		}
+		return $aligned;
+	}
+
 	public static function save( $source_id, $target_id, array $submitted, $allow_html = false ) {
 		if ( ! self::available() ) { return; }
 		$source_segments = self::extract( $source_id );
+		$source_fields = get_field_objects( $source_id, false );
+		$source_by_key = array();
+		foreach ( (array) $source_fields as $field ) { if ( ! empty( $field['key'] ) ) { $source_by_key[ $field['key'] ] = $field; } }
 		$target_fields = get_field_objects( $target_id, false );
 		$target_by_key = array();
 		foreach ( (array) $target_fields as $field ) { if ( ! empty( $field['key'] ) ) { $target_by_key[ $field['key'] ] = $field; } }
 		$updates = array();
+		$snapshot = function_exists( 'get_post_meta' ) ? get_post_meta( $target_id, self::SOURCE_SNAPSHOT_META, true ) : array();
+		$existing_values = self::aligned_values( $source_id, $target_id, is_array( $snapshot ) ? $snapshot : array() );
+		foreach ( $source_segments as $segment ) {
+			$root_key = $segment['root_key'];
+			if ( ! array_key_exists( $root_key, $updates ) ) { $updates[ $root_key ] = isset( $source_by_key[ $root_key ] ) ? $source_by_key[ $root_key ]['value'] : null; }
+			if ( array_key_exists( $segment['id'], $existing_values ) && '' !== (string) $existing_values[ $segment['id'] ] ) {
+				$updates[ $root_key ] = self::set_path( $updates[ $root_key ], $segment['path'], $existing_values[ $segment['id'] ] );
+			}
+		}
 
 		foreach ( $source_segments as $segment ) {
 			if ( ! array_key_exists( $segment['id'], $submitted ) ) { continue; }
 			$root_key = $segment['root_key'];
-			if ( ! array_key_exists( $root_key, $updates ) ) {
-				$updates[ $root_key ] = isset( $target_by_key[ $root_key ] ) ? $target_by_key[ $root_key ]['value'] : null;
-			}
 			$value = (string) $submitted[ $segment['id'] ];
 			$value = 'html' === $segment['format'] ? ( $allow_html ? $value : wp_kses_post( $value ) ) : sanitize_textarea_field( $value );
 			$updates[ $root_key ] = self::set_path( $updates[ $root_key ], $segment['path'], $value );
@@ -117,6 +161,17 @@ final class ACF_Content {
 	private static function add_segment( array &$segments, $root_key, array $path, array $labels, $value, $format ) {
 		$id_path = $path ? implode( '_', array_map( 'strval', $path ) ) : 'value';
 		$segments[] = array( 'id' => sanitize_key( 'acf_' . $root_key . '_' . $id_path ), 'label' => implode( ' — ', $labels ), 'value' => $value, 'format' => $format, 'root_key' => $root_key, 'path' => $path );
+	}
+
+	private static function compatibility_key( array $segment ) {
+		$path = array_values( array_filter( (array) ( $segment['path'] ?? array() ), static function ( $part ) { return ! is_int( $part ) && ! ctype_digit( (string) $part ); } ) );
+		return (string) ( $segment['root_key'] ?? '' ) . ':' . implode( ':', array_map( 'sanitize_key', $path ) ) . ':' . (string) ( $segment['format'] ?? 'plain' );
+	}
+
+	private static function normalized_value( $value, $format ) {
+		$value = html_entity_decode( (string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		$value = str_replace( array( "\r\n", "\r", "\xC2\xA0" ), array( "\n", "\n", ' ' ), $value );
+		return 'html' === $format ? trim( preg_replace( '/>\s+</u', '><', $value ) ) : trim( preg_replace( '/\s+/u', ' ', $value ) );
 	}
 
 	private static function set_path( $root, array $path, $value ) {
