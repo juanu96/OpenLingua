@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.10.1
+
+- Never hide an entire shortcode, React widget, slider, or dynamic plugin while unknown strings use the REST fallback.
+- Apply preloaded translations directly from the mutation observer before the browser's next paint.
+- Keep unknown labels visible until a translation exists, preventing large blank areas that look like broken content.
+
 ## 1.10.0
 
 - Preload known shortcode translations in the page response for immediate client-side application.

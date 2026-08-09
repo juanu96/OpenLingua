@@ -38,9 +38,6 @@ final class Shortcode_Content {
 	public static function assets() {
 		if ( is_admin() ) { return; }
 		$preloaded = self::preloaded_translations( Languages::current() );
-		wp_register_style( 'openlingua-dynamic-shortcodes', false, array(), OPENLINGUA_VERSION );
-		wp_enqueue_style( 'openlingua-dynamic-shortcodes' );
-		wp_add_inline_style( 'openlingua-dynamic-shortcodes', '[data-openlingua-shortcode].openlingua-shortcode-pending{visibility:hidden!important}' );
 		wp_enqueue_script( 'openlingua-dynamic-shortcodes', plugins_url( 'assets/dynamic-shortcodes.js', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION, false );
 		wp_localize_script( 'openlingua-dynamic-shortcodes', 'OpenLinguaShortcodes', array(
 			'endpoint'       => esc_url_raw( rest_url( 'openlingua/v1/shortcode-strings' ) ),
@@ -121,16 +118,8 @@ final class Shortcode_Content {
 
 	private static function mark_dynamic_root( $html, $tag ) {
 		if ( false !== stripos( $html, 'data-openlingua-shortcode=' ) ) { return $html; }
-		$pending = Languages::current() !== Languages::default_code();
-		return preg_replace_callback( '~<([a-z][a-z0-9:-]*)([^>]*)>~i', static function ( $matches ) use ( $tag, $pending ) {
+		return preg_replace_callback( '~<([a-z][a-z0-9:-]*)([^>]*)>~i', static function ( $matches ) use ( $tag ) {
 			$attributes = $matches[2] . ' data-openlingua-shortcode="' . esc_attr( sanitize_key( $tag ) ) . '"';
-			if ( $pending ) {
-				if ( preg_match( '/\bclass=("|\')(.*?)\1/i', $attributes ) ) {
-					$attributes = preg_replace( '/\bclass=("|\')(.*?)\1/i', 'class=$1$2 openlingua-shortcode-pending$1', $attributes, 1 );
-				} else {
-					$attributes .= ' class="openlingua-shortcode-pending"';
-				}
-			}
 			return '<' . $matches[1] . $attributes . '>';
 		}, $html, 1 );
 	}

@@ -6,7 +6,7 @@
 
 	var attributes = ['aria-label', 'alt', 'placeholder', 'title'];
 	var cache = new Map();
-	var timers = new WeakMap();
+	var inFlight = new Set();
 	var appliedText = new WeakMap();
 	var appliedAttributes = new WeakMap();
 	var stored = loadStored();
@@ -72,11 +72,8 @@
 		}
 	}
 
-	function reveal(root) {
-		root.classList.remove('openlingua-shortcode-pending');
-	}
-
 	function requestBatch(shortcode, items) {
+		items.forEach(function (item) { inFlight.add(item.key); });
 		return fetch(config.endpoint, {
 			method: 'POST',
 			credentials: 'same-origin',
@@ -89,7 +86,7 @@
 				cache.set(item.key, translation);
 				apply(item.entry, translation);
 			});
-		});
+		}).finally(function () { items.forEach(function (item) { inFlight.delete(item.key); }); });
 	}
 
 	function scan(root) {
@@ -98,24 +95,17 @@
 		collect(root).forEach(function (entry) {
 			var key = shortcode + '|' + entry.kind + '|' + entry.text;
 			if (cache.has(key)) apply(entry, cache.get(key));
-			else pending.push({ entry: entry, key: key });
+			else if (!inFlight.has(key)) pending.push({ entry: entry, key: key });
 		});
-		if (!pending.length) { reveal(root); return Promise.resolve(); }
-		if (config.language !== config.sourceLanguage) root.classList.add('openlingua-shortcode-pending');
+		if (!pending.length) return Promise.resolve();
 		var requests = [];
 		for (var index = 0; index < pending.length; index += 50) requests.push(requestBatch(shortcode, pending.slice(index, index + 50)));
-		return Promise.all(requests).then(saveStored).catch(function () {}).then(function () { reveal(root); });
-	}
-
-	function schedule(root) {
-		clearTimeout(timers.get(root));
-		timers.set(root, setTimeout(function () { scan(root); }, 0));
+		return Promise.all(requests).then(saveStored).catch(function () {});
 	}
 
 	function watch(root) {
 		scan(root);
-		setTimeout(function () { reveal(root); }, 4000);
-		new MutationObserver(function () { schedule(root); }).observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: attributes });
+		new MutationObserver(function () { scan(root); }).observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: attributes });
 	}
 
 	function start() {

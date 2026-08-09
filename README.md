@@ -2,7 +2,7 @@
 
 OpenLingua is a free, GPL-licensed multilingual foundation for WordPress. It provides language-aware content, URLs, menus, taxonomies, custom fields, SEO metadata, interface strings, shortcodes, Divi layouts, and optional automatic translation without locking a site into a proprietary translation service.
 
-Current plugin version: **1.10.0**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
+Current plugin version: **1.10.1**. Requires WordPress 6.4 or newer and PHP 7.4 or newer.
 
 OpenLingua includes a local translation memory. Exact translations that you save manually or generate with an automatic provider can fill matching empty fields, including fields that still contain an untouched copy of the original text, on the same page and on other translated content. Existing translations are never overwritten, historical translations are imported automatically, and plain text is kept separate from HTML-compatible content.
 
@@ -10,7 +10,7 @@ Slider Revolution modules embedded in Divi are protected as technical configurat
 
 When an authorized editor visits a translated page on the front end, the WordPress toolbar includes an **Edit translation** action that opens the OpenLingua editor for that exact source and target pair.
 
-Known translations for shortcode and JavaScript-rendered content are preloaded with the page and applied as soon as dynamic nodes appear. Target-language shortcode roots remain visually protected until their first translation pass completes, preventing visitors from seeing a flash of source-language content. REST discovery remains available only as a fallback for previously unseen text, with a short-lived browser cache for subsequent visits.
+Known translations for shortcode and JavaScript-rendered content are preloaded with the page and applied in the same browser rendering cycle in which dynamic nodes appear. The plugin output itself always remains visible; a previously unseen label no longer hides an entire widget while REST discovery runs in the background. A short-lived browser cache accelerates subsequent visits.
 
 OpenLingua is independently developed and distributed under the GPL-2.0-or-later license.
 

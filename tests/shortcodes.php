@@ -50,7 +50,7 @@ namespace OpenLingua {
 		'empty alt preserved' => false !== strpos( $output, 'alt=""' ),
 		'script content preserved' => false !== strpos( $output, 'const example = \'title="Search content"\'' ),
 		'dynamic root identified' => false !== strpos( $output, 'data-openlingua-shortcode="sample_widget"' ),
-		'target-language shortcode hidden until dynamic translation is ready' => false !== strpos( $output, 'openlingua-shortcode-pending' ),
+		'dynamic root remains visible while unknown strings are discovered' => false === strpos( $output, 'openlingua-shortcode-pending' ),
 		'domain grouped by shortcode' => 0 < count( array_filter( array_keys( Strings::$seen ), static function ( $key ) { return 0 === strpos( $key, 'shortcode-sample_widget:' ); } ) ),
 		'divi wrappers ignored' => '<h4>Divi wrapper label</h4>' === $divi_output && ! in_array( 'Divi wrapper label', Strings::$seen, true ),
 		'slider revolution output marked for dynamic text discovery' => false !== strpos( $slider_output, 'data-openlingua-shortcode="revslider_divi"' ),
