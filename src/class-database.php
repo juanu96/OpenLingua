@@ -40,6 +40,9 @@ final class Database {
 	private static function install() {
 		global $wpdb;
 		$previous_schema = (string) get_option( 'openlingua_db_version', '' );
+		if ( '' === $previous_schema && false === get_option( 'openlingua_setup_complete', false ) ) {
+			add_option( 'openlingua_setup_required', 1, '', 'no' );
+		}
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset = $wpdb->get_charset_collate();

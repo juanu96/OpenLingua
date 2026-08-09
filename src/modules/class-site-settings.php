@@ -17,6 +17,7 @@ final class Site_Settings implements Module {
 		add_action( 'admin_post_openlingua_maintenance', array( __CLASS__, 'maintenance' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'setup_notice' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
+		add_action( 'load-toplevel_page_openlingua', array( __CLASS__, 'redirect_first_entry' ) );
 	}
 
 	public static function defaults() {
@@ -50,23 +51,30 @@ final class Site_Settings implements Module {
 	public static function assets( $hook ) {
 		if ( ! in_array( $hook, array( 'openlingua_page_openlingua-settings', 'openlingua_page_openlingua-setup' ), true ) ) { return; }
 		wp_enqueue_style( 'openlingua-language-settings', plugins_url( 'assets/admin-language-settings.css', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION );
+		if ( 'openlingua_page_openlingua-setup' === $hook ) { wp_enqueue_style( 'openlingua-setup', plugins_url( 'assets/admin-setup.css', OPENLINGUA_FILE ), array( 'openlingua-language-settings' ), OPENLINGUA_VERSION ); wp_enqueue_script( 'openlingua-setup', plugins_url( 'assets/admin-setup.js', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION, true ); }
+	}
+
+	public static function redirect_first_entry() {
+		if ( ! current_user_can( 'manage_options' ) || ! get_option( 'openlingua_setup_required' ) || get_option( 'openlingua_setup_complete' ) ) { return; }
+		wp_safe_redirect( admin_url( 'admin.php?page=openlingua-setup' ) ); exit;
 	}
 
 	public static function setup_notice() {
-		if ( get_option( 'openlingua_setup_complete' ) || ! current_user_can( 'manage_options' ) || isset( $_GET['page'] ) && 'openlingua-setup' === $_GET['page'] ) { return; } // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen check.
+		if ( ! get_option( 'openlingua_setup_required' ) || get_option( 'openlingua_setup_complete' ) || ! current_user_can( 'manage_options' ) || isset( $_GET['page'] ) && 'openlingua-setup' === $_GET['page'] ) { return; } // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen check.
 		echo '<div class="notice notice-info"><p><strong>' . esc_html__( 'Finish setting up OpenLingua.', 'openlingua' ) . '</strong> ' . esc_html__( 'Confirm the primary language, URL format, and language switcher before translating content.', 'openlingua' ) . ' <a class="button button-primary" href="' . esc_url( admin_url( 'admin.php?page=openlingua-setup' ) ) . '">' . esc_html__( 'Start setup', 'openlingua' ) . '</a></p></div>';
 	}
 
 	public static function setup_page() {
-		$languages = \OpenLingua\Languages::all(); $default = \OpenLingua\Languages::default_code(); $language_settings = Language_Settings::get();
-		echo '<div class="wrap openlingua-settings"><h1>' . esc_html__( 'Set up OpenLingua', 'openlingua' ) . '</h1><p>' . esc_html__( 'These essentials are enough to begin. Every option can be changed later.', 'openlingua' ) . '</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_complete_setup">';
+		$languages = Language_Catalog::merged(); $enabled = \OpenLingua\Languages::all(); $default = \OpenLingua\Languages::default_code(); $language_settings = Language_Settings::get();
+		echo '<div class="wrap openlingua-settings openlingua-setup"><div class="openlingua-setup__hero"><span class="dashicons dashicons-translation" aria-hidden="true"></span><div><h1>' . esc_html__( 'Welcome to OpenLingua', 'openlingua' ) . '</h1><p>' . esc_html__( 'Let us prepare the multilingual essentials for your website.', 'openlingua' ) . '</p></div></div><ol class="openlingua-setup__progress" aria-label="' . esc_attr__( 'Setup progress', 'openlingua' ) . '"><li class="is-active"><span>1</span>' . esc_html__( 'Languages', 'openlingua' ) . '</li><li><span>2</span>' . esc_html__( 'URLs', 'openlingua' ) . '</li><li><span>3</span>' . esc_html__( 'Selector', 'openlingua' ) . '</li></ol><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" data-openlingua-setup><input type="hidden" name="action" value="openlingua_complete_setup">';
 		wp_nonce_field( 'openlingua_complete_setup' );
-		echo '<section class="openlingua-card"><h2>1. ' . esc_html__( 'Primary language', 'openlingua' ) . '</h2><select name="default_language">';
+		echo '<section class="openlingua-card openlingua-setup__step is-active" data-step="1"><p class="openlingua-setup__eyebrow">' . esc_html__( 'Step 1 of 3', 'openlingua' ) . '</p><h2>' . esc_html__( 'Choose your languages', 'openlingua' ) . '</h2><p>' . esc_html__( 'Select the languages this website will use and identify the original content language.', 'openlingua' ) . '</p><label class="openlingua-select"><span>' . esc_html__( 'Primary language', 'openlingua' ) . '</span><select name="default_language">';
 		foreach ( $languages as $code => $language ) { echo '<option value="' . esc_attr( $code ) . '" ' . selected( $default, $code, false ) . '>' . esc_html( ( $language['flag'] ?? '🌐' ) . ' ' . $language['name'] ) . '</option>'; }
-		echo '</select></section><section class="openlingua-card"><h2>2. ' . esc_html__( 'Language URLs', 'openlingua' ) . '</h2>';
+		echo '</select></label><div class="openlingua-setup__languages">';
+		foreach ( $languages as $code => $language ) { echo '<label><input type="checkbox" name="enabled_languages[]" value="' . esc_attr( $code ) . '" ' . checked( isset( $enabled[ $code ] ), true, false ) . '> <span>' . esc_html( $language['flag'] ?? '🌐' ) . '</span><strong>' . esc_html( $language['native_name'] ?? $language['name'] ) . '</strong><small>' . esc_html( $language['name'] ) . '</small></label>'; }
+		echo '</div></section><section class="openlingua-card openlingua-setup__step" data-step="2" hidden><p class="openlingua-setup__eyebrow">' . esc_html__( 'Step 2 of 3', 'openlingua' ) . '</p><h2>' . esc_html__( 'Choose the URL format', 'openlingua' ) . '</h2><p>' . esc_html__( 'Language directories are recommended for most websites.', 'openlingua' ) . '</p>';
 		foreach ( array( 'directory' => __( 'Language directories', 'openlingua' ), 'query' => __( 'Query parameter', 'openlingua' ), 'domain' => __( 'Separate domains', 'openlingua' ) ) as $value => $label ) { echo '<label class="openlingua-radio"><input type="radio" name="url_mode" value="' . esc_attr( $value ) . '" ' . checked( $language_settings['url_mode'], $value, false ) . '> ' . esc_html( $label ) . '</label>'; }
-		echo '</section><section class="openlingua-card"><h2>3. ' . esc_html__( 'Language selector', 'openlingua' ) . '</h2><label class="openlingua-check"><input type="checkbox" name="show_flag" value="1" checked> ' . esc_html__( 'Show flags or symbols', 'openlingua' ) . '</label><label class="openlingua-check"><input type="checkbox" name="show_name" value="1" checked> ' . esc_html__( 'Show language names', 'openlingua' ) . '</label><label class="openlingua-check"><input type="checkbox" name="dropdown" value="1" ' . checked( ! empty( $language_settings['switcher']['dropdown'] ), true, false ) . '> ' . esc_html__( 'Use a dropdown', 'openlingua' ) . '</label></section>';
-		submit_button( __( 'Finish setup', 'openlingua' ), 'primary large' ); echo '</form></div>';
+		echo '</section><section class="openlingua-card openlingua-setup__step" data-step="3" hidden><p class="openlingua-setup__eyebrow">' . esc_html__( 'Step 3 of 3', 'openlingua' ) . '</p><h2>' . esc_html__( 'Configure the language selector', 'openlingua' ) . '</h2><p>' . esc_html__( 'Choose the initial appearance. More placement and style options remain available later.', 'openlingua' ) . '</p><label class="openlingua-check"><input type="checkbox" name="show_flag" value="1" checked> ' . esc_html__( 'Show flags or symbols', 'openlingua' ) . '</label><label class="openlingua-check"><input type="checkbox" name="show_name" value="1" checked> ' . esc_html__( 'Show language names', 'openlingua' ) . '</label><label class="openlingua-check"><input type="checkbox" name="dropdown" value="1" ' . checked( ! empty( $language_settings['switcher']['dropdown'] ), true, false ) . '> ' . esc_html__( 'Use a dropdown', 'openlingua' ) . '</label></section><div class="openlingua-setup__actions"><button type="button" class="button button-large" data-setup-back hidden>' . esc_html__( 'Back', 'openlingua' ) . '</button><button type="button" class="button button-primary button-large" data-setup-next>' . esc_html__( 'Continue', 'openlingua' ) . '</button><button type="submit" class="button button-primary button-large" data-setup-finish hidden>' . esc_html__( 'Finish setup', 'openlingua' ) . '</button></div></form><p class="openlingua-setup__note">' . esc_html__( 'You can change every selection later from OpenLingua settings.', 'openlingua' ) . '</p></div>';
 	}
 
 	public static function page() {
@@ -143,8 +151,14 @@ final class Site_Settings implements Module {
 
 	public static function complete_setup() {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); } check_admin_referer( 'openlingua_complete_setup' );
-		$default = sanitize_key( wp_unslash( $_POST['default_language'] ?? '' ) ); if ( \OpenLingua\Languages::is_valid( $default ) ) { update_option( 'openlingua_default_language', $default ); }
-		$settings = Language_Settings::get(); $url_mode = sanitize_key( wp_unslash( $_POST['url_mode'] ?? 'directory' ) ); $settings['url_mode'] = in_array( $url_mode, array( 'directory', 'query', 'domain' ), true ) ? $url_mode : 'directory'; $settings['switcher']['show_flag'] = ! empty( $_POST['show_flag'] ); $settings['switcher']['show_name'] = ! empty( $_POST['show_name'] ); $settings['switcher']['dropdown'] = ! empty( $_POST['dropdown'] ); update_option( 'openlingua_language_settings', $settings, false ); update_option( 'openlingua_setup_complete', 1, false ); update_option( 'openlingua_flush_rewrite_rules', 1, false );
+		$catalog = Language_Catalog::merged();
+		$default = sanitize_key( wp_unslash( $_POST['default_language'] ?? '' ) );
+		$submitted = array_map( 'sanitize_key', (array) wp_unslash( $_POST['enabled_languages'] ?? array() ) );
+		$enabled = array_intersect_key( $catalog, array_flip( array_unique( $submitted ) ) );
+		if ( isset( $catalog[ $default ] ) ) { $enabled[ $default ] = $catalog[ $default ]; }
+		if ( ! $enabled ) { $default = \OpenLingua\Languages::default_code(); $enabled[ $default ] = $catalog[ $default ] ?? \OpenLingua\Languages::all()[ $default ]; }
+		update_option( 'openlingua_languages', $enabled, false ); update_option( 'openlingua_default_language', $default, false );
+		$settings = Language_Settings::get(); $url_mode = sanitize_key( wp_unslash( $_POST['url_mode'] ?? 'directory' ) ); $settings['url_mode'] = in_array( $url_mode, array( 'directory', 'query', 'domain' ), true ) ? $url_mode : 'directory'; $settings['switcher']['show_flag'] = ! empty( $_POST['show_flag'] ); $settings['switcher']['show_name'] = ! empty( $_POST['show_name'] ); $settings['switcher']['dropdown'] = ! empty( $_POST['dropdown'] ); update_option( 'openlingua_language_settings', $settings, false ); update_option( 'openlingua_setup_complete', 1, false ); delete_option( 'openlingua_setup_required' ); update_option( 'openlingua_flush_rewrite_rules', 1, false );
 		wp_safe_redirect( admin_url( 'admin.php?page=openlingua-settings&setup=complete' ) ); exit;
 	}
 }

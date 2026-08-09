@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.17.0
+
+- Add a polished three-step first-install wizard for selecting languages, URL structure, and language-selector appearance.
+- Open the wizard automatically on the first OpenLingua visit only for genuinely new installations.
+- Preserve uninterrupted access for upgraded and previously configured sites.
+
 ## 1.16.0
 
 - Add a guided setup assistant and a centralized behavior settings screen.

@@ -19,7 +19,7 @@ $openlingua_remove_site_data = static function () use ( $wpdb ) {
 		'openlingua_flush_rewrite_rules', 'openlingua_active_translation_provider',
 		'openlingua_openai_settings', 'openlingua_anthropic_settings', 'openlingua_gemini_settings',
 		'openlingua_google_translate_settings',
-		'openlingua_site_settings', 'openlingua_setup_complete', 'openlingua_remove_data_confirmed', 'openlingua_string_discovery_until',
+		'openlingua_site_settings', 'openlingua_setup_complete', 'openlingua_setup_required', 'openlingua_remove_data_confirmed', 'openlingua_string_discovery_until',
 	) as $openlingua_option ) {
 		delete_option( $openlingua_option );
 	}
