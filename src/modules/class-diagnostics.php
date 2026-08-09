@@ -67,7 +67,32 @@ final class Diagnostics implements Module {
 			echo '</section>';
 		}
 		echo '</div><section class="openlingua-diagnostics__details"><h2>' . esc_html__( 'Installation details', 'openlingua' ) . '</h2><dl><div><dt>' . esc_html__( 'OpenLingua version', 'openlingua' ) . '</dt><dd>' . esc_html( $report['version'] ) . '</dd></div><div><dt>' . esc_html__( 'Language URL format', 'openlingua' ) . '</dt><dd>' . esc_html( self::url_mode_label( $report['url_mode'] ) ) . '</dd></div><div><dt>' . esc_html__( 'Available translation services', 'openlingua' ) . '</dt><dd>' . esc_html( implode( ', ', array_map( static function( $provider ) { return $provider['name']; }, $report['provider_status'] ) ) ) . '</dd></div></dl>';
-		echo '<details><summary>' . esc_html__( 'Technical information for support', 'openlingua' ) . '</summary><p>' . esc_html__( 'A developer or support technician may ask you to copy this information. It does not contain your API keys.', 'openlingua' ) . '</p><textarea class="large-text code" rows="16" readonly>' . esc_textarea( wp_json_encode( $report, JSON_PRETTY_PRINT ) ) . '</textarea></details></section></div>';
+		echo '<details><summary>' . esc_html__( 'Technical information for support', 'openlingua' ) . '</summary><p>' . esc_html__( 'A developer or support technician may ask you to copy this information. It does not contain your API keys.', 'openlingua' ) . '</p><textarea class="large-text code" rows="16" readonly>' . esc_textarea( wp_json_encode( $report, JSON_PRETTY_PRINT ) ) . '</textarea></details></section>';
+		self::builder_inspector();
+		echo '</div>';
+	}
+
+	private static function builder_inspector() {
+		$post_id = isset( $_GET['inspect_post'] ) ? absint( $_GET['inspect_post'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only diagnostic filter.
+		echo '<section class="openlingua-diagnostics__details"><h2>' . esc_html__( 'Visual builder field inspector', 'openlingua' ) . '</h2><p>' . esc_html__( 'Check which custom fields OpenLingua can safely recognize as structured visual-builder content. This tool does not change the page.', 'openlingua' ) . '</p>';
+		echo '<form method="get"><input type="hidden" name="page" value="openlingua-diagnostics"><label for="openlingua-inspect-post"><strong>' . esc_html__( 'Page or post ID', 'openlingua' ) . '</strong></label> <input id="openlingua-inspect-post" name="inspect_post" type="number" min="1" value="' . esc_attr( $post_id ) . '"> <button class="button button-secondary">' . esc_html__( 'Inspect fields', 'openlingua' ) . '</button></form>';
+		if ( $post_id ) {
+			$post = get_post( $post_id );
+			if ( ! $post ) { echo '<p class="notice notice-error inline"><span>' . esc_html__( 'That content item could not be found.', 'openlingua' ) . '</span></p>'; }
+			else {
+				$labels = array(
+					'translatable-document'  => __( 'Recognized builder content', 'openlingua' ),
+					'acf-field'               => __( 'Managed separately by ACF support', 'openlingua' ),
+					'excluded-key'            => __( 'Technical field excluded for safety', 'openlingua' ),
+					'opaque-object'           => __( 'Object data cannot be edited safely', 'openlingua' ),
+					'not-a-builder-document'  => __( 'Not recognized as builder content', 'openlingua' ),
+				);
+				echo '<h3>' . esc_html( get_the_title( $post ) ?: sprintf( __( 'Content #%d', 'openlingua' ), $post_id ) ) . '</h3><table class="widefat striped"><thead><tr><th>' . esc_html__( 'Custom field', 'openlingua' ) . '</th><th>' . esc_html__( 'Result', 'openlingua' ) . '</th></tr></thead><tbody>';
+				foreach ( \OpenLingua\Structured_Meta_Content::inspect( $post ) as $key => $reason ) { echo '<tr><td><code>' . esc_html( $key ) . '</code></td><td>' . esc_html( $labels[ $reason ] ?? $reason ) . '</td></tr>'; }
+				echo '</tbody></table>';
+			}
+		}
+		echo '</section>';
 	}
 
 	private static function url_mode_label( $mode ) {

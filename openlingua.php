@@ -47,6 +47,7 @@ require_once OPENLINGUA_DIR . 'src/class-divi-content.php';
 require_once OPENLINGUA_DIR . 'src/class-divi-theme-builder.php';
 require_once OPENLINGUA_DIR . 'src/class-acf-content.php';
 require_once OPENLINGUA_DIR . 'src/class-elementor-content.php';
+require_once OPENLINGUA_DIR . 'src/class-structured-meta-content.php';
 require_once OPENLINGUA_DIR . 'src/class-content-extractors.php';
 require_once OPENLINGUA_DIR . 'src/class-translation-memory.php';
 require_once OPENLINGUA_DIR . 'src/class-translation-editor.php';

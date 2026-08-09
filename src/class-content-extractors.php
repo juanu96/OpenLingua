@@ -11,6 +11,7 @@ final class Content_Extractors {
 
 	public static function hooks() {
 		self::register( new Elementor_Content() );
+		self::register( new Structured_Meta_Content() );
 		do_action( 'openlingua_register_content_extractors', __CLASS__ );
 	}
 
