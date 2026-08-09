@@ -5,6 +5,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class Plugin {
 	public static function boot() {
+		Content_Extractors::hooks();
 		Database::maybe_upgrade();
 		if ( is_multisite() ) { add_action( 'wp_initialize_site', array( 'OpenLingua\\Database', 'install_new_site' ), 20, 1 ); }
 		Content::hooks();

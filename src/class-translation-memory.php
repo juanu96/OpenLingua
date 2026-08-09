@@ -70,10 +70,13 @@ final class Translation_Memory {
 		$remember( $source->post_excerpt, $target->post_excerpt, 'html', 'post-excerpt' );
 		$is_divi = Divi_Content::is_divi( $source->post_content );
 		$is_gutenberg = ! $is_divi && Gutenberg_Content::is_gutenberg( $source->post_content );
+		$content_extractor = ! $is_divi && ! $is_gutenberg ? Content_Extractors::for_post( $source ) : null;
 		if ( $is_divi ) {
 			self::learn_segments( Divi_Content::extract( $source->post_content ), Divi_Content::values( $target->post_content ), $remember, 'kind' );
 		} elseif ( $is_gutenberg ) {
 			self::learn_segments( Gutenberg_Content::extract( $source->post_content ), Gutenberg_Content::values( $target->post_content ), $remember, 'format' );
+		} elseif ( $content_extractor ) {
+			self::learn_segments( $content_extractor->extract( $source ), $content_extractor->values( $target ), $remember, 'format' );
 		} else {
 			$remember( $source->post_content, $target->post_content, 'html', 'post-content' );
 		}
