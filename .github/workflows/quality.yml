@@ -1,0 +1,70 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php-tests:
+    name: PHP ${{ matrix.php }} regression tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3']
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Lint production PHP
+        shell: bash
+        run: find src -name '*.php' -print0 | xargs -0 -n1 php -l && php -l openlingua.php && php -l uninstall.php
+
+      - name: Run regression tests
+        run: php tools/run-tests.php
+
+  distributable:
+    name: Build and Plugin Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Build distributable archive
+        run: php tools/build-release.php
+
+      - name: Extract distributable archive
+        shell: bash
+        run: |
+          mkdir -p build
+          unzip -q openlingua-*.zip -d build
+
+      - name: Run official Plugin Check
+        uses: wordpress/plugin-check-action@v1
+        with:
+          build-dir: build/openlingua
+          ignore-warnings: true
+
+      - name: Upload installable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: openlingua-installable
+          path: openlingua-*.zip
+          if-no-files-found: error
