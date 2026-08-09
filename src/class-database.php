@@ -80,12 +80,17 @@ final class Database {
 			target_language varchar(20) NOT NULL,
 			provider varchar(100) NOT NULL,
 			status varchar(20) NOT NULL DEFAULT 'pending',
+			attempts smallint(5) unsigned NOT NULL DEFAULT 0,
+			max_attempts smallint(5) unsigned NOT NULL DEFAULT 3,
+			available_at datetime NULL,
+			started_at datetime NULL,
 			payload longtext NULL,
 			error longtext NULL,
 			created_at datetime NOT NULL,
 			updated_at datetime NOT NULL,
 			PRIMARY KEY  (id),
 			KEY status (status),
+			KEY runnable (status,available_at),
 			KEY target (target_id,target_language)
 		) {$charset};" );
 

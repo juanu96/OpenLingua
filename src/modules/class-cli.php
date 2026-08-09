@@ -39,4 +39,32 @@ class CLI_Command {
 	public function diagnostics() {
 		\WP_CLI::line( wp_json_encode( Diagnostics::report(), JSON_PRETTY_PRINT ) );
 	}
+
+	/** Lists recent translation jobs. */
+	public function jobs( $args, $assoc_args ) {
+		global $wpdb;
+		$limit = min( 500, max( 1, absint( $assoc_args['limit'] ?? 50 ) ) );
+		$status = sanitize_key( $assoc_args['status'] ?? '' );
+		$table = \OpenLingua\Database::table( 'jobs' );
+		if ( $status ) {
+			$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT id,source_id,target_id,target_language,provider,status,attempts,max_attempts,updated_at FROM %i WHERE status = %s ORDER BY id DESC LIMIT %d', $table, $status, $limit ), ARRAY_A );
+		} else {
+			$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT id,source_id,target_id,target_language,provider,status,attempts,max_attempts,updated_at FROM %i ORDER BY id DESC LIMIT %d', $table, $limit ), ARRAY_A );
+		}
+		\WP_CLI\Utils\format_items( 'table', $rows, array( 'id', 'source_id', 'target_id', 'target_language', 'provider', 'status', 'attempts', 'max_attempts', 'updated_at' ) );
+	}
+
+	/** Runs one job immediately or recovers stalled workers. */
+	public function run_job( $args, $assoc_args ) {
+		if ( ! empty( $assoc_args['recover'] ) ) {
+			\WP_CLI::success( sprintf( 'Recovered %d stalled job(s).', Jobs::recover_stale() ) );
+			return;
+		}
+		$job_id = absint( $args[0] ?? 0 );
+		if ( ! $job_id ) { \WP_CLI::error( 'Provide a job ID or use --recover.' ); }
+		$result = Jobs::run( $job_id );
+		if ( is_wp_error( $result ) ) { \WP_CLI::error( $result->get_error_message() ); }
+		if ( ! $result ) { \WP_CLI::error( 'The job is not runnable or is already being processed.' ); }
+		\WP_CLI::success( 'Translation job completed.' );
+	}
 }

@@ -13,6 +13,9 @@ use OpenLingua\Translation_Memory;
 defined( 'ABSPATH' ) || exit;
 
 final class Jobs implements Module {
+	const RECOVERY_HOOK = 'openlingua_recover_translation_jobs';
+	const STALE_AFTER = 15 * MINUTE_IN_SECONDS;
+
 	public static function hooks() {
 		add_action( 'openlingua_run_translation_job', array( __CLASS__, 'run' ) );
 		add_action( 'admin_post_openlingua_run_job', array( __CLASS__, 'run_from_admin' ) );
@@ -21,6 +24,9 @@ final class Jobs implements Module {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
 		add_action( 'openlingua_translation_job_completed', array( __CLASS__, 'remember_completion' ), 10, 2 );
 		add_action( 'admin_notices', array( __CLASS__, 'completion_notice' ) );
+		add_filter( 'cron_schedules', array( __CLASS__, 'cron_schedules' ) );
+		add_action( 'init', array( __CLASS__, 'schedule_recovery' ) );
+		add_action( self::RECOVERY_HOOK, array( __CLASS__, 'recover_stale' ) );
 	}
 
 	public static function enqueue( $source_id, $target_id, $target_language, $provider_id ) {
@@ -35,7 +41,8 @@ final class Jobs implements Module {
 		$wpdb->insert( Database::table( 'jobs' ), array(
 			'source_id' => absint( $source_id ), 'target_id' => absint( $target_id ),
 			'target_language' => sanitize_key( $target_language ), 'provider' => sanitize_key( $provider_id ),
-			'status' => 'pending', 'payload' => wp_json_encode( array( 'requested_by' => get_current_user_id() ) ), 'error' => '', 'created_at' => $now, 'updated_at' => $now,
+			'status' => 'pending', 'attempts' => 0, 'max_attempts' => 3, 'available_at' => $now,
+			'payload' => wp_json_encode( array( 'requested_by' => get_current_user_id() ) ), 'error' => '', 'created_at' => $now, 'updated_at' => $now,
 		) );
 		if ( ! $wpdb->insert_id ) { return new \WP_Error( 'openlingua_job_db', $wpdb->last_error ); }
 		$job_id = absint( $wpdb->insert_id );
@@ -68,13 +75,19 @@ final class Jobs implements Module {
 	public static function run( $job_id ) {
 		global $wpdb;
 		$table = Database::table( 'jobs' );
-		$job = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, absint( $job_id ) ) );
-		if ( ! $job || ! in_array( $job->status, array( 'pending', 'failed' ), true ) ) { return false; }
+		$job_id = absint( $job_id );
+		$now = current_time( 'mysql' );
+		$claimed = $wpdb->query( $wpdb->prepare(
+			"UPDATE %i SET status = 'processing', attempts = attempts + 1, started_at = %s, updated_at = %s WHERE id = %d AND status IN ('pending','retrying','failed') AND (available_at IS NULL OR available_at <= %s)",
+			$table, $now, $now, $job_id, $now
+		) );
+		if ( 1 !== $claimed ) { return false; }
+		$job = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $job_id ) );
+		if ( ! $job ) { return false; }
 		$provider = Providers::get( $job->provider );
 		$source   = get_post( $job->source_id );
 		$target   = get_post( $job->target_id );
 		if ( ! $provider || ! $provider->is_configured() || ! $source || ! $target ) { return self::fail( $job_id, __( 'Provider or source content is unavailable.', 'openlingua' ) ); }
-		$wpdb->update( $table, array( 'status' => 'processing', 'updated_at' => current_time( 'mysql' ) ), array( 'id' => $job_id ) );
 		$is_divi = Divi_Content::is_divi( $source->post_content );
 		$is_gutenberg = ! $is_divi && Gutenberg_Content::is_gutenberg( $source->post_content );
 		$divi_segments = $is_divi ? Divi_Content::extract( $source->post_content ) : array();
@@ -143,7 +156,7 @@ final class Jobs implements Module {
 		$payload = json_decode( (string) $job->payload, true );
 		$payload = is_array( $payload ) ? $payload : array();
 		$payload['segments'] = array_keys( $segments );
-		$wpdb->update( $table, array( 'status' => 'complete', 'payload' => wp_json_encode( $payload ), 'error' => '', 'updated_at' => current_time( 'mysql' ) ), array( 'id' => $job_id ) );
+		$wpdb->update( $table, array( 'status' => 'complete', 'payload' => wp_json_encode( $payload ), 'error' => '', 'started_at' => null, 'updated_at' => current_time( 'mysql' ) ), array( 'id' => $job_id ) );
 		do_action( 'openlingua_translation_job_completed', $job_id, $job );
 		return true;
 	}
@@ -155,8 +168,37 @@ final class Jobs implements Module {
 
 	private static function fail( $job_id, $message ) {
 		global $wpdb;
-		$wpdb->update( Database::table( 'jobs' ), array( 'status' => 'failed', 'error' => sanitize_textarea_field( $message ), 'updated_at' => current_time( 'mysql' ) ), array( 'id' => absint( $job_id ) ) );
+		$table = Database::table( 'jobs' );
+		$job = $wpdb->get_row( $wpdb->prepare( 'SELECT attempts,max_attempts FROM %i WHERE id = %d', $table, absint( $job_id ) ) );
+		$attempts = absint( $job->attempts ?? 1 );
+		$max_attempts = max( 1, absint( $job->max_attempts ?? 3 ) );
+		$status = $attempts < $max_attempts ? 'retrying' : 'failed';
+		$delay = min( HOUR_IN_SECONDS, 30 * ( 2 ** max( 0, $attempts - 1 ) ) );
+		$available = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) + $delay );
+		$wpdb->update( $table, array( 'status' => $status, 'error' => sanitize_textarea_field( $message ), 'available_at' => $available, 'started_at' => null, 'updated_at' => current_time( 'mysql' ) ), array( 'id' => absint( $job_id ) ) );
+		if ( 'retrying' === $status ) { wp_schedule_single_event( time() + $delay, 'openlingua_run_translation_job', array( absint( $job_id ) ) ); }
 		return new \WP_Error( 'openlingua_job_failed', $message );
+	}
+
+	public static function cron_schedules( $schedules ) {
+		$schedules['openlingua_five_minutes'] = array( 'interval' => 5 * MINUTE_IN_SECONDS, 'display' => __( 'Every five minutes', 'openlingua' ) );
+		return $schedules;
+	}
+
+	public static function schedule_recovery() {
+		if ( ! wp_next_scheduled( self::RECOVERY_HOOK ) ) { wp_schedule_event( time() + 5 * MINUTE_IN_SECONDS, 'openlingua_five_minutes', self::RECOVERY_HOOK ); }
+	}
+
+	public static function recover_stale() {
+		global $wpdb;
+		$table = Database::table( 'jobs' );
+		$cutoff = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - self::STALE_AFTER );
+		$ids = $wpdb->get_col( $wpdb->prepare( "SELECT id FROM %i WHERE status = 'processing' AND started_at IS NOT NULL AND started_at < %s", $table, $cutoff ) );
+		foreach ( (array) $ids as $job_id ) {
+			$wpdb->update( $table, array( 'status' => 'retrying', 'available_at' => current_time( 'mysql' ), 'started_at' => null, 'error' => __( 'The worker stopped before finishing. OpenLingua queued the job again.', 'openlingua' ), 'updated_at' => current_time( 'mysql' ) ), array( 'id' => absint( $job_id ), 'status' => 'processing' ) );
+			wp_schedule_single_event( time() + 5, 'openlingua_run_translation_job', array( absint( $job_id ) ) );
+		}
+		return count( $ids );
 	}
 
 	public static function remember_completion( $job_id, $job ) {
@@ -187,6 +229,8 @@ final class Jobs implements Module {
 		$job_id = isset( $_GET['job_id'] ) ? absint( $_GET['job_id'] ) : 0;
 		check_admin_referer( 'openlingua_run_job_' . $job_id );
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
+		global $wpdb;
+		$wpdb->update( Database::table( 'jobs' ), array( 'status' => 'pending', 'attempts' => 0, 'available_at' => current_time( 'mysql' ), 'started_at' => null ), array( 'id' => $job_id, 'status' => 'failed' ) );
 		self::run( $job_id );
 		wp_safe_redirect( add_query_arg( 'page', 'openlingua-jobs', admin_url( 'admin.php' ) ) ); exit;
 	}
@@ -203,6 +247,7 @@ final class Jobs implements Module {
 	private static function status_label( $status ) {
 		$labels = array(
 			'pending' => __( 'Queued', 'openlingua' ),
+			'retrying' => __( 'Waiting to retry', 'openlingua' ),
 			'processing' => __( 'Translating', 'openlingua' ),
 			'complete' => __( 'Ready for review', 'openlingua' ),
 			'failed' => __( 'Failed', 'openlingua' ),
@@ -219,7 +264,7 @@ final class Jobs implements Module {
 		);
 		echo '<div class="wrap openlingua-jobs"><h1>' . esc_html__( 'Translation jobs', 'openlingua' ) . '</h1>';
 		echo '<p>' . esc_html__( 'Automatic jobs start on their own. This screen shows whether each translation is waiting, running, ready to review, or needs attention.', 'openlingua' ) . '</p>';
-		echo '<div class="openlingua-jobs__legend"><span class="openlingua-job-status openlingua-job-status--pending">' . esc_html__( 'Queued', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--processing">' . esc_html__( 'Translating', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--complete">' . esc_html__( 'Ready for review', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--failed">' . esc_html__( 'Failed', 'openlingua' ) . '</span></div>';
+		echo '<div class="openlingua-jobs__legend"><span class="openlingua-job-status openlingua-job-status--pending">' . esc_html__( 'Queued', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--retrying">' . esc_html__( 'Waiting to retry', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--processing">' . esc_html__( 'Translating', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--complete">' . esc_html__( 'Ready for review', 'openlingua' ) . '</span><span class="openlingua-job-status openlingua-job-status--failed">' . esc_html__( 'Failed', 'openlingua' ) . '</span></div>';
 		echo '<table class="widefat striped"><thead><tr><th>ID</th><th>' . esc_html__( 'Source', 'openlingua' ) . '</th><th>' . esc_html__( 'Target', 'openlingua' ) . '</th><th>' . esc_html__( 'Provider', 'openlingua' ) . '</th><th>' . esc_html__( 'Status', 'openlingua' ) . '</th><th>' . esc_html__( 'Action', 'openlingua' ) . '</th></tr></thead><tbody>';
 		foreach ( $jobs as $job ) {
 			$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_run_job', 'job_id' => $job->id ), admin_url( 'admin-post.php' ) ), 'openlingua_run_job_' . $job->id );
@@ -230,9 +275,10 @@ final class Jobs implements Module {
 			$action = '&mdash;';
 			if ( 'failed' === $job->status ) { $action = '<a class="button" href="' . esc_url( $url ) . '">' . esc_html__( 'Retry', 'openlingua' ) . '</a>'; }
 			elseif ( 'complete' === $job->status && $source && $target ) { $action = '<a class="button button-primary" href="' . esc_url( Translation_Editor::url( $source->ID, $target->ID ) ) . '">' . esc_html__( 'Review translation', 'openlingua' ) . '</a>'; }
-			elseif ( 'pending' === $job->status ) { $action = '<span class="description">' . esc_html__( 'Starts automatically', 'openlingua' ) . '</span>'; }
+			elseif ( in_array( $job->status, array( 'pending', 'retrying' ), true ) ) { $action = '<span class="description">' . esc_html__( 'Starts automatically', 'openlingua' ) . '</span>'; }
 			elseif ( 'processing' === $job->status ) { $action = '<span class="description">' . esc_html__( 'Please wait', 'openlingua' ) . '</span>'; }
-			echo '<tr><td>' . absint( $job->id ) . '</td><td>' . esc_html( $source_label ) . '</td><td>' . esc_html( $target_label ) . '</td><td>' . esc_html( $job->provider ) . '</td><td><span class="openlingua-job-status openlingua-job-status--' . esc_attr( $job->status ) . '">' . esc_html( self::status_label( $job->status ) ) . '</span>' . ( $job->error ? '<div class="openlingua-job-error">' . esc_html( $job->error ) . '</div>' : '' ) . '</td><td>' . wp_kses( $action, $allowed_action_html ) . '</td></tr>';
+			$attempts = absint( $job->attempts ?? 0 ) . '/' . max( 1, absint( $job->max_attempts ?? 3 ) );
+			echo '<tr><td>' . absint( $job->id ) . '</td><td>' . esc_html( $source_label ) . '</td><td>' . esc_html( $target_label ) . '</td><td>' . esc_html( $job->provider ) . '</td><td><span class="openlingua-job-status openlingua-job-status--' . esc_attr( $job->status ) . '">' . esc_html( self::status_label( $job->status ) ) . '</span><div class="description">' . esc_html( sprintf( __( 'Attempts: %s', 'openlingua' ), $attempts ) ) . '</div>' . ( $job->error ? '<div class="openlingua-job-error">' . esc_html( $job->error ) . '</div>' : '' ) . '</td><td>' . wp_kses( $action, $allowed_action_html ) . '</td></tr>';
 		}
 		echo '</tbody></table></div>';
 	}

@@ -29,6 +29,7 @@ $openlingua_remove_site_data = static function () use ( $wpdb ) {
 	}
 	$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE meta_key IN (%s,%s,%s)', $wpdb->usermeta, '_openlingua_admin_content_language', '_openlingua_nav_menu_language', '_openlingua_completed_jobs' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 	wp_clear_scheduled_hook( 'openlingua_run_translation_job' );
+	wp_clear_scheduled_hook( 'openlingua_recover_translation_jobs' );
 };
 
 if ( is_multisite() && is_network_admin() ) {
