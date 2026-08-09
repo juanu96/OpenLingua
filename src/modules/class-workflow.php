@@ -69,6 +69,7 @@ final class Workflow implements Module {
 			foreach ( $users as $user ) { $emails[] = $user->user_email; }
 		}
 		$emails = array_values( array_unique( array_filter( array_map( 'sanitize_email', $emails ) ) ) );
+		/* translators: %s: source content title. */
 		if ( $emails ) { wp_mail( $emails, sprintf( __( 'Translation update needed: %s', 'openlingua' ), $post->post_title ), __( 'Source content changed and one or more translations are now marked as outdated.', 'openlingua' ) ); }
 	}
 
