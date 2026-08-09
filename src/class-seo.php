@@ -91,12 +91,64 @@ final class SEO {
 		do_action( 'openlingua_saved_seo_translation_fields', $source_id, $target_id, $submitted );
 	}
 
+	public static function term_translation_fields( $source_id, $target_id ) {
+		$groups = array();
+		foreach ( self::meta_adapters() as $provider => $adapter ) {
+			foreach ( $adapter['fields'] as $key => $label ) {
+				$source = (string) get_term_meta( $source_id, $key, true );
+				$target = $target_id ? (string) get_term_meta( $target_id, $key, true ) : '';
+				if ( '' === $source && '' === $target ) { continue; }
+				$groups[ $provider ]['name'] = $adapter['name'];
+				$groups[ $provider ]['fields'][] = self::field( 'term-' . $provider, $key, $label, $source, $target );
+			}
+		}
+		$aioseo = self::aioseo_term_rows( $source_id, $target_id );
+		if ( $aioseo ) { $groups['aioseo'] = array( 'name' => 'All in One SEO', 'fields' => $aioseo ); }
+		return (array) apply_filters( 'openlingua_seo_term_translation_fields', $groups, $source_id, $target_id );
+	}
+
+	public static function save_term_translation_fields( $source_id, $target_id, array $submitted ) {
+		foreach ( self::term_translation_fields( $source_id, $target_id ) as $provider => $group ) {
+			foreach ( $group['fields'] as $field ) {
+				if ( ! array_key_exists( $field['id'], $submitted ) ) { continue; }
+				$value = sanitize_textarea_field( $submitted[ $field['id'] ] );
+				if ( 'aioseo' === $provider ) { self::save_aioseo_term_field( $target_id, $field['key'], $value ); }
+				else { update_term_meta( $target_id, $field['key'], $value ); }
+			}
+		}
+		do_action( 'openlingua_saved_seo_term_translation_fields', $source_id, $target_id, $submitted );
+	}
+
 	private static function save_aioseo_field( $post_id, $key, $value ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'aioseo_posts';
 		$exists = $wpdb->get_var( $wpdb->prepare( 'SELECT post_id FROM %i WHERE post_id = %d', $table, $post_id ) );
 		if ( $exists ) { $wpdb->update( $table, array( $key => $value ), array( 'post_id' => $post_id ) ); }
 		else { $wpdb->insert( $table, array( 'post_id' => $post_id, $key => $value ) ); }
+	}
+
+	private static function aioseo_term_rows( $source_id, $target_id ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'aioseo_terms';
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) { return array(); }
+		$source = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE term_id = %d', $table, $source_id ), ARRAY_A );
+		$target = $target_id ? $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE term_id = %d', $table, $target_id ), ARRAY_A ) : array();
+		$labels = array( 'title' => __( 'SEO title', 'openlingua' ), 'description' => __( 'Meta description', 'openlingua' ), 'og_title' => __( 'Facebook title', 'openlingua' ), 'og_description' => __( 'Facebook description', 'openlingua' ), 'twitter_title' => __( 'X title', 'openlingua' ), 'twitter_description' => __( 'X description', 'openlingua' ) );
+		$fields = array();
+		foreach ( $labels as $key => $label ) {
+			$source_value = (string) ( $source[ $key ] ?? '' );
+			$target_value = (string) ( $target[ $key ] ?? '' );
+			if ( '' !== $source_value || '' !== $target_value ) { $fields[] = self::field( 'aioseo-term', $key, $label, $source_value, $target_value ); }
+		}
+		return $fields;
+	}
+
+	private static function save_aioseo_term_field( $term_id, $key, $value ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'aioseo_terms';
+		$exists = $wpdb->get_var( $wpdb->prepare( 'SELECT term_id FROM %i WHERE term_id = %d', $table, $term_id ) );
+		if ( $exists ) { $wpdb->update( $table, array( $key => $value ), array( 'term_id' => $term_id ) ); }
+		else { $wpdb->insert( $table, array( 'term_id' => $term_id, $key => $value ) ); }
 	}
 
 	public static function hooks() {
@@ -114,6 +166,8 @@ final class SEO {
 		add_filter( 'rank_math/sitemap/entry', array( __CLASS__, 'rank_math_sitemap_entry' ), 10, 3 );
 		add_filter( 'seopress_sitemaps_single_url', array( __CLASS__, 'seopress_post_sitemap_url' ), 10, 2 );
 		add_filter( 'seopress_sitemaps_term_single_url', array( __CLASS__, 'seopress_term_sitemap_url' ), 10, 2 );
+		add_filter( 'aioseo_sitemap_exclude_posts', array( __CLASS__, 'aioseo_excluded_posts' ), 10, 2 );
+		add_filter( 'aioseo_sitemap_exclude_terms', array( __CLASS__, 'aioseo_excluded_terms' ), 10, 2 );
 	}
 
 	public static function core_post_sitemap_args( $args, $post_type ) {
@@ -140,6 +194,16 @@ final class SEO {
 
 	public static function yoast_excluded_terms( $ids ) {
 		return array_values( array_unique( array_merge( (array) $ids, self::hidden_element_ids( 'term' ) ) ) );
+	}
+
+	public static function aioseo_excluded_posts( $ids, $type = '' ) {
+		unset( $type );
+		return self::yoast_excluded_posts( $ids );
+	}
+
+	public static function aioseo_excluded_terms( $ids, $type = '' ) {
+		unset( $type );
+		return self::yoast_excluded_terms( $ids );
 	}
 
 	public static function sitemap_post_url( $url, $post ) {

@@ -22,5 +22,9 @@
 .openlingua-taxonomy-modal__body small { color:#646970; font-weight:400; }
 .openlingua-taxonomy-modal__source { margin:0; padding:10px 12px; background:#f0f6fc; border-left:3px solid #2271b1; }
 .openlingua-taxonomy-modal__source span { display:block; color:#646970; font-size:12px; }
+.openlingua-taxonomy-modal__seo { display:grid; gap:12px; padding-top:16px; border-top:2px solid #dcdcde; }
+.openlingua-taxonomy-modal__seo h3 { margin:0; }
+.openlingua-taxonomy-modal__seo > div { display:grid; gap:14px; }
+.openlingua-taxonomy-modal__seo label > small { display:block; padding:7px 9px; border-left:3px solid #c3c4c7; background:#f6f7f7; white-space:pre-wrap; }
 body.openlingua-modal-open { overflow:hidden; }
 @media(max-width:782px){.openlingua-taxonomies__filters{align-items:stretch;flex-direction:column}.openlingua-taxonomies__filters input[type="search"],.openlingua-taxonomies__filters select{width:100%;max-width:none}.openlingua-taxonomies .column-term,.openlingua-taxonomies .column-taxonomy,.openlingua-taxonomies .column-language{width:auto}}

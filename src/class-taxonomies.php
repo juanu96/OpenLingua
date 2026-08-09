@@ -63,7 +63,11 @@ final class Taxonomies {
 				$target_id = absint( $group[ $code ] ?? 0 );
 				$target = $target_id ? get_term( $target_id, $term->taxonomy ) : null;
 				if ( is_wp_error( $target ) ) { $target = null; $target_id = 0; }
-				$payload = array( 'sourceId' => $term->term_id, 'targetId' => $target_id, 'taxonomy' => $term->taxonomy, 'language' => $code, 'languageName' => $language['name'], 'flag' => $language['flag'] ?? '🌐', 'sourceName' => $term->name, 'name' => $target ? $target->name : $term->name, 'slug' => $target ? $target->slug : $term->slug, 'description' => $target ? $target->description : $term->description );
+				$seo_fields = array();
+				foreach ( SEO::term_translation_fields( $term->term_id, $target_id ) as $provider => $group ) {
+					foreach ( $group['fields'] as $field ) { $seo_fields[] = array( 'provider' => $group['name'], 'id' => $field['id'], 'label' => $field['label'], 'source' => $field['source'], 'target' => $field['target'] ); }
+				}
+				$payload = array( 'sourceId' => $term->term_id, 'targetId' => $target_id, 'taxonomy' => $term->taxonomy, 'language' => $code, 'languageName' => $language['name'], 'flag' => $language['flag'] ?? '🌐', 'sourceName' => $term->name, 'name' => $target ? $target->name : $term->name, 'slug' => $target ? $target->slug : $term->slug, 'description' => $target ? $target->description : $term->description, 'seoFields' => $seo_fields );
 				/* translators: %s: language name. */
 				$edit_label = sprintf( __( 'Edit %s translation', 'openlingua' ), $language['name'] );
 				/* translators: %s: language name. */
@@ -83,7 +87,7 @@ final class Taxonomies {
 	private static function modal( $return_to ) {
 		echo '<div class="openlingua-taxonomy-modal" data-openlingua-taxonomy-modal hidden><div class="openlingua-taxonomy-modal__backdrop" data-openlingua-taxonomy-close></div><section class="openlingua-taxonomy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="openlingua-taxonomy-modal-title"><header><div><small>' . esc_html__( 'Taxonomy translation', 'openlingua' ) . '</small><h2 id="openlingua-taxonomy-modal-title" data-openlingua-taxonomy-title></h2></div><button type="button" class="button-link" data-openlingua-taxonomy-close aria-label="' . esc_attr__( 'Close', 'openlingua' ) . '"><span class="dashicons dashicons-no-alt"></span></button></header><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_save_term_translation"><input type="hidden" name="source_id"><input type="hidden" name="target_id"><input type="hidden" name="taxonomy"><input type="hidden" name="language"><input type="hidden" name="return_to" value="' . esc_attr( $return_to ) . '">';
 		wp_nonce_field( 'openlingua_save_term_translation', 'openlingua_taxonomy_nonce' );
-		echo '<div class="openlingua-taxonomy-modal__body"><p class="openlingua-taxonomy-modal__source"><span>' . esc_html__( 'Original', 'openlingua' ) . '</span><strong data-openlingua-taxonomy-source></strong></p><label>' . esc_html__( 'Name', 'openlingua' ) . '<input type="text" name="name" required></label><label>' . esc_html__( 'URL slug', 'openlingua' ) . '<input type="text" name="slug"><small data-openlingua-taxonomy-url></small></label><label>' . esc_html__( 'Description', 'openlingua' ) . '<textarea name="description" rows="6"></textarea></label></div><footer><button type="button" class="button" data-openlingua-taxonomy-close>' . esc_html__( 'Cancel', 'openlingua' ) . '</button><button type="submit" class="button button-primary">' . esc_html__( 'Save translation', 'openlingua' ) . '</button></footer></form></section></div>';
+		echo '<div class="openlingua-taxonomy-modal__body"><p class="openlingua-taxonomy-modal__source"><span>' . esc_html__( 'Original', 'openlingua' ) . '</span><strong data-openlingua-taxonomy-source></strong></p><label>' . esc_html__( 'Name', 'openlingua' ) . '<input type="text" name="name" required></label><label>' . esc_html__( 'URL slug', 'openlingua' ) . '<input type="text" name="slug"><small data-openlingua-taxonomy-url></small></label><label>' . esc_html__( 'Description', 'openlingua' ) . '<textarea name="description" rows="6"></textarea></label><div class="openlingua-taxonomy-modal__seo" data-openlingua-taxonomy-seo hidden><h3>' . esc_html__( 'SEO metadata', 'openlingua' ) . '</h3><div data-openlingua-taxonomy-seo-fields></div></div></div><footer><button type="button" class="button" data-openlingua-taxonomy-close>' . esc_html__( 'Cancel', 'openlingua' ) . '</button><button type="submit" class="button button-primary">' . esc_html__( 'Save translation', 'openlingua' ) . '</button></footer></form></section></div>';
 	}
 
 	public static function save_translation() {
@@ -117,6 +121,8 @@ final class Taxonomies {
 		}
 		if ( is_wp_error( $result ) ) { wp_die( esc_html( $result->get_error_message() ) ); }
 		Translations::assign( 'term', $target_id, $language, $group, $row ? $row->language : Languages::default_code() );
+		$seo_translation = isset( $_POST['seo_translation'] ) && is_array( $_POST['seo_translation'] ) ? array_map( 'sanitize_textarea_field', wp_unslash( $_POST['seo_translation'] ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Array values are sanitized immediately after nonce verification.
+		SEO::save_term_translation_fields( $source_id, $target_id, $seo_translation );
 		$return_to = isset( $_POST['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['return_to'] ) ), '' ) : '';
 		wp_safe_redirect( add_query_arg( 'updated', '1', $return_to ?: admin_url( 'admin.php?page=openlingua-taxonomies' ) ) ); exit;
 	}

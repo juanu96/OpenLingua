@@ -4,6 +4,28 @@
 	if (!modal) return;
 	var form = modal.querySelector('form');
 	var previousFocus = null;
+	var seoSection = modal.querySelector('[data-openlingua-taxonomy-seo]');
+	var seoFields = modal.querySelector('[data-openlingua-taxonomy-seo-fields]');
+
+	function renderSeo(fields) {
+		seoFields.textContent = '';
+		(fields || []).forEach(function (field) {
+			var label = document.createElement('label');
+			var title = document.createElement('span');
+			var source = document.createElement('small');
+			var input = document.createElement('textarea');
+			title.textContent = field.provider + ' — ' + field.label;
+			source.textContent = field.source || '';
+			input.name = 'seo_translation[' + field.id + ']';
+			input.rows = /description/i.test(field.label) ? 4 : 2;
+			input.value = field.target || '';
+			label.appendChild(title);
+			label.appendChild(source);
+			label.appendChild(input);
+			seoFields.appendChild(label);
+		});
+		seoSection.hidden = !(fields || []).length;
+	}
 
 	function close() {
 		modal.hidden = true;
@@ -23,6 +45,7 @@
 			form.elements.name.value = data.name || '';
 			form.elements.slug.value = data.slug || '';
 			form.elements.description.value = data.description || '';
+			renderSeo(data.seoFields);
 			modal.querySelector('[data-openlingua-taxonomy-title]').textContent = data.flag + ' ' + data.languageName;
 			modal.querySelector('[data-openlingua-taxonomy-source]').textContent = data.sourceName;
 			modal.querySelector('[data-openlingua-taxonomy-url]').textContent = '/' + (data.language || '') + '/…/' + (data.slug || '') + '/';
