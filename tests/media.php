@@ -7,12 +7,14 @@ namespace {
 		'openlingua_language_settings' => array( 'media_mode' => 'unified' ),
 	);
 	$GLOBALS['media_assignments'] = array();
+	$GLOBALS['media_meta'] = array();
 	function add_action() {}
 	function add_filter() {}
 	function sanitize_key( $value ) { return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $value ) ); }
 	function absint( $value ) { return abs( (int) $value ); }
 	function get_option( $key, $default = false ) { return $GLOBALS['media_options'][ $key ] ?? $default; }
 	function is_admin() { return true; }
+	function get_post_meta( $id, $key ) { return $GLOBALS['media_meta'][ $id ][ $key ] ?? array(); }
 	class Media_WPDB {
 		public $posts = 'wp_posts';
 		public function prepare( $query, ...$args ) {
@@ -33,6 +35,8 @@ namespace OpenLingua {
 		public static function all() { return $GLOBALS['media_options']['openlingua_languages']; }
 		public static function is_valid( $code ) { return isset( self::all()[ $code ] ); }
 		public static function default_code() { return $GLOBALS['media_options']['openlingua_default_language']; }
+		public static function current() { return 'es'; }
+		public static function fallback_chain( $code ) { return in_array( $code, array( 'es', 'fr' ), true ) ? array( $code, 'en' ) : array( $code ); }
 	}
 	class Translations { public static function assign( $type, $id, $language ) { $GLOBALS['media_assignments'][] = compact( 'type', 'id', 'language' ); } }
 }
@@ -77,5 +81,8 @@ namespace {
 	$query = new Media_Query( array( 'openlingua_media_library' => 'unified' ) );
 	$clauses = \OpenLingua\Modules\Media::filter_clauses( array( 'where' => '' ), $query );
 	media_assert( false !== strpos( $clauses['where'], 'source_language' ), 'collapses legacy translated attachment records in unified mode' );
+	$GLOBALS['media_meta'][42]['_openlingua_media_texts'] = array( 'en' => array( 'alt' => 'English house' ), 'es' => array( 'alt' => 'Casa en español', 'caption' => 'Vista exterior' ) );
+	media_assert( 'Casa en español' === \OpenLingua\Modules\Media::translated_text( 42, 'alt', 'es', 'Default alt' ), 'returns translated media text without duplicating the attachment' );
+	media_assert( 'English house' === \OpenLingua\Modules\Media::translated_text( 42, 'alt', 'fr', 'Default alt' ), 'uses the configured media-text fallback chain' );
 	echo "All OpenLingua media tests passed.\n";
 }

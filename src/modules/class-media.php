@@ -13,12 +13,17 @@ defined( 'ABSPATH' ) || exit;
 final class Media implements Module {
 	const MODE_UNIFIED = 'unified';
 	const MODE_SEPARATE = 'separate';
+	const TEXT_META = '_openlingua_media_texts';
 
 	public static function hooks() {
 		add_action( 'add_attachment', array( __CLASS__, 'assign_uploaded_attachment' ) );
 		add_action( 'pre_get_posts', array( __CLASS__, 'prepare_admin_query' ), 4 );
 		add_filter( 'ajax_query_attachments_args', array( __CLASS__, 'prepare_modal_query' ) );
 		add_filter( 'posts_clauses', array( __CLASS__, 'filter_clauses' ), 8, 2 );
+		add_filter( 'attachment_fields_to_edit', array( __CLASS__, 'attachment_fields' ), 20, 2 );
+		add_filter( 'attachment_fields_to_save', array( __CLASS__, 'save_attachment_fields' ), 20, 2 );
+		add_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'image_attributes' ), 20, 2 );
+		add_filter( 'wp_get_attachment_caption', array( __CLASS__, 'caption' ), 20, 2 );
 	}
 
 	public static function mode() {
@@ -35,6 +40,62 @@ final class Media implements Module {
 		if ( self::MODE_SEPARATE !== self::mode() || ! $attachment_id ) { return; }
 		$language = self::current_admin_language();
 		Translations::assign( 'post', absint( $attachment_id ), 'all' === $language ? Languages::default_code() : $language );
+	}
+
+	public static function attachment_fields( $fields, $attachment ) {
+		$language = self::current_admin_language();
+		if ( 'all' === $language ) { $language = Languages::default_code(); }
+		$language_name = Languages::all()[ $language ]['name'] ?? strtoupper( $language );
+		$defaults = array(
+			'alt' => (string) get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
+			'title' => (string) $attachment->post_title,
+			'caption' => (string) $attachment->post_excerpt,
+			'description' => (string) $attachment->post_content,
+		);
+		foreach ( $defaults as $key => $fallback ) {
+			$fields[ 'openlingua_' . $key ] = array(
+				'label' => sprintf( __( '%1$s (%2$s)', 'openlingua' ), ucfirst( $key ), $language_name ),
+				'input' => in_array( $key, array( 'caption', 'description' ), true ) ? 'textarea' : 'text',
+				'value' => self::translated_text( $attachment->ID, $key, $language, $fallback ),
+				'helps' => __( 'Stored for this language without duplicating the media file.', 'openlingua' ),
+			);
+		}
+		return $fields;
+	}
+
+	public static function save_attachment_fields( $post, $attachment ) {
+		$attachment_id = absint( $post['ID'] ?? 0 );
+		if ( ! $attachment_id || ! current_user_can( 'edit_post', $attachment_id ) ) { return $post; }
+		$language = self::current_admin_language();
+		if ( 'all' === $language ) { $language = Languages::default_code(); }
+		$texts = (array) get_post_meta( $attachment_id, self::TEXT_META, true );
+		foreach ( array( 'alt', 'title', 'caption', 'description' ) as $key ) {
+			$field = 'openlingua_' . $key;
+			if ( ! array_key_exists( $field, $attachment ) ) { continue; }
+			$texts[ $language ][ $key ] = 'description' === $key ? wp_kses_post( $attachment[ $field ] ) : sanitize_textarea_field( $attachment[ $field ] );
+		}
+		update_post_meta( $attachment_id, self::TEXT_META, $texts );
+		return $post;
+	}
+
+	public static function translated_text( $attachment_id, $field, $language = '', $fallback = '' ) {
+		$texts = (array) get_post_meta( absint( $attachment_id ), self::TEXT_META, true );
+		foreach ( Languages::fallback_chain( $language ?: Languages::current() ) as $candidate ) {
+			if ( isset( $texts[ $candidate ][ $field ] ) && '' !== trim( (string) $texts[ $candidate ][ $field ] ) ) { return (string) $texts[ $candidate ][ $field ]; }
+		}
+		return (string) $fallback;
+	}
+
+	public static function image_attributes( $attributes, $attachment ) {
+		if ( ! $attachment ) { return $attributes; }
+		$attributes['alt'] = self::translated_text( $attachment->ID, 'alt', '', $attributes['alt'] ?? '' );
+		$title = self::translated_text( $attachment->ID, 'title' );
+		if ( '' !== $title ) { $attributes['title'] = $title; }
+		return $attributes;
+	}
+
+	public static function caption( $caption, $attachment_id ) {
+		return self::translated_text( $attachment_id, 'caption', '', $caption );
 	}
 
 	public static function prepare_admin_query( $query ) {
