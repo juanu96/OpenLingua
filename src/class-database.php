@@ -4,8 +4,10 @@ namespace OpenLingua;
 defined( 'ABSPATH' ) || exit;
 
 final class Database {
+	const SCHEMA_VERSION = '2';
+
 	public static function maybe_upgrade() {
-		if ( OPENLINGUA_VERSION !== get_option( 'openlingua_db_version' ) ) {
+		if ( self::SCHEMA_VERSION !== (string) get_option( 'openlingua_db_version', '' ) ) {
 			self::activate();
 			update_option( 'openlingua_flush_rewrite_rules', 1 );
 		}
@@ -37,6 +39,7 @@ final class Database {
 
 	private static function install() {
 		global $wpdb;
+		$previous_schema = (string) get_option( 'openlingua_db_version', '' );
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset = $wpdb->get_charset_collate();
@@ -110,10 +113,26 @@ final class Database {
 		if ( ! get_option( 'openlingua_language_settings' ) ) {
 			add_option( 'openlingua_language_settings', array( 'url_mode' => 'directory', 'domains' => array(), 'admin_language' => 'site-default', 'hidden_languages' => array(), 'browser_redirect' => 'off', 'media_mode' => 'unified', 'switcher' => array( 'show_flag' => true, 'show_name' => true, 'show_native_name' => false, 'show_current' => true, 'dropdown' => false, 'missing' => 'home', 'footer' => false, 'menu_locations' => array(), 'menu_position' => 'last' ) ) );
 		}
-		update_option( 'openlingua_db_version', OPENLINGUA_VERSION );
+		self::run_migrations( $previous_schema );
+		update_option( 'openlingua_db_version', self::SCHEMA_VERSION, false );
 		foreach ( array( 'administrator', 'editor' ) as $role_name ) {
 			$role = get_role( $role_name );
 			if ( $role ) { $role->add_cap( 'openlingua_translate' ); }
+		}
+	}
+
+	/** Runs data migrations after dbDelta has made the current schema available. */
+	private static function run_migrations( $previous_schema ) {
+		$completed = (array) get_option( 'openlingua_completed_migrations', array() );
+		$migrations = array(
+			'2-normalize-schema-version' => static function ( $from ) { unset( $from ); },
+		);
+		foreach ( $migrations as $migration => $callback ) {
+			if ( in_array( $migration, $completed, true ) ) { continue; }
+			$callback( $previous_schema );
+			$completed[] = $migration;
+			update_option( 'openlingua_completed_migrations', array_values( array_unique( $completed ) ), false );
+			do_action( 'openlingua_database_migrated', $migration, $previous_schema, self::SCHEMA_VERSION );
 		}
 	}
 }
